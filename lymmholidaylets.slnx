@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/api/">
+    <Project Path="src/lymmholidaylets.api/lymmholidaylets.api.csproj" />
+  </Folder>
+  <Folder Name="/solution/">
+    <File Path="docker-compose.yml" />
+  </Folder>
+  <Folder Name="/ui/" />
+</Solution>
