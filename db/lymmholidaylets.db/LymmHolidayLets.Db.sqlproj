@@ -184,7 +184,7 @@
   <ItemGroup>
     <None Include="LymmHolidayLets.Db.publish.xml" />
     <None Include="LymmHolidayLets.Db.nuspec" />
-    <None Include="Snapshots\LymmHolidayLets.Db_20230923_17-05-37.dacpac" />
+    <None Include="Snapshots\LymmHolidayLets.Db.dacpac" />
     <None Include="LymmHolidayLets.Db.dacpac" />
   </ItemGroup>
   <ItemGroup>

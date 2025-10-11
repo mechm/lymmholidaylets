@@ -3,7 +3,16 @@
     <Project Path="src/lymmholidaylets.api/lymmholidaylets.api.csproj" />
   </Folder>
   <Folder Name="/db/">
+    <File Path="db/deploy-dacpac.sh" />
     <File Path="db/Dockerfile" />
+    <File Path="db/entrypoint.sh" />
+    <File Path="db/setup.sql" />
+  </Folder>
+  <Folder Name="/db/lymmholidaylets.db/">
+    <Project Path="db/lymmholidaylets.db/LymmHolidayLets.Db.sqlproj" Id="ef432e7a-c62c-41bc-8257-d917d54d4de2">
+      <Build />
+      <Deploy />
+    </Project>
   </Folder>
   <Folder Name="/solution/">
     <File Path="docker-compose.yml" />
