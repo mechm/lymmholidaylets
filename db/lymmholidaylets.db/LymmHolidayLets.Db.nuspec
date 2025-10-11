@@ -1,0 +1,12 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>LymmHolidayLets.Db</id>
+    <version>1.0.0</version>
+    <authors>Matt Chambers</authors>
+    <owners>Matt Chambers</owners>  
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>LymmHolidayLets Db</description>
+    <releaseNotes>LymmHolidayLets Db</releaseNotes>
+  </metadata>
+</package>

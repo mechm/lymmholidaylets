@@ -1,0 +1,9 @@
+﻿CREATE PROCEDURE [dbo].[FAQ_Delete] 
+	@ID tinyint
+AS 
+BEGIN
+	SET NOCOUNT ON; 
+
+	DELETE [dbo].[FAQ] WHERE ID = @ID
+
+END

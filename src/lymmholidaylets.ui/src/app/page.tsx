@@ -4,13 +4,17 @@ import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from
 // This is the simplest way to prevent fetching at build time.
 export const dynamic = 'force-dynamic';
 
-// The URL uses the Docker service name, as required by Docker networking
-const API_URL = 'http://lymmholidaylets-api:80/weatherforecast';
+// ----------------------------------------------------------------------
+// UPDATED: Use an environment variable with a safe local fallback.
+// Fallback port (8080) should match your local .NET API port when not in Docker.
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+const FULL_API_URL = `${API_BASE_URL}/weatherforecast`;
+// ----------------------------------------------------------------------
 
 async function getWeatherData() {
     try {
         // This fetch runs *at runtime* when a user requests the page
-        const response = await fetch(API_URL, {
+        const response = await fetch(FULL_API_URL, {
             // Ensure no caching is performed, reinforcing the dynamic behavior
             cache: 'no-store',
         });
@@ -26,8 +30,6 @@ async function getWeatherData() {
         return null; // Handle failure gracefully
     }
 }
-
-
 
 export default async function Page() {
     const data = await getWeatherData();
@@ -48,18 +50,4 @@ export default async function Page() {
             )}
         </main>
     );
-
-  ////return (<>Hello world</>)
-  //  //const data = await fetch('http://localhost:8080/weatherforecast')
-  //  const data = await fetch('http://lymmholidaylets-api-1:8080/weatherforecast');
-  // const posts = await data.json()
-  // return (
-  //     <ul>
-  //     {
-  //       posts.map((post: { date: string;}) => (
-  //         <li key={post.date}>{post.date}</li>
-  //       ))
-  //     }
-  //   </ul>
-  // )
 }

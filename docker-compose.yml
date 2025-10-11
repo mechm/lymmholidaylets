@@ -1,6 +1,20 @@
-version: '3.8'
-
 services:
+  mssql:
+    # Build the custom image using the Dockerfile in the 'db' subdirectory
+    build: ./db
+    container_name: mssql_db
+    restart: always
+    environment:
+      # CRITICAL: These must be set and match the password used in entrypoint.sh
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Password123" 
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      # Persist data using a named volume
+      - mssql_data:/var/opt/mssql
+
   lymmholidaylets-api:
     build:
       context: .
@@ -9,7 +23,7 @@ services:
       - "8080:80"
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
-    healthcheck: # <-- 1. Define the health check
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"] # Or the correct health endpoint
       interval: 10s
       timeout: 5s
@@ -25,8 +39,11 @@ services:
     ports:
       - "3003:3000" 
     environment:
-      NEXT_PUBLIC_API_URL: "http://lymmholidaylets-api:80"
+      API_BASE_URL: http://lymmholidaylets-api:80 
     depends_on:
       lymmholidaylets-api:
         condition: service_healthy
     command: npm run start
+
+volumes:
+  mssql_data:

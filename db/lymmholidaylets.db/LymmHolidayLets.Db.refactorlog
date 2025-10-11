@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="a356ccf8-6352-4c95-b214-5391c870ab34" ChangeDateTime="05/08/2023 12:46:12">
+    <Property Name="ElementName" Value="[dbo].[Calendar].[MinimumStat]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Calendar]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="MinimumStay" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="477c77bd-67db-4b79-b03f-5f89bcb945e4" ChangeDateTime="06/13/2023 19:43:35">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[CheckoutCouponID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NightlyCheckoutCouponID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="c0b868da-7555-4d2c-96f6-ca93b68f630f" ChangeDateTime="06/13/2023 19:52:19">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[StripeUnitPrice]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="StripeDefaultUnitPrice" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3c58c0a7-040a-468e-b34b-d9f356affff8" ChangeDateTime="06/13/2023 19:53:29">
+    <Property Name="ElementName" Value="[dbo].[CheckoutAdditionalProduct].[StripeUnitPrice]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[CheckoutAdditionalProduct]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="StripeDefaultUnitPrice" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="6a278094-7dfa-46a6-8107-c6cf65b5a219" ChangeDateTime="06/14/2023 19:36:11">
+    <Property Name="ElementName" Value="[dbo].[CheckoutCoupon].[CheckoutCouponID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[CheckoutCoupon]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CouponID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="a40a132e-ba64-4cd9-b994-4131912734f1" ChangeDateTime="06/14/2023 19:36:45">
+    <Property Name="ElementName" Value="[dbo].[Property].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Property]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PropertyID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="05c9881f-0f62-49d9-9f22-7632a13fc990" ChangeDateTime="06/14/2023 19:39:14">
+    <Property Name="ElementName" Value="[dbo].[Property].[PropertyID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Property]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="fc9b9cbd-7f71-4681-9aff-37b2032bb679" ChangeDateTime="06/14/2023 19:39:20">
+    <Property Name="ElementName" Value="[dbo].[CheckoutCoupon].[CouponID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[CheckoutCoupon]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="1e673714-49a7-4386-8838-39861f1d115d" ChangeDateTime="06/14/2023 19:39:33">
+    <Property Name="ElementName" Value="[dbo].[Calendar].[CalendarId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Calendar]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="eaaea233-009f-4c74-90c1-01ce02d7ff76" ChangeDateTime="06/14/2023 19:39:40">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[CheckoutID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Id" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="32d5cd01-d74e-4d16-b957-5f4cb9ec6e41" ChangeDateTime="06/14/2023 19:39:48">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="0f05007b-7422-4b40-9c8e-1f75087d60b5" ChangeDateTime="06/14/2023 19:39:54">
+    <Property Name="ElementName" Value="[dbo].[Calendar].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Calendar]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="5a5171c1-30ef-473a-b0b7-bb7ebd730a7e" ChangeDateTime="06/14/2023 19:40:08">
+    <Property Name="ElementName" Value="[dbo].[CheckoutAdditionalProduct].[CheckoutAdditionalProductID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[CheckoutAdditionalProduct]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="d2f4b3e6-41d9-43c8-b8fe-08588aad81fb" ChangeDateTime="06/14/2023 19:42:17">
+    <Property Name="ElementName" Value="[dbo].[PropertyCoupon].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[PropertyCoupon]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PropertyID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="1a63728e-bcaf-437d-82d3-6446acb38da3" ChangeDateTime="06/14/2023 19:46:19">
+    <Property Name="ElementName" Value="[dbo].[PropertyCoupon].[CouponID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[PropertyCoupon]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NightCouponID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="c177c188-bd7f-485d-80e7-ddc3b6de8d08" ChangeDateTime="06/14/2023 19:48:10">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[NightlyCheckoutCouponID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NightlyCouponID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="e7c5c46a-3736-4b7a-a5c9-8f11a8b8b373" ChangeDateTime="06/14/2023 19:58:01">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[NightlyCouponID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="StripeNightCouponID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="0f107c2d-57db-41b5-b39d-b425ad03e48a" ChangeDateTime="06/14/2023 20:03:45">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[StripeNightPercentage]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="NightPercentage" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="55b776f3-ba65-4dbc-ab94-819b3bb67c8f" ChangeDateTime="06/14/2023 20:05:46">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[NightPercentage]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="StripeNightPercentage" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="90672cd1-9153-422f-8e39-2ff9de636a78" ChangeDateTime="06/17/2023 19:19:35">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[StripeDefaultUnitPrice]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="StripeNightDefaultUnitPrice" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="9674d7d1-6866-4a33-a735-03689653936e" ChangeDateTime="06/17/2023 19:19:37">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[StripeDefaultPriceID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="StripeNightDefaultPriceID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="dc018f75-bab9-4f0e-8ec5-0f5e33bd841a" ChangeDateTime="06/17/2023 19:19:39">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[StripeProductID]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="StripeNightProductID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="ab8b72c6-b2c9-46d2-b78f-c0ee15ed1247" ChangeDateTime="06/21/2023 19:42:06">
+    <Property Name="ElementName" Value="[dbo].[PropertyAdditionalProduct].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[PropertyAdditionalProduct]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PropertyID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="be42d767-afbc-488e-b65b-0096f313e14c" ChangeDateTime="06/21/2023 19:43:54">
+    <Property Name="ElementName" Value="[dbo].[PropertyAdditionalProduct].[Quantity]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[PropertyAdditionalProduct]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="AdditionalProductQuantity" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b1f8e10e-038a-4b32-af85-1b0ded36d80c" ChangeDateTime="07/19/2023 19:21:09">
+    <Property Name="ElementName" Value="[dbo].[Checkout].[DateTime]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Checkout]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Created" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="1fd6122b-f7bc-4be6-88b6-999af9db089c" ChangeDateTime="08/13/2023 09:58:21">
+    <Property Name="ElementName" Value="[dbo].[Booking].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Booking]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ID" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b65cc842-c355-4e2f-9436-cf5a78dfb955" ChangeDateTime="09/03/2023 10:07:03">
+    <Property Name="ElementName" Value="[dbo].[Booking].[Date]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[Booking]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CheckinDate" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3b76be06-2bd4-42fc-b985-29b59c0c4585" ChangeDateTime="09/16/2023 16:23:24">
+    <Property Name="ElementName" Value="[dbo].[ICal].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[ICal]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ID" />
+  </Operation>
+</Operations>

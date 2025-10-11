@@ -1,0 +1,193 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>LymmHolidayLets.Db</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{ef432e7a-c62c-41bc-8257-d917d54d4de2}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>LymmHolidayLets.Db</RootNamespace>
+    <AssemblyName>LymmHolidayLets.Db</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="dbo" />
+    <Folder Include="dbo\Tables" />
+    <Folder Include="Snapshots" />
+    <Folder Include="dbo\Stored Procedures\" />
+    <Folder Include="dbo\User Defined Types\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="dbo\Tables\Calendar.sql" />
+    <Build Include="dbo\Tables\Checkout.sql" />
+    <Build Include="dbo\Tables\PropertyNightCoupon.sql" />
+    <Build Include="dbo\Tables\Property.sql" />
+    <Build Include="dbo\Tables\PropertyAdditionalProduct.sql" />
+    <Build Include="dbo\Stored Procedures\Checkout_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Checkout_Update.sql" />
+    <Build Include="dbo\Tables\Booking.sql" />
+    <Build Include="dbo\Stored Procedures\Booking_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_Update.sql" />
+    <Build Include="dbo\Tables\Page.sql" />
+    <Build Include="dbo\Tables\CalendarRange.sql" />
+    <Build Include="dbo\Stored Procedures\Checkout_GetByPropertyID_Date.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_DateRange.sql" />
+    <Build Include="dbo\Stored Procedures\Booking_Calendar_Upsert.sql" />
+    <PostDeploy Include="Script.PostDeployment.sql" />
+    <Build Include="dbo\Tables\AspNetUserTokens.sql" />
+    <Build Include="dbo\Tables\AspNetUsers.sql" />
+    <Build Include="dbo\Tables\AspNetUserRoles.sql" />
+    <Build Include="dbo\Tables\AspNetUserLogins.sql" />
+    <Build Include="dbo\Tables\AspNetUserClaims.sql" />
+    <Build Include="dbo\Tables\AspNetRoles.sql" />
+    <Build Include="dbo\Tables\AspNetRoleClaims.sql" />
+    <Build Include="dbo\Tables\__EFMigrationsHistory.sql" />
+    <Build Include="dbo\Tables\ICal.sql" />
+    <Build Include="dbo\Stored Procedures\ICalBooking_Available_GetByPropertyID.sql" />
+    <Build Include="dbo\Stored Procedures\ICal_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Property_Booking_GetByID.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_Price_GetByPropertyID_Date.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_GetByPropertyID_Date.sql" />
+    <Build Include="dbo\Stored Procedures\Available_GetByPropertyID.sql" />
+    <Build Include="dbo\Stored Procedures\Property_Detail_GetByID.sql" />
+    <Build Include="dbo\Tables\SiteMap.sql" />
+    <Build Include="dbo\Stored Procedures\Email_Enquiry_Update.sql" />
+    <Build Include="dbo\Stored Procedures\Email_Enquiry_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\Email_Enquiry_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Email_Enquiry_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\Email_Enquiry_Insert.sql" />
+    <Build Include="dbo\Tables\EmailEnquiry.sql" />
+    <Build Include="dbo\Tables\Template.sql" />
+    <Build Include="dbo\Stored Procedures\Page_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\Page_Exists_GetByTemplateId.sql" />
+    <Build Include="dbo\Stored Procedures\Page_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Page_GetAllSummary.sql" />
+    <Build Include="dbo\Stored Procedures\Page_GetByAliasTitle.sql" />
+    <Build Include="dbo\Stored Procedures\Page_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\Page_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Page_SiteAliasTitle_Exists.sql" />
+    <Build Include="dbo\Stored Procedures\Page_SiteAliasTitle_Exists_ExcludePage.sql" />
+    <Build Include="dbo\Stored Procedures\Page_Update.sql" />
+    <Build Include="dbo\Stored Procedures\SiteMap_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\SiteMap_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\SiteMap_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\SiteMap_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\SiteMap_Update.sql" />
+    <Build Include="dbo\Stored Procedures\SiteMap_Url_Exists.sql" />
+    <Build Include="dbo\Stored Procedures\SiteMap_Url_Exists_ExcludeUrl.sql" />
+    <Build Include="dbo\Stored Procedures\Template_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\Template_Description_Exists.sql" />
+    <Build Include="dbo\Stored Procedures\Template_Description_Exists_ExcludeDescription.sql" />
+    <Build Include="dbo\Stored Procedures\Template_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Template_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\Template_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Template_Update.sql" />
+    <Build Include="dbo\Tables\UrlRedirect.sql" />
+    <Build Include="dbo\Stored Procedures\UrlRedirect_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_Update_Multiple_ID.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_GetByPropertyID.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_GetByID.sql" />
+    <Build Include="dbo\User Defined Types\IDTable.sql" />
+    <Build Include="dbo\Tables\Slideshow.sql" />
+    <Build Include="dbo\Tables\ReviewType.sql" />
+    <Build Include="dbo\Tables\Review.sql" />
+    <Build Include="dbo\Tables\FAQ.sql" />
+    <Build Include="dbo\Stored Procedures\Slideshow_Update.sql" />
+    <Build Include="dbo\Stored Procedures\Slideshow_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Slideshow_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\Slideshow_GetAllSummary.sql" />
+    <Build Include="dbo\Stored Procedures\Slideshow_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Slideshow_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\Review_Update.sql" />
+    <Build Include="dbo\Stored Procedures\Review_Summaries.sql" />
+    <Build Include="dbo\Stored Procedures\Review_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Review_GetByRegistrationCode.sql" />
+    <Build Include="dbo\Stored Procedures\Review_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\Review_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Review_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\FAQ_Update.sql" />
+    <Build Include="dbo\Stored Procedures\FAQ_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\FAQ_GetByID.sql" />
+    <Build Include="dbo\Stored Procedures\FAQ_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\FAQ_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\Booking_Update.sql" />
+    <Build Include="dbo\Stored Procedures\Booking_GetByID.sql" />
+    <Build Include="dbo\Stored Procedures\Booking_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Booking_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\Homepage_GetAll.sql" />
+    <Build Include="dbo\Tables\SubHouseType.sql" />
+    <Build Include="dbo\Tables\Staff.sql" />
+    <Build Include="dbo\Tables\SizeUnitType.sql" />
+    <Build Include="dbo\Tables\RestrictionType.sql" />
+    <Build Include="dbo\Tables\PropertyRestriction.sql" />
+    <Build Include="dbo\Tables\PropertyImage.sql" />
+    <Build Include="dbo\Tables\PropertyFeatureType.sql" />
+    <Build Include="dbo\Tables\HouseType.sql" />
+    <Build Include="dbo\Tables\GeoLocation.sql" />
+    <Build Include="dbo\Tables\FurnishingType.sql" />
+    <Build Include="dbo\Tables\FeatureType.sql" />
+    <Build Include="dbo\Tables\Address.sql" />
+    <Build Include="dbo\Stored Procedures\Staff_Update.sql" />
+    <Build Include="dbo\Stored Procedures\Staff_Insert.sql" />
+    <Build Include="dbo\Stored Procedures\Staff_GetById.sql" />
+    <Build Include="dbo\Stored Procedures\Staff_GetAll.sql" />
+    <Build Include="dbo\Stored Procedures\Staff_Delete.sql" />
+    <Build Include="dbo\Stored Procedures\Property_CheckInCheckOutTime.sql" />
+    <Build Include="dbo\Stored Procedures\Calendar_Update_Property_Date.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="LymmHolidayLets.Db.publish.xml" />
+    <None Include="LymmHolidayLets.Db.nuspec" />
+    <None Include="Snapshots\LymmHolidayLets.Db_20230923_17-05-37.dacpac" />
+    <None Include="LymmHolidayLets.Db.dacpac" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="LymmHolidayLets.Db.refactorlog" />
+  </ItemGroup>
+</Project>

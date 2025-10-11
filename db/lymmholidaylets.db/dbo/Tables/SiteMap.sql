@@ -1,0 +1,7 @@
+﻿CREATE TABLE [dbo].[SiteMap] (
+    [SiteMapId] TINYINT        IDENTITY (1, 1) NOT NULL,
+    [Url]       NVARCHAR (256) NOT NULL,
+    CONSTRAINT [PK_SiteMap] PRIMARY KEY CLUSTERED ([SiteMapId] ASC),
+    CONSTRAINT [U_SiteMap] UNIQUE NONCLUSTERED ([Url] ASC)
+);
+
