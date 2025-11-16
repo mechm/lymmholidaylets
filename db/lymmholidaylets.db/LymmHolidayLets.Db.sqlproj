@@ -184,8 +184,8 @@
   <ItemGroup>
     <None Include="LymmHolidayLets.Db.publish.xml" />
     <None Include="LymmHolidayLets.Db.nuspec" />
-    <None Include="Snapshots\LymmHolidayLets.Db.dacpac" />
     <None Include="LymmHolidayLets.Db.dacpac" />
+    <None Include="Snapshots\LymmHolidayLets.Db.dacpac" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="LymmHolidayLets.Db.refactorlog" />

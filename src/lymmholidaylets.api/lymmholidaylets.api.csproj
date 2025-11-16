@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.11" />
+    <PackageReference Include="HotChocolate.Data" Version="15.1.11" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-rc.1.25451.107" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LymmHolidayLets.Application\LymmHolidayLets.Application.csproj" />
+    <ProjectReference Include="..\lymmholidaylets.infrastructure\LymmHolidayLets.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
