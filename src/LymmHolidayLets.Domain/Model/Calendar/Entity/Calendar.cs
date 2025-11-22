@@ -31,6 +31,8 @@ namespace LymmHolidayLets.Domain.Model.Calendar.Entity
 			BookingID = bookingID;
 		}
 
+		public Calendar() { }
+
 		public int ID { get; init; }
 		public byte PropertyID { get; init; }
 		public DateTime Date { get; init; }

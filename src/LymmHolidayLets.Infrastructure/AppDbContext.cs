@@ -8,16 +8,22 @@ namespace LymmHolidayLets.Infrastructure
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
 
-        public DbSet<Calendar> Calendars { get; set; }
+        public DbSet<CalendarEF> Calendar { get; set; }
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    modelBuilder.Entity<Book>(entity =>
-        //    {
-        //        entity.HasKey(b => b.Id);
-        //        entity.Property(b => b.Title).IsRequired().HasMaxLength(200);
-        //        entity.Property(b => b.Author).HasMaxLength(100);
-        //    });
-        //}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<CalendarEF>(entity =>
+            {
+                entity.HasKey(b => b.ID);
+                entity.Property(b => b.PropertyID).IsRequired();
+                entity.Property(b => b.Date).IsRequired();
+                entity.Property(b => b.Price).HasColumnType("decimal(18,2)");
+                entity.Property(b => b.MinimumStay).IsRequired();
+                entity.Property(b => b.MaximumStay).IsRequired(false);
+                entity.Property(b => b.Available).IsRequired();
+                entity.Property(b => b.Booked).IsRequired();
+                entity.Property(b => b.BookingID).IsRequired(false);
+            });
+        }
     }
 }

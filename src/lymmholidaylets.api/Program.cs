@@ -4,11 +4,14 @@ using LymmHolidayLets.Application.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.Repository;
+using LymmHolidayLets.Domain.Repository.EF;
 using LymmHolidayLets.Infrastructure;
 using LymmHolidayLets.Infrastructure.DataAdapter;
 using LymmHolidayLets.Infrastructure.DependencyInjection;
 using LymmHolidayLets.Infrastructure.Repository;
 using LymmHolidayLets.Infrastructure.Repository.Dapper;
+using LymmHolidayLets.Infrastructure.Repository.EF;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,12 +59,26 @@ builder.Services.AddTransient<IDapperFAQRepository, DapperFAQRepository>();
 builder.Services.AddTransient<IDapperReviewRepository, DapperReviewRepository>();
 builder.Services.AddTransient<IDapperStaffRepository, DapperStaffRepository>();
 
+builder.Services.AddTransient<ICalendarRepositoryEF, CalendarRepositoryEF>();
+
+
 // Infrastructure -- Utilities
 //builder.Services.AddTransient<IEmailService, EmailService>();
 //builder.Services.AddTransient<IFileUploader, FileUploader>();
 
 //builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
 //builder.Services.AddTransient<IViewRenderService, ViewRenderService>();
+
+// register EF Core with SQL logging (development)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("LymmHolidayLets"))
+           // Log SQL commands (filter to database command category to reduce noise)
+           .LogTo(Console.WriteLine, new[] { Microsoft.EntityFrameworkCore.DbLoggerCategory.Database.Command.Name }, 
+                                  Microsoft.Extensions.Logging.LogLevel.Information)
+           // Show parameter values in logs (ONLY for development / debugging)
+           .EnableSensitiveDataLogging()
+           // Provide more detailed errors for debugging
+           .EnableDetailedErrors());
 
 
 var app = builder.Build();
