@@ -1,8 +1,6 @@
 ﻿using LymmHolidayLets.Application.Interface.Query;
-using LymmHolidayLets.Application.Model.Dto;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.Calendar.Entity;
-using LymmHolidayLets.Domain.ReadModel.Calendar;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Domain.Repository.EF;
 
@@ -14,36 +12,54 @@ namespace LymmHolidayLets.Application.Query
         private readonly IDapperCalendarDataAdapter _calendarDataAdapter = calendarDataAdapter;
         private readonly IDapperCalendarRepository _calendarRepository = calendarRepository;
         private readonly ICalendarRepositoryEF _calendarRepositoryEF = calendarRepositoryEF;
-        //public async Task<CalendarDto?> GetCalendarById(int id)
-        public IQueryable<CalendarEF> GetCalendarById(int id)
+
+        public IQueryable<CalendarEF> GetBaseQuery()
         {
-            return _calendarRepositoryEF.GetCalendarByIdAsync(id); ;
-            //var calendar = _calendarRepository.GetById(id);
-            //var calendar = await _calendarRepositoryEF.GetCalendarByIdAsync(id);
-
-            //if (calendar == null)
-            //{
-            //    return null;
-            //}
-
-            //return new CalendarDto
-            //{
-            //    ID = calendar.ID,
-            //    PropertyID = calendar.PropertyID,
-            //    Date = calendar.Date,
-            //    Price = calendar.Price,
-            //    MinimumStay = calendar.MinimumStay,
-            //    MaximumStay = calendar.MaximumStay != null ? (short?)calendar.MaximumStay : null,
-            //    Available = calendar.Available,
-            //    Booked = calendar.Booked,
-            //    BookingID = calendar.BookingID
-            //};
+            return _calendarRepositoryEF.GetBaseQuery();
         }
 
-        //public Task<CalendarEF?> GetByIdEF(int id)
+        public IQueryable<CalendarEF> GetCalendarById(int id)
+        {
+            return _calendarRepositoryEF.GetCalendarByIdAsync(id);
+        }
+
+        // Example Service Layer Method
+        //public async Task<List<CalendarEF>> GetAndProcessCalendar(int id)
         //{
-        //    return _calendarRepositoryEF.GetCalendarByIdAsync(id);
+        //    // The query is still an IQueryable here
+        //    IQueryable<CalendarEF> query = _calendarRepositoryEF.GetCalendarByIdAsync(id);
+
+        //    // EXECUTION HAPPENS HERE. The query is executed asynchronously 
+        //    // while the context is still available.
+        //    return  query.ToList();
         //}
+
+        //public async Task<CalendarDto?> GetCalendarById(int id)
+        //public IQueryable<CalendarEF> GetCalendarById(int id)
+        //{
+        //    //return _calendarRepositoryEF.GetCalendarByIdAsync(id); ;
+        //    var calendar = _calendarRepository.GetById(id);
+        //    //var calendar = await _calendarRepositoryEF.GetCalendarByIdAsync(id);
+
+        //    //if (calendar == null)
+        //    //{
+        //    //    return null;
+        //    //}
+
+        //    //return new CalendarDto
+        //    //{
+        //    //    ID = calendar.ID,
+        //    //    PropertyID = calendar.PropertyID,
+        //    //    Date = calendar.Date,
+        //    //    Price = calendar.Price,
+        //    //    MinimumStay = calendar.MinimumStay,
+        //    //    MaximumStay = calendar.MaximumStay != null ? (short?)calendar.MaximumStay : null,
+        //    //    Available = calendar.Available,
+        //    //    Booked = calendar.Booked,
+        //    //    BookingID = calendar.BookingID
+        //    //};
+        //}
+
 
         public Domain.Model.Calendar.Entity.Calendar? GetById(int id)
         {
