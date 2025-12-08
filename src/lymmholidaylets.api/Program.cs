@@ -25,6 +25,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApiGraphQL();
 
 builder.Services.AddTransient<ICalendarQuery, CalendarQuery>();
+builder.Services.AddTransient<ICalQuery, CalQuery>();
 
 // Data access
 builder.Services.AddTransient<IDatabaseFactory, DatabaseFactory>();
@@ -73,13 +74,14 @@ builder.Services.AddTransient<ICalendarRepositoryEF, CalendarRepositoryEF>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LymmHolidayLets"))
            // Log SQL commands (filter to database command category to reduce noise)
-           .LogTo(Console.WriteLine, new[] { Microsoft.EntityFrameworkCore.DbLoggerCategory.Database.Command.Name }, 
-                                  Microsoft.Extensions.Logging.LogLevel.Information)
+           .LogTo(Console.WriteLine, [DbLoggerCategory.Database.Command.Name], 
+                                  LogLevel.Information)
            // Show parameter values in logs (ONLY for development / debugging)
            .EnableSensitiveDataLogging()
            // Provide more detailed errors for debugging
            .EnableDetailedErrors());
 
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 

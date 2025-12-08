@@ -2,7 +2,7 @@
 
 namespace lymmholidaylets.api.Controllers
 {
-    public class PropertyController : Controller
+    public sealed class PropertyController : Controller
     {
         public IActionResult Index()
         {

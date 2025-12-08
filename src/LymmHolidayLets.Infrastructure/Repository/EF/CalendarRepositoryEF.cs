@@ -21,14 +21,5 @@ namespace LymmHolidayLets.Infrastructure.Repository.EF
             // 🚨 IMPORTANT: NO .Where(), NO .ToList(), NO .FirstOrDefaultAsync()
             return _context.Calendar;
         }
-
-        //public async Task<CalendarEF?> GetCalendarByIdAsync(int id)
-        //{
-        //    // Execute the query immediately while the DbContext is alive.
-        //    // Use FindAsync if you want PK lookup (returns entity or null).
-        //    return await _context.Calendar.FindAsync(id);
-        //    // Alternatively, if you prefer LINQ:
-        //    // return await _context.Calendar.SingleOrDefaultAsync(x => x.ID == id);
-        //}
     }
 }

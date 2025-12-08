@@ -1,16 +1,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy csproj and restore as distinct layers
-COPY src/lymmholidaylets.api/lymmholidaylets.api.csproj lymmholidaylets.api/
-RUN dotnet restore ./lymmholidaylets.api/lymmholidaylets.api.csproj
+# Copy repository (use .dockerignore to exclude bin/ obj/ .git)
+COPY . .
 
-# Copy everything else and build
-WORKDIR /src/lymmholidaylets.api
-COPY src/lymmholidaylets.api/. .
-RUN dotnet publish lymmholidaylets.api.csproj -c Release -o /app/publish
+# Restore using explicit project path
+RUN dotnet restore src/lymmholidaylets.api/lymmholidaylets.api.csproj
 
-# Use the official .NET 10 ASP.NET runtime image for runtime
+# Publish using explicit project path
+RUN dotnet publish src/lymmholidaylets.api/lymmholidaylets.api.csproj -c Release -o /app/publish
+
+# Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .

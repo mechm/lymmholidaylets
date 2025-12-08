@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LymmHolidayLets.Application.Model\LymmHolidayLets.Application.Model.csproj" />
-    <ProjectReference Include="..\lymmholidaylets.domain\LymmHolidayLets.Domain.csproj" />
+    <ProjectReference Include="..\LymmHolidayLets.Domain\LymmHolidayLets.Domain.csproj" />
   </ItemGroup>
 
 </Project>

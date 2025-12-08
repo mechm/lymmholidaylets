@@ -9,7 +9,7 @@ namespace lymmholidaylets.api.GraphQL
         {
             services.AddGraphQLServer()
                     .AddQueryType<CalendarQuery>()
-                  //  .AddMutationType<CalendarMutation>()
+                   // .AddMutationType<CalendarMutation>()
                     .AddFiltering()
                     .AddSorting()
                     .AddProjections();
