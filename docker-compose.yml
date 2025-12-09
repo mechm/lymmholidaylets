@@ -14,6 +14,12 @@ services:
     volumes:
       # Persist data using a named volume
       - mssql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
   lymmholidaylets-api:
     build:
@@ -23,6 +29,10 @@ services:
       - "8080:80"
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__LymmHolidayLets: "Server=mssql,1433;Database=LymmHolidayLets;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;Encrypt=False;"
+    depends_on:
+      mssql:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"] # Or the correct health endpoint
       interval: 10s

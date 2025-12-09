@@ -7,12 +7,8 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperICalDataAdapter : SqlQueryBase, IDapperICalDataAdapter
+    public sealed class DapperICalDataAdapter(DbSession session) : SqlQueryBase(session), IDapperICalDataAdapter
     {
-        public DapperICalDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public IEnumerable<AvailabilityICal> GetICalAvailability(byte propertyId)
         {
             const string procedure = "ICalBooking_Available_GetByPropertyID";
