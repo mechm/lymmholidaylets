@@ -1,11 +1,11 @@
-﻿using lymmholidaylets.api.GraphQL.Mutations;
-using lymmholidaylets.api.GraphQL.Queries;
+﻿using LymmHolidayLets.Api.GraphQL.Mutations;
+using LymmHolidayLets.Api.GraphQL.Queries;
 
-namespace lymmholidaylets.api.GraphQL
+namespace LymmHolidayLets.Api.GraphQL
 {
     public static class GraphQLServiceExtensions
     {
-        public static IServiceCollection AddApiGraphQL(this IServiceCollection services)
+        public static IServiceCollection AddApiGraphQl(this IServiceCollection services)
         {
             services.AddGraphQLServer()
                     .AddQueryType<CalendarQuery>()

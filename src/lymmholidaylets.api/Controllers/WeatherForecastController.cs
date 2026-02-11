@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace lymmholidaylets.api.Controllers
+namespace LymmHolidayLets.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]

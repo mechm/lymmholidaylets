@@ -5,10 +5,10 @@ WORKDIR /src
 COPY . .
 
 # Restore using explicit project path
-RUN dotnet restore src/lymmholidaylets.api/lymmholidaylets.api.csproj
+RUN dotnet restore src/LymmHolidayLets.Api/LymmHolidayLets.Api.csproj
 
 # Publish using explicit project path
-RUN dotnet publish src/lymmholidaylets.api/lymmholidaylets.api.csproj -c Release -o /app/publish
+RUN dotnet publish src/LymmHolidayLets.Api/LymmHolidayLets.Api.csproj -c Release -o /app/publish
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
@@ -17,4 +17,4 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
-ENTRYPOINT ["dotnet", "lymmholidaylets.api.dll"]
+ENTRYPOINT ["dotnet", "LymmHolidayLets.Api.dll"]

@@ -3,16 +3,26 @@
 import { redirect } from 'next/navigation';
 
 // Define the Props type for the dynamic segment [id]
+// interface CalendarPageProps {
+//   params: {
+//     id: string; // The value of the ID
+//   };
+// }
+
+// // Server Component (must be async)
+// export default async function CalendarDownloadPage({ params }: CalendarPageProps) {
+//   const { id } = params;
+  
+// 1. Update the interface to use a Promise
 interface CalendarPageProps {
-  params: {
-    id: string; // The value of the ID
-  };
+  params: Promise<{
+    id: string;
+  }>;
 }
 
-// Server Component (must be async)
+// 2. Await the params inside the Server Component
 export default async function CalendarDownloadPage({ params }: CalendarPageProps) {
-  const { id } = params;
-  
+  const { id } = await params;
   // 1. Construct the target URL (the internal API route)
   const downloadUrl = `/api/ical/${id}`;
   

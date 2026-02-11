@@ -4,7 +4,7 @@
 	{
 		public static (decimal?, int) CalculateApplicableDiscountPercentage(IEnumerable<Domain.ReadModel.Checkout.PropertyNightCoupon> discounts, DateOnly checkIn, DateOnly checkout) 
 		{
-			int noOfNights = checkout.DayNumber - checkIn.DayNumber;
+			var noOfNights = checkout.DayNumber - checkIn.DayNumber;
 
             decimal? percentage = null;
 			short? lastNightMatch = null;

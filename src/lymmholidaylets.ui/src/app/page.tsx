@@ -1,5 +1,8 @@
 import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react"
 
+import  Slideshow from "../components/homepage/Slideshow";
+import WhyChooseUs from "@/components/homepage/WhyChooseUs";
+
 // Tells Next.js to render this page dynamically on every request (SSR behavior)
 // This is the simplest way to prevent fetching at build time.
 export const dynamic = 'force-dynamic';
@@ -31,12 +34,40 @@ async function getWeatherData() {
     }
 }
 
+// Define the shape of a single slide
+interface Slide {
+  url: string;
+  title?: string;
+}
+
+const sliderData: Slide[] = [
+  { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b', title: 'Mountains' },
+  { url: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470', title: 'Lake' },
+];
+
+               const mySlides = [
+  { 
+    imagePath: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b", 
+    imagePathAlt: "Cruise in Caribbean", 
+    captionTitle: "Tropical Escape", 
+    caption: "Book your winter sun now.", 
+    link: "/book/caribbean" 
+  },
+    { 
+    imagePath: "https://images.unsplash.com/photo-1501785888041-af3ef285b470", 
+    imagePathAlt: "Cruise in Caribbean", 
+    captionTitle: "Tropical Escape", 
+    caption: "Book your winter sun now.", 
+    link: "/book/caribbean" 
+  }
+];
+
 export default async function Page() {
     const data = await getWeatherData();
 
     return (
-        <main>
-            <h1>Lymm Holiday Lets - Weather Forecast</h1>
+        <>
+            {/* <h1>Lymm Holiday Lets - Weather Forecast</h1>
             {data ? (
                 <ul>
                     {data.map((item: { date: string; summary: string; temperatureC: string; }) => (
@@ -47,7 +78,20 @@ export default async function Page() {
                 </ul>
             ) : (
                 <p>Loading weather data failed. Please try again later.</p>
-            )}
-        </main>
+            )} */}
+
+{/* 
+               <Slideshow slides={sliderData} /> */}
+
+
+
+<Slideshow slides={mySlides} />
+<WhyChooseUs />
+        </>
+
+
+
+
+
     );
 }

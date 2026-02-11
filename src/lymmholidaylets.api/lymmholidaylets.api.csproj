@@ -4,17 +4,26 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>LymmHolidayLets.Api</RootNamespace>
+    <PackageId>LymmHolidayLets.Api</PackageId>
+    <Authors>LymmHolidayLets.Api</Authors>
+    <Company>LymmHolidayLets.Api</Company>
+    <Product>LymmHolidayLets.Api</Product>
+      <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.11" />
     <PackageReference Include="HotChocolate.Data" Version="15.1.11" />
     <PackageReference Include="Ical.Net" Version="5.1.3" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-rc.1.25451.107" />
+    <!-- Use stable OpenApi package for .NET 10 -->
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+     
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LymmHolidayLets.Application\LymmHolidayLets.Application.csproj" />
+    <ProjectReference Include="..\LymmHolidayLets.Domain\LymmHolidayLets.Domain.csproj" />
     <ProjectReference Include="..\LymmHolidayLets.Infrastructure\LymmHolidayLets.Infrastructure.csproj" />
   </ItemGroup>
 

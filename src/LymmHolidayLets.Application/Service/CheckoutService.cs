@@ -20,46 +20,25 @@ namespace LymmHolidayLets.Application.Service
     // honeypot
     // rate limit
 
-    public sealed class CheckoutSession
+    public sealed class CheckoutSession(string sessionId, DateOnly checkIn, DateOnly checkout)
     {
-        public CheckoutSession(string sessionId, DateOnly checkIn, DateOnly checkout)
-        {
-            SessionId = sessionId;
-            CheckIn = checkIn;
-            Checkout = checkout;
-            Added = DateTime.UtcNow;
-        }
-
-        public string SessionId { get; set; }
-        public DateOnly CheckIn { get; set; }
-        public DateOnly Checkout { get; set; }
-        public DateTime Added { get; set; }
+        public string SessionId { get; set; } = sessionId;
+        public DateOnly CheckIn { get; set; } = checkIn;
+        public DateOnly Checkout { get; set; } = checkout;
+        public DateTime Added { get; set; } = DateTime.UtcNow;
     }
 
-    public sealed class CheckoutService : ICheckoutService
+    public sealed class CheckoutService(
+        ILogger logger,
+        IHttpContextAccessor httpContextAccessor,
+        IManageCheckoutSessionService manageCheckoutSessionService,
+        ICheckoutCommand checkoutCommand,
+        ICheckoutQuery checkoutQuery,
+        IStripeService stripeService)
+        : ICheckoutService
     {
-        private readonly ILogger _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IManageCheckoutSessionService _manageCheckoutSessionService;
-
-        private readonly ICheckoutCommand _checkoutCommand;
-        private readonly ICheckoutQuery _checkoutQuery;
-        private readonly IStripeService _stripeService;
-
-
         // Instantiate a Singleton of the Semaphore with a value of 1. This means that only 1 thread can be granted access at a time.
         private static readonly SemaphoreSlim SemaphoreSlim = new(initialCount: 1, maxCount: 1);
-
-        public CheckoutService(ILogger logger, IHttpContextAccessor httpContextAccessor, IManageCheckoutSessionService manageCheckoutSessionService,
-            ICheckoutCommand checkoutCommand, ICheckoutQuery checkoutQuery, IStripeService stripeService)
-        {
-            _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
-            _manageCheckoutSessionService = manageCheckoutSessionService;
-            _checkoutCommand = checkoutCommand;
-            _checkoutQuery = checkoutQuery;
-            _stripeService = stripeService;
-        }
 
         public (string?, Session?) Checkout(string host, byte propertyId, DateOnly checkIn, DateOnly checkout, short? numberOfAdults, short? numberOfChildren, short? numberOfInfants, bool available = true)
         {
@@ -73,22 +52,22 @@ namespace LymmHolidayLets.Application.Service
                     return (error, null);
                 }
                 
-                Session? session = _stripeService.CreateSession(host, propertyName,product, coupon, additionalProducts, 
+                Session? session = stripeService.CreateSession(host, propertyName,product, coupon, additionalProducts, 
                                                              propertyId, checkIn, checkout, numberOfAdults, numberOfChildren, numberOfInfants);
 
                 if (session == null) return (null, session);
 
-                _manageCheckoutSessionService.AddUpdateSessionCache(session, checkIn, checkout);
+                manageCheckoutSessionService.AddUpdateSessionCache(session, checkIn, checkout);
 
                 return (null, session);                
             }
             catch (InvalidCheckoutDataException ex)
             {
-                _logger.LogError("Error with Checkout", _httpContextAccessor.HttpContext, null, ex);
+                logger.LogError("Error with Checkout", httpContextAccessor.HttpContext, null, ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error with Checkout", _httpContextAccessor.HttpContext, null, ex);
+                logger.LogError("Error with Checkout", httpContextAccessor.HttpContext, null, ex);
             }
 
             return (null, null);
@@ -100,7 +79,7 @@ namespace LymmHolidayLets.Application.Service
             SemaphoreSlim.Wait();
             try
             {
-                CheckoutAggregate? propertyCheckout = _checkoutQuery.GetByPropertyIdAndDate(propertyId, checkIn, checkout, available);
+                CheckoutAggregate? propertyCheckout = checkoutQuery.GetByPropertyIdAndDate(propertyId, checkIn, checkout, available);
 
                 if (propertyCheckout is null)
                 {
@@ -120,7 +99,7 @@ namespace LymmHolidayLets.Application.Service
 
                 decimal additional = propertyCheckout.PropertyAdditionalProduct.Sum(val => val.Quantity * val.StripeDefaultUnitPrice);
 
-                (Product product, Coupon? coupon) = _stripeService.CreateProductAndCoupon(propertyCheckout.PreviousCheckout, 
+                (Product product, Coupon? coupon) = stripeService.CreateProductAndCoupon(propertyCheckout.PreviousCheckout, 
                                                                                             productName, productDescription,
                                                                                             propertyCheckout.TotalNightlyPrice.Value, percentOff);
 
@@ -134,7 +113,7 @@ namespace LymmHolidayLets.Application.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error with Checkout", _httpContextAccessor.HttpContext, null, ex);
+                logger.LogError("Error with Checkout", httpContextAccessor.HttpContext, null, ex);
             }
             finally
             {
@@ -143,7 +122,7 @@ namespace LymmHolidayLets.Application.Service
                 SemaphoreSlim.Release();
             }
 
-            return (null, null, Enumerable.Empty<PropertyAdditionalProduct>(), null, null);
+            return (null, null, [], null, null);
         }
 
 
@@ -153,7 +132,7 @@ namespace LymmHolidayLets.Application.Service
         {
             if (previousCheckout == null)
             {
-                _checkoutCommand.Create(new Model.Command.Checkout(
+                checkoutCommand.Create(new Model.Command.Checkout(
                     propertyId,
                     checkIn,
                     checkout,
@@ -166,7 +145,7 @@ namespace LymmHolidayLets.Application.Service
             }
             else
             {
-                _checkoutCommand.Update(new Model.Command.Checkout(
+                checkoutCommand.Update(new Model.Command.Checkout(
                     previousCheckout.Id,
                     propertyId,
                     checkIn,

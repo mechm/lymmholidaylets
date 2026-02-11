@@ -13,8 +13,20 @@ interface RouteParams {
   };
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  const { id } = params;
+// 1. Define the type where params is a Promise
+type Props = {
+  params: Promise<{ id: string }>
+}
+
+export async function GET(
+  request: NextRequest, 
+  context: Props // 2. Use the new type
+) {
+  // 3. Await the params before using them
+  const { id } = await context.params;
+
+// export async function GET(request: NextRequest, context: { params: { id: string } }) {
+//   const { id } = context.params;
   
   // 1. Construct the URL for the external C# API
  // const externalUrl = `${EXTERNAL_BASE_URL}/${id}`;

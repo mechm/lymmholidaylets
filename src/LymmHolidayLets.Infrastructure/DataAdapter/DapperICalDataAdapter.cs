@@ -16,7 +16,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             try
             {
                 using var connection = _session.Connection;
-                IEnumerable<AvailabilityICal> availability = connection.Query<AvailabilityICal>(procedure,
+                var availability = connection.Query<AvailabilityICal>(procedure,
                     new { PropertyID = propertyId },
                     _session.Transaction, 
                     commandType: CommandType.StoredProcedure);

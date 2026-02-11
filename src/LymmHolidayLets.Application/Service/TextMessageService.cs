@@ -6,24 +6,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace LymmHolidayLets.Application.Service
 {
-    public sealed class TextMessageService : ITextMessageService
+    public sealed class TextMessageService(IConfiguration config, Domain.Interface.ILogger logger) : ITextMessageService
     {
-        private readonly IConfiguration _config;
-        private readonly Domain.Interface.ILogger _logger;
-
-        public TextMessageService(IConfiguration config, Domain.Interface.ILogger logger)
-        {
-            _config = config;
-            _logger = logger;
-        }
-
         public Task SendText(string messageBody, string[] multiNumbers)
 		{
             try
             {
                 foreach (var t in multiNumbers)
                 {
-                    TwilioClient.Init(_config["Twilio:AccountSid"], _config["Twilio:AuthToken"]);
+                    TwilioClient.Init(config["Twilio:AccountSid"], config["Twilio:AuthToken"]);
 
                     var messageOptions = new CreateMessageOptions(
                         new PhoneNumber(t))
@@ -32,17 +23,17 @@ namespace LymmHolidayLets.Application.Service
                         Body = messageBody
                     };
 
-                    MessageResource output = MessageResource.Create(messageOptions);
+                    var output = MessageResource.Create(messageOptions);
 
                     if (output.Status == MessageResource.StatusEnum.Failed)
                     {
-                        _logger.LogError("Unable to send text");
+                        logger.LogError("Unable to send text");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"TextMessageService|SendText|{ex.Message}");
+                logger.LogError($"TextMessageService|SendText|{ex.Message}");
             }
 
             return Task.CompletedTask;

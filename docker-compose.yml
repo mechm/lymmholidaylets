@@ -24,7 +24,7 @@ services:
   lymmholidaylets-api:
     build:
       context: .
-      dockerfile: src/lymmholidaylets.api/Dockerfile
+      dockerfile: src/LymmHolidayLets.Api/Dockerfile
     ports:
       - "8080:80"
     environment:

@@ -1,4 +1,4 @@
-﻿namespace lymmholidaylets.api.GraphQL.Mutations
+﻿namespace LymmHolidayLets.Api.GraphQL.Mutations
 {
     public sealed class CalendarMutation
     {

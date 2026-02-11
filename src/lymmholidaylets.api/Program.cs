@@ -1,4 +1,4 @@
-using lymmholidaylets.api.GraphQL;
+using LymmHolidayLets.Api.GraphQL;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Query;
 using LymmHolidayLets.Domain.DataAdapter;
@@ -8,6 +8,7 @@ using LymmHolidayLets.Domain.Repository.EF;
 using LymmHolidayLets.Infrastructure;
 using LymmHolidayLets.Infrastructure.DataAdapter;
 using LymmHolidayLets.Infrastructure.DependencyInjection;
+using LymmHolidayLets.Infrastructure.Logging;
 using LymmHolidayLets.Infrastructure.Repository;
 using LymmHolidayLets.Infrastructure.Repository.Dapper;
 using LymmHolidayLets.Infrastructure.Repository.EF;
@@ -22,10 +23,13 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddApiGraphQL();
+builder.Services.AddApiGraphQl();
 
 builder.Services.AddTransient<ICalendarQuery, CalendarQuery>();
 builder.Services.AddTransient<ICalQuery, CalQuery>();
+builder.Services.AddTransient<IPageQuery, PageQuery>();
+builder.Services.AddTransient<IHomepageQuery, HomepageQuery>();
+
 
 // Data access
 builder.Services.AddTransient<IDatabaseFactory, DatabaseFactory>();
@@ -69,6 +73,8 @@ builder.Services.AddTransient<ICalendarRepositoryEF, CalendarRepositoryEF>();
 
 //builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
 //builder.Services.AddTransient<IViewRenderService, ViewRenderService>();
+builder.Services.AddTransient<LymmHolidayLets.Domain.Interface.ILogger, NLogger>();
+
 
 // register EF Core with SQL logging (development)
 builder.Services.AddDbContext<AppDbContext>(options =>

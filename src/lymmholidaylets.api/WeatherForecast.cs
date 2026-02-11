@@ -1,4 +1,4 @@
-namespace lymmholidaylets.api
+namespace LymmHolidayLets.Api
 {
     public class WeatherForecast
     {
