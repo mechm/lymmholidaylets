@@ -29,6 +29,8 @@ builder.Services.AddTransient<ICalendarQuery, CalendarQuery>();
 builder.Services.AddTransient<ICalQuery, CalQuery>();
 builder.Services.AddTransient<IPageQuery, PageQuery>();
 builder.Services.AddTransient<IHomepageQuery, HomepageQuery>();
+builder.Services.AddTransient<IReviewQuery, ReviewQuery>();
+builder.Services.AddTransient<IPropertyQuery, PropertyQuery>();
 
 
 // Data access
@@ -65,6 +67,7 @@ builder.Services.AddTransient<IDapperReviewRepository, DapperReviewRepository>()
 builder.Services.AddTransient<IDapperStaffRepository, DapperStaffRepository>();
 
 builder.Services.AddTransient<ICalendarRepositoryEF, CalendarRepositoryEF>();
+builder.Services.AddTransient<LymmHolidayLets.Domain.Repository.EF.IPropertyRepositoryEF, LymmHolidayLets.Infrastructure.Repository.EF.PropertyRepositoryEF>();
 
 
 // Infrastructure -- Utilities

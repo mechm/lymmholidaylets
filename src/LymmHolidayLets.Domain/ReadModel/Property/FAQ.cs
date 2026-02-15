@@ -2,7 +2,7 @@
 {
     public sealed class FAQ
     {
-        public required string Question;
-        public required string Answer;
+        public required string Question { get; set; }
+        public required string Answer { get; set; }
     }
 }

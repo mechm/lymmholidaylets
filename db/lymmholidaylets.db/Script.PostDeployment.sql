@@ -766,3 +766,19 @@ WHEN NOT MATCHED BY SOURCE THEN
  DELETE;
 
 GO
+
+INSERT INTO [dbo].[Review] ([PropertyID],[Company],[Description],[PrivateNote],[Name],[EmailAddress],[Position],[Rating],[Cleanliness],[Accuracy],[Communication],[Location],[Checkin],[Facilities],[Comfort],[Value],[ReviewTypeId],[LinkToView],[ShowOnHomepage],[DateTimeAdded],[RegistrationCode],[DateTimeApproved],[Approved],[Created])
+SELECT 1, N'Booking.com', N'Lovely stay — the property was spotless and in a great location.', N'Internal: verified booking', N'Alice Example', N'alice@example.com', N'Guest', 5, 5, 5, 5, 5, 5, 5, 5, 5, 1, NULL, 1, GETUTCDATE(), '11111111-1111-1111-1111-111111111111', GETUTCDATE(), 1, GETUTCDATE()
+WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Review] WHERE [RegistrationCode] = '11111111-1111-1111-1111-111111111111');
+GO
+
+INSERT INTO [dbo].[Review] ([PropertyID],[Company],[Description],[PrivateNote],[Name],[EmailAddress],[Position],[Rating],[Cleanliness],[Accuracy],[Communication],[Location],[Checkin],[Facilities],[Comfort],[Value],[ReviewTypeId],[LinkToView],[ShowOnHomepage],[DateTimeAdded],[RegistrationCode],[DateTimeApproved],[Approved],[Created])
+SELECT 2, N'Airbnb', N'Great host and fast communication — would return.', N'Internal: promo applied', N'Bob Example', N'bob@example.com', N'Guest', 5, 5, 5, 5, 5, 5, 5, 5, 5, 2, NULL, 0, GETUTCDATE(), '22222222-2222-2222-2222-222222222222', NULL, 0, GETUTCDATE()
+WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Review] WHERE [RegistrationCode] = '22222222-2222-2222-2222-222222222222');
+GO
+
+INSERT INTO [dbo].[Review] ([PropertyID],[Company],[Description],[PrivateNote],[Name],[EmailAddress],[Position],[Rating],[Cleanliness],[Accuracy],[Communication],[Location],[Checkin],[Facilities],[Comfort],[Value],[ReviewTypeId],[LinkToView],[ShowOnHomepage],[DateTimeAdded],[RegistrationCode],[DateTimeApproved],[Approved],[Created])
+SELECT 3, N'Google', N'Superb cottage, very cosy and comfortable for a family weekend.', NULL, N'Carol Example', N'carol@example.com', N'Guest', 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, N'https://example.com/review/3', 0, GETUTCDATE(), '33333333-3333-3333-3333-333333333333', GETUTCDATE(), 1, GETUTCDATE()
+WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Review] WHERE [RegistrationCode] = '33333333-3333-3333-3333-333333333333');
+GO
+

@@ -1,26 +1,162 @@
-@import "tailwindcss";
+/*!* Media Query for Large Desktops *!*/
+/*@media (min-width: 1200px) {*/
+/*    .container {*/
+/*        max-width: 1134px;*/
+/*        margin: 0 auto;*/
+/*    }*/
+/*}*/
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*!*********************************** Start Of Common Css*/
+/************************************!*/
+/*@font-face {*/
+/*    font-family: 'Nunito-Sans-Regular';*/
+/*    src: url('../fonts/Nunito-Sans-Regular.ttf');*/
+/*}*/
+/*@font-face {*/
+/*    font-family: 'Nunito-Sans-Medium';*/
+/*    src: url('../fonts/Nunito-Sans-Medium.ttf');*/
+/*}*/
+/*@font-face {*/
+/*    font-family: 'Nunito-Sans-SemiBold';*/
+/*    src: url('../fonts/Nunito-Sans-SemiBold.ttf');*/
+/*}*/
+/*@font-face {*/
+/*    font-family: 'Nunito-Sans-Bold';*/
+/*    src: url('../fonts/Nunito-Sans-Bold.ttf');*/
+/*}*/
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/*body {*/
+/*    font-family: 'Nunito-Sans-Regular', sans-serif;*/
+/*    font-size: 16px;*/
+/*    color: #4A5364;*/
+/*    line-height: 1.5;*/
+/*    padding: 0;*/
+/*    margin: 0;*/
+/*}*/
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/*h1, h2, h3, h4, h5, h6 {*/
+/*    font-family: 'Nunito-Sans-Bold', sans-serif;*/
+/*    color: #4A5364;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    line-height: 1.1;*/
+/*}*/
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/*h1 { font-size: 40px; }*/
+/*h2 { font-size: 30px; }*/
+/*h3 { font-size: 20px; }*/
+/*h4, h5 { font-size: 12px; }*/
+/*h6 { font-size: 10px; }*/
+
+/*p {*/
+/*    font-family: 'Nunito-Sans-Regular', sans-serif;*/
+/*    font-size: 16px;*/
+/*    margin: 0;*/
+/*}*/
+
+/*p + p {*/
+/*    margin-top: 20px;*/
+/*}*/
+
+/*ul, ol {*/
+/*    list-style-type: none;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*}*/
+
+/*img {*/
+/*    max-width: 100%;*/
+/*    height: auto;*/
+/*    display: block; !* Removes bottom whitespace *!*/
+/*}*/
+
+/*a {*/
+/*    color: #4A5364;*/
+/*    text-decoration: none;*/
+/*    transition: all 0.5s ease-in-out;*/
+/*}*/
+
+/*a:hover, a:focus {*/
+/*    color: #9b9b9b;*/
+/*    text-decoration: none;*/
+/*    outline: none;*/
+/*}*/
+
+/*!*********************************** Utility Classes*/
+/************************************!*/
+/*.dark-grey-color { color: #101319; } !* Corrected spelling from 'drak' *!*/
+/*.dark-grey-bg { background: #101319; }*/
+
+/*.primary-bg { background: #212732; }*/
+/*.secondary-bg { background: #548335; }*/
+/*.white-bg { background: #ffffff; }*/
+/*.light-bg { background: #F3F5F9; }*/
+
+/*.empty-space { padding: 80px 0; }*/
+/*.empty-space-top { padding-top: 80px; }*/
+/*.empty-space-bottom { padding-bottom: 80px; }*/
+
+/*!* Buttons *!*/
+/*.button {*/
+/*    font-family: 'Nunito-Sans-Bold', sans-serif;*/
+/*    font-size: 14px;*/
+/*    line-height: 24px;*/
+/*    text-align: center;*/
+/*    padding: 8px 20px;*/
+/*    display: inline-block;*/
+/*    border: none;*/
+/*    text-transform: uppercase;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.35s ease-in-out;*/
+/*}*/
+
+/*.border-button {*/
+/*    border: 1px solid #101319;*/
+/*}*/
+
+/*.button:hover {*/
+/*    background: #101319;*/
+/*    color: #ffffff;*/
+/*}*/
+
+/*!*********************************** Property / Header UI*/
+/************************************!*/
+/*.header-top { padding: 10px 0; }*/
+
+/*header .bg-dark {*/
+/*    background-color: #212732 !important;*/
+/*}*/
+
+/*!* Profiles & Host *!*/
+/*.profile-image {*/
+/*    width: 72px;*/
+/*    height: 72px;*/
+/*    position: relative;*/
+/*    padding: 2px;*/
+/*    border: 2px solid #61B259;*/
+/*    border-radius: 50%;*/
+/*}*/
+
+/*.profile-image:before {*/
+/*    content: "";*/
+/*    background: #61B259;*/
+/*    width: 14px;*/
+/*    height: 14px;*/
+/*    position: absolute;*/
+/*    bottom: 4px;*/
+/*    right: 4px;*/
+/*    border: 2px solid #fff;*/
+/*    border-radius: 50%;*/
+/*}*/
+
+/*!*********************************** Animations*/
+/************************************!*/
+/*.bounce {*/
+/*    animation: bounce 2s infinite;*/
+/*}*/
+
+/*@keyframes bounce {*/
+/*    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }*/
+/*    40% { transform: translateY(-10px); }*/
+/*    60% { transform: translateY(-5px); }*/
+/*}*/

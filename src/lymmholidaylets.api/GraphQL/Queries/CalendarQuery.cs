@@ -1,13 +1,12 @@
-﻿using HotChocolate;
-using HotChocolate.Data;
-
-using LymmHolidayLets.Application.Interface.Query;
+﻿using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.Model.Calendar.Entity;
 
 namespace LymmHolidayLets.Api.GraphQL.Queries;
+
+[ExtendObjectType("Query")]
 public sealed class CalendarQuery
 {
-
+    
     // The query entry point for fetching a single calendar item by ID.
     // This method is called by the GraphQL execution engine.
     [UseFirstOrDefault] // ⬅️ Tells HotChocolate to execute with .FirstOrDefaultAsync()

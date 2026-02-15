@@ -1,5 +1,4 @@
-﻿using LymmHolidayLets.Api.GraphQL.Mutations;
-using LymmHolidayLets.Api.GraphQL.Queries;
+﻿using LymmHolidayLets.Api.GraphQL.Queries;
 
 namespace LymmHolidayLets.Api.GraphQL
 {
@@ -8,8 +7,9 @@ namespace LymmHolidayLets.Api.GraphQL
         public static IServiceCollection AddApiGraphQl(this IServiceCollection services)
         {
             services.AddGraphQLServer()
-                    .AddQueryType<CalendarQuery>()
-                   // .AddMutationType<CalendarMutation>()
+                    .AddQueryType<Query>()
+                    .AddType<CalendarQuery>()
+                    .AddType<PropertyQuery>()
                     .AddFiltering()
                     .AddSorting()
                     .AddProjections();
