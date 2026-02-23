@@ -1,16 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LymmHolidayLets.Api.Infrastructure.SiteMap;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LymmHolidayLets.Api.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class SiteMapController : Controller
     {
-        /// <summary>
-     /// https://daypicker.dev/selections/disabling-dates
-     /// </summary>
-     /// <returns></returns>
+        // GET api/sitemap/index.xml
+        [HttpGet("index.xml")]
         public IActionResult Index()
         {
-            return View();
+            return new XmlSiteMapIndex();
         }
     }
 }

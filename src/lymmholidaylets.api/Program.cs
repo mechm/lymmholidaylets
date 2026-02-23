@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using LymmHolidayLets.Api.GraphQL;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Query;
@@ -12,14 +14,40 @@ using LymmHolidayLets.Infrastructure.Logging;
 using LymmHolidayLets.Infrastructure.Repository;
 using LymmHolidayLets.Infrastructure.Repository.Dapper;
 using LymmHolidayLets.Infrastructure.Repository.EF;
+using LymmHolidayLets.Application.Interface.Command;
+using LymmHolidayLets.Application.Command;
+using LymmHolidayLets.Domain.Dto.Email;
+using LymmHolidayLets.Infrastructure.Emailer;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddCors(options =>
+{
+    var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',') ?? ["https://www.lymmholidaylets.co.uk"];
+    options.AddPolicy("NextJsApp", policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("ContactForm", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 5; // Max 5 requests per minute
+        opt.QueueLimit = 0;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+});
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -31,6 +59,7 @@ builder.Services.AddTransient<IPageQuery, PageQuery>();
 builder.Services.AddTransient<IHomepageQuery, HomepageQuery>();
 builder.Services.AddTransient<IReviewQuery, ReviewQuery>();
 builder.Services.AddTransient<IPropertyQuery, PropertyQuery>();
+builder.Services.AddTransient<ISiteMapQuery, SiteMapQuery>();
 
 
 // Data access
@@ -67,7 +96,8 @@ builder.Services.AddTransient<IDapperReviewRepository, DapperReviewRepository>()
 builder.Services.AddTransient<IDapperStaffRepository, DapperStaffRepository>();
 
 builder.Services.AddTransient<ICalendarRepositoryEF, CalendarRepositoryEF>();
-builder.Services.AddTransient<LymmHolidayLets.Domain.Repository.EF.IPropertyRepositoryEF, LymmHolidayLets.Infrastructure.Repository.EF.PropertyRepositoryEF>();
+builder.Services.AddTransient<IPropertyRepositoryEF, PropertyRepositoryEF>();
+builder.Services.AddTransient<IPageRepositoryEF, PageRepositoryEF>();
 
 
 // Infrastructure -- Utilities
@@ -76,12 +106,30 @@ builder.Services.AddTransient<LymmHolidayLets.Domain.Repository.EF.IPropertyRepo
 
 //builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
 //builder.Services.AddTransient<IViewRenderService, ViewRenderService>();
+builder.Services.AddTransient<IEmailEnquiryCommand, EmailEnquiryCommand>();
+builder.Services.AddTransient<IEmailService, EmailService>();
+
+// Add our new services
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.IEmailEnquiryService, LymmHolidayLets.Api.Services.EmailEnquiryService>();
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.IRecaptchaValidationService, LymmHolidayLets.Api.Services.RecaptchaValidationService>();
+builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
+builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
+
 builder.Services.AddTransient<LymmHolidayLets.Domain.Interface.ILogger, NLogger>();
 
 
 // register EF Core with SQL logging (development)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("LymmHolidayLets"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("LymmHolidayLets"), sqlOptions =>
+    {
+        // Enable transient fault handling (retry on failure)
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+
+        sqlOptions.CommandTimeout(60);
+    })
            // Log SQL commands (filter to database command category to reduce noise)
            .LogTo(Console.WriteLine, [DbLoggerCategory.Database.Command.Name], 
                                   LogLevel.Information)
@@ -95,12 +143,19 @@ builder.Services.AddMemoryCache();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// http://localhost:5026/scalar/v1
+// http://localhost:5026/openapi/v1.json
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("NextJsApp");
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 

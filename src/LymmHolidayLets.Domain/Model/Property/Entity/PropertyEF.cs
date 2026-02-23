@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LymmHolidayLets.Domain.Model.Property.Entity
 {
+    //TODO finish this class and add more columns as needed. This is just a starting point.
     [Table("Property")]
     public sealed class PropertyEF
     {

@@ -9,17 +9,7 @@ namespace LymmHolidayLets.Infrastructure.Repository.EF
 
         public IQueryable<CalendarEF> GetCalendarByIdAsync(int id)
         {
-            return _context.Calendar.Where(x => x.ID == id);
-        }
-
-        /// <summary>
-        /// Returns the raw IQueryable, allowing HotChocolate to apply filtering and projection.
-        /// Execution is deferred!
-        /// </summary>
-        public IQueryable<CalendarEF> GetBaseQuery()
-        {
-            // 🚨 IMPORTANT: NO .Where(), NO .ToList(), NO .FirstOrDefaultAsync()
-            return _context.Calendar;
+            return _context.Calendar.Where(x => x.ID == id).OrderBy(x => x.ID);;
         }
     }
 }

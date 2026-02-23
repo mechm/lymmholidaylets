@@ -119,31 +119,24 @@ GO
 SET IDENTITY_INSERT [dbo].[Page] ON
 MERGE INTO [dbo].[Page] AS [Target]
 USING (VALUES
-  (1,N'about-us',N'A Local property rental business based in Lymm, Cheshire, specialising in short term holiday lets.',N'About Us',NULL,NULL,
-  N'<p>We are small local business based in Lymm Village, Cheshire specialising in property lettings. Our focus is to ensure the properties we offer exceed the expectations of our customers, so they will continue to return again and again. 
-  Our established team live and work in the area and have years of experience in ensuring customers enjoy a positive self-catering experience.</p>
-  <p>We have local knowledge of the area and are on hand to help with any questions you may have.</p>  
-  <h3>Hosts</h3>
- <div class="row mt-3 mbs-3">
-            <div class="col">
-  <img src="/uploads/images/pages/kath.jpg" alt="Kathryn" class="img-fluid rounded d-block">
-  <h4 class="title-small-text drak-grey-color py-3">Kathryn</h4>
-  <p>I was born in Lymm and have lived in Lymm my whole life. 
-  I have my own property letting business - <a href="https://cheshire-housing.co.uk/about-us">Cheshire Housing Management</a>, based in the centre of Lymm Village which I have ran for 30 years. 
-  I have 4 children and 2 grandchildren. I enjoy weekends away in Wales and gardening. I am happy to help if you have any questions.</p>
+  (1,N'about-us',N'<p>We are a small local business based in Lymm Village, Cheshire specialising in property lettings. Our focus is to ensure the properties we offer exceed the expectations of our customers, so they will continue to return again and again. Our established team live and work in the area and have years of experience in ensuring customers enjoy a positive self-catering experience.</p>
+<p>We have local knowledge of the area and are on hand to help with any questions you may have.</p>
+<h3>Hosts</h3>
+<div class="row mt-3 mb-3">
+    <div class="col">
+        <img src="/uploads/images/pages/kath.jpg" alt="Kathryn" class="img-fluid rounded d-block">
+        <h4 class="title-small-text drak-grey-color py-3">Kathryn</h4>
+        <p>I was born in Lymm and have lived in Lymm my whole life. I have my own property letting business - <a href="https://cheshire-housing.co.uk/about-us">Cheshire Housing Management</a>, based in the centre of Lymm Village which I have ran for 30 years. I have 4 children and 2 grandchildren. I enjoy weekends away in Wales and gardening. I am happy to help if you have any questions.</p>
     </div>
-          <div class="col">
- <img src="/uploads/images/pages/matthew.jpg" alt="Matthew" class="img-fluid rounded d-block">
-   <h4 class="title-small-text drak-grey-color py-3">Matthew</h4>
-  <p>I was born in Lymm and currently work as a computer programmer. 
-  I have lived in the local area for 30 years. I enjoy scuba diving, Rugby League – Warrington Wolves and the NRL. I am always on hand to help.</p>
-     </div>
-        </div></br>
-  <p>We also continually monitor our customer’s satisfaction with feedback from our customers. 
-  Please feel free to view our reviews – on our property pages or on <a href="https://www.google.com/maps/place/Cheshire+Housing+Management/@53.381605,-2.477359,17z/data=!4m8!3m7!1s0x487b000e06f3f83b:0xd1e655c26f4c51d8!8m2!3d53.381605!4d-2.477359!9m1!1b1!16s%2Fg%2F1tfhz3hw?entry=ttu">Google</a>.</p>
-  
-  <p>We look forward to you becoming one of our many satisfied customers.</p>
-  <p>For friendly advice and more information about our services, please <a href="https://lymmholidaylets.com/contact-us">contact us</a>.</p>'
+    <div class="col">
+        <img src="/uploads/images/pages/matthew.jpg" alt="Matthew" class="img-fluid rounded d-block">
+        <h4 class="title-small-text drak-grey-color py-3">Matthew</h4>
+        <p>I was born in Lymm and currently work as a computer programmer. I have lived in the local area for 30 years. I enjoy scuba diving, Rugby League - Warrington Wolves and the NRL. I am always on hand to help.</p>
+    </div>
+</div>
+<p>We also continually monitor our customer''s satisfaction with feedback from our customers. Please feel free to view our reviews - on our property pages or on <a href="https://www.google.com/maps/place/Cheshire+Housing+Management/@53.381605,-2.477359,17z/data=!4m8!3m7!1s0x487b000e06f3f83b:0xd1e655c26f4c51d8!8m2!3d53.381605!4d-2.477359!9m1!1b1!16s%2Fg%2F1tfhz3hw?entry=ttu">Google</a>.</p>
+<p>We look forward to you becoming one of our many satisfied customers.</p>
+<p>For friendly advice and more information about our services, please <a href="https://lymmholidaylets.com/contact-us">contact us</a>.</p>'
   ,1,1)
  ,(2,N'about-lymm',
  N'Lymm Village is situated in  Cheshire in the North West of England UK close to Manchester and Liverpool.',

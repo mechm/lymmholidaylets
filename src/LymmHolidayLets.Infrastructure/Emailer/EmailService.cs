@@ -17,6 +17,12 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 			_logger = logger;
 		}
 
+		// TODO better to call an api endpoint to send email rather than doing it directly in the service,
+		// as this would allow for better error handling and retry logic,
+		// and also decouple the email sending from the rest of the application logic.
+		// This would also allow for better scalability and performance, as the email
+		// sending can be handled by a separate service that can be scaled independently
+		// of the main application.
 		public async Task SendAsync(EmailMessage emailMessage, string html)
 		{
             MimeMessage message = new();
@@ -27,7 +33,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 			
 			if (emailMessage.CcEmailAddress != null)
 			{
-				foreach (KeyValuePair<string,string?> ccEmailAddress in emailMessage.CcEmailAddress)
+				foreach (var ccEmailAddress in emailMessage.CcEmailAddress)
 				{
 					if (!string.IsNullOrEmpty(ccEmailAddress.Value))
 					{

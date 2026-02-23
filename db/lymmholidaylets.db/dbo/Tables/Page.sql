@@ -5,7 +5,7 @@
     [Title]           VARCHAR (255)  NOT NULL,
     [MainImage]       VARCHAR (255)  NULL,
     [MainImageAlt]        VARCHAR (255)  NULL,
-    [Description]     VARCHAR (MAX)  NOT NULL,
+    [Description]     NVARCHAR (MAX)  NOT NULL,
     [TemplateId]      TINYINT        NOT NULL,
     [Visible]         BIT            NOT NULL,
     CONSTRAINT [PK_Pages] PRIMARY KEY CLUSTERED ([PageId] ASC),

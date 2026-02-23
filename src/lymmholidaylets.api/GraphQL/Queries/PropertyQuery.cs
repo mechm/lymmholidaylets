@@ -1,20 +1,17 @@
 ﻿using LymmHolidayLets.Domain.Model.Property.Entity;
-using LymmHolidayLets.Domain.Repository.EF;
+using LymmHolidayLets.Application.Interface.Query;
 
 namespace LymmHolidayLets.Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
 public sealed class PropertyQuery
 {
-    // Query that returns a single PropertyEF via EF IQueryable to allow projection/filtering in HotChocolate
-    [UseFirstOrDefault]
-    [UseProjection]
-    [UseFiltering]
+    [UseSingleOrDefault] // 3. Finally, grab the one item from the projected result
+    [UseProjection]      // 2. Second, look at the GraphQL query and select only columns
     public IQueryable<PropertyEF> GetPropertyById(
         byte id,
-        [Service] IPropertyRepositoryEF propertyRepositoryEf)
+        [Service] IPropertyQuery query)
     {
-        // Prefer EF repository for IQueryable (HotChocolate expects IQueryable)
-        return propertyRepositoryEf.GetPropertyById(id);
+        return query.GetPropertyByIdEf(id);
     }
 }

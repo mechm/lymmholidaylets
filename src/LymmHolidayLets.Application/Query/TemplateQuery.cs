@@ -22,7 +22,7 @@ namespace LymmHolidayLets.Application.Query
             return _templateRepository.GetAll();
         }
 
-        public Template GetById(int id)
+        public Template? GetById(int id)
         {
             return _templateRepository.GetById(id);
         }

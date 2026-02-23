@@ -10,6 +10,7 @@ namespace LymmHolidayLets.Api.GraphQL
                     .AddQueryType<Query>()
                     .AddType<CalendarQuery>()
                     .AddType<PropertyQuery>()
+                    .AddType<PageQuery>()
                     .AddFiltering()
                     .AddSorting()
                     .AddProjections();

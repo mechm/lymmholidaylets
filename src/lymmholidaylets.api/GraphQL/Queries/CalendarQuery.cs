@@ -5,13 +5,9 @@ namespace LymmHolidayLets.Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
 public sealed class CalendarQuery
-{
-    
-    // The query entry point for fetching a single calendar item by ID.
-    // This method is called by the GraphQL execution engine.
-    [UseFirstOrDefault] // ⬅️ Tells HotChocolate to execute with .FirstOrDefaultAsync()
-    [UseProjection]     // ⬅️ Tells HotChocolate to add a .Select() for optimization
-    [UseFiltering]      // ⬅️ Optional: Adds filtering capabilities
+{    
+    [UseSingleOrDefault] // 3. Finally, grab the one item from the projected result
+    [UseProjection]      // 2. Second, look at the GraphQL query and select only columns
     public IQueryable<CalendarEF> GetCalendarById(
         int id,
         [Service] ICalendarQuery query) // Inject the repository

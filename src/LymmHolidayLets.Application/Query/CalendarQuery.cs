@@ -13,60 +13,17 @@ namespace LymmHolidayLets.Application.Query
         private readonly IDapperCalendarRepository _calendarRepository = calendarRepository;
         private readonly ICalendarRepositoryEF _calendarRepositoryEF = calendarRepositoryEF;
 
-        public IQueryable<CalendarEF> GetBaseQuery()
-        {
-            return _calendarRepositoryEF.GetBaseQuery();
-        }
-
         public IQueryable<CalendarEF> GetCalendarById(int id)
         {
             return _calendarRepositoryEF.GetCalendarByIdAsync(id);
         }
 
-        // Example Service Layer Method
-        //public async Task<List<CalendarEF>> GetAndProcessCalendar(int id)
-        //{
-        //    // The query is still an IQueryable here
-        //    IQueryable<CalendarEF> query = _calendarRepositoryEF.GetCalendarByIdAsync(id);
-
-        //    // EXECUTION HAPPENS HERE. The query is executed asynchronously 
-        //    // while the context is still available.
-        //    return  query.ToList();
-        //}
-
-        //public async Task<CalendarDto?> GetCalendarById(int id)
-        //public IQueryable<CalendarEF> GetCalendarById(int id)
-        //{
-        //    //return _calendarRepositoryEF.GetCalendarByIdAsync(id); ;
-        //    var calendar = _calendarRepository.GetById(id);
-        //    //var calendar = await _calendarRepositoryEF.GetCalendarByIdAsync(id);
-
-        //    //if (calendar == null)
-        //    //{
-        //    //    return null;
-        //    //}
-
-        //    //return new CalendarDto
-        //    //{
-        //    //    ID = calendar.ID,
-        //    //    PropertyID = calendar.PropertyID,
-        //    //    Date = calendar.Date,
-        //    //    Price = calendar.Price,
-        //    //    MinimumStay = calendar.MinimumStay,
-        //    //    MaximumStay = calendar.MaximumStay != null ? (short?)calendar.MaximumStay : null,
-        //    //    Available = calendar.Available,
-        //    //    Booked = calendar.Booked,
-        //    //    BookingID = calendar.BookingID
-        //    //};
-        //}
-
-
-        public Domain.Model.Calendar.Entity.Calendar? GetById(int id)
+        public Calendar? GetById(int id)
         {
             return _calendarRepository.GetById(id);
         }
 
-        public IEnumerable<Domain.Model.Calendar.Entity.Calendar> GetByPropertyIDDate(byte propertyId, DateOnly startDate, DateOnly endDate) 
+        public IEnumerable<Calendar> GetByPropertyIDDate(byte propertyId, DateOnly startDate, DateOnly endDate) 
         {
             return _calendarRepository.GetByPropertyIDDate(propertyId, startDate, endDate);
         }

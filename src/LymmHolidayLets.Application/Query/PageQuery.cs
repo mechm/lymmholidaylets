@@ -3,6 +3,7 @@ using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.Page.Entity;
 using LymmHolidayLets.Domain.ReadModel.Page;
 using LymmHolidayLets.Domain.Repository;
+using LymmHolidayLets.Domain.Repository.EF;
 
 namespace LymmHolidayLets.Application.Query
 {
@@ -10,12 +11,15 @@ namespace LymmHolidayLets.Application.Query
     {
         private readonly IDapperPageDataAdapter _pageDataAdapter;
         private readonly IDapperPageRepository _pageRepository;
+        private readonly IPageRepositoryEF _pageRepositoryEf;
 
         public PageQuery(IDapperPageDataAdapter pageDataAdapter,
-                IDapperPageRepository pageRepository)
+                IDapperPageRepository pageRepository,
+                IPageRepositoryEF pageRepositoryEf)
         {
             _pageDataAdapter = pageDataAdapter;
             _pageRepository = pageRepository;
+            _pageRepositoryEf = pageRepositoryEf;
         }
 
         public Page? GetById(int id)
@@ -46,6 +50,13 @@ namespace LymmHolidayLets.Application.Query
         public bool PageExitsByTemplateId(int templateId)
         {
             return _pageDataAdapter.PageExitsByTemplateId(templateId);
+        }
+
+        // EF-based query surface for GraphQL
+
+        public IQueryable<PageEF> GetPageByIdEf(int id)
+        {
+            return _pageRepositoryEf.GetPageById(id);
         }
     }
 }
