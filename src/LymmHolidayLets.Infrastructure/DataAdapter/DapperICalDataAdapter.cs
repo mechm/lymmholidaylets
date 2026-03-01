@@ -1,4 +1,4 @@
-﻿using Dapper;
+﻿﻿using Dapper;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.ReadModel.AvailabilityICal;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -22,6 +22,27 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
                     commandType: CommandType.StoredProcedure);
 
                 return availability;
+            }
+            catch (System.Exception ex)
+            {
+                throw new DataAccessException(
+                    $"An error occurred finding ical availability with the procedure {procedure}", ex);
+            }
+        }
+
+        public async Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId)
+        {
+            const string procedure = "ICalBooking_Available_GetByPropertyID";
+
+            try
+            {
+                using var connection = _session.Connection;
+                var availability = await connection.QueryAsync<AvailabilityICal>(procedure,
+                    new { PropertyID = propertyId },
+                    _session.Transaction,
+                    commandType: CommandType.StoredProcedure);
+
+                return availability.AsList();
             }
             catch (System.Exception ex)
             {

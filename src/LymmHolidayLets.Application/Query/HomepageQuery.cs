@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Application.Interface.Query;
+﻿﻿using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.ReadModel.Homepage;
 
@@ -16,6 +16,11 @@ namespace LymmHolidayLets.Application.Query
         public HomepageAggregate GetHomePageDetail() 
         { 
             return _homepageDataAdapter.GetHomePageDetail();
+        }
+
+        public Task<HomepageAggregate> GetHomePageDetailAsync()
+        {
+            return _homepageDataAdapter.GetHomePageDetailAsync();
         }
     }
 }

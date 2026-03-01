@@ -1,86 +1,72 @@
-﻿using LymmHolidayLets.Api.Models;
+﻿﻿using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Email;
 using LymmHolidayLets.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class EmailController(
         IEmailEnquiryService emailEnquiryService,
         IRecaptchaValidationService recaptchaValidationService,
         ILogger<EmailController> logger) : ControllerBase
-    { 
-        // POST api/email/index
+    {
+        /// <summary>
+        /// Processes a customer email enquiry from the contact form.
+        /// </summary>
+        /// <param name="request">The enquiry request details including name, email, and message.</param>
+        /// <param name="cancellationToken">Cancellation token for the async operation.</param>
+        /// <returns>A standard API response indicating success or failure.</returns>
+        /// <response code="200">Enquiry successfully processed and email sent.</response>
+        /// <response code="400">Validation failed or security check (reCaptcha) failed.</response>
+        /// <response code="408">The request timed out.</response>
+        /// <response code="500">Internal server error during email processing.</response>
         [HttpPost]
         [EnableRateLimiting("ContactForm")]
         [RequestSizeLimit(100_000)] // Limit request size to ~100KB
         public async Task<IActionResult> Index([FromBody] EmailEnquiryRequest request, CancellationToken cancellationToken)
         {
-            try
+            // Use structured logging for all log messages
+            var logPayload = new
             {
-                // 1. Model State Validation (handled by framework attributes)
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Validation failed",
-                        Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
-                    });
-                }
+                ClientIP = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                RequestEmail = request.EmailAddress,
+                RequestName = request.Name
+            };
 
-                // 2. ReCaptcha Verification
-                var recaptchaValid = await recaptchaValidationService.ValidateAsync(request.ReCaptchaToken, cancellationToken);
-                
-                if (!recaptchaValid)
-                {
-                    logger.LogWarning("ReCaptcha verification failed for IP: {ClientIP}", HttpContext.Connection.RemoteIpAddress);
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Security verification failed. Please try again."
-                    });
-                }
-
-                // 3. Process Enquiry (with proper async handling)
-                var success = await emailEnquiryService.ProcessEnquiryAsync(request, cancellationToken);
-                
-                if (!success)
-                {
-                    return StatusCode(500, new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Failed to process your enquiry. Please try again later."
-                    });
-                }
-
-                return Ok(new ApiResponse<object>
-                { 
-                    Success = true, 
-                    Message = "Thank you for sending us an enquiry. We aim to respond within 24 hours." 
-                });
-            }
-            catch (OperationCanceledException)
+            // 1. Model State Validation
+            if (!ModelState.IsValid)
             {
-                logger.LogInformation("Request was cancelled for email enquiry");
-                return StatusCode(408, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "Request timeout. Please try again."
-                });
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                logger.LogWarning("Email enquiry validation failed for {RequestEmail}: {Errors}", request.EmailAddress, errors);
+                return BadRequest(ApiResponse<object>.FailureResult("Validation failed", errors));
             }
-            catch (Exception ex)
+
+            // 2. ReCaptcha Verification
+            var recaptchaValid = await recaptchaValidationService.ValidateAsync(request.ReCaptchaToken, cancellationToken);
+            
+            if (!recaptchaValid)
             {
-                logger.LogError(ex, "Unexpected error processing contact enquiry");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "An internal error occurred. Please try again later."
-                });
+                logger.LogWarning("ReCaptcha verification failed for {RequestEmail}", logPayload);
+                return BadRequest(ApiResponse<object>.FailureResult("Security verification failed. Please try again."));
             }
+
+            // 3. Process Enquiry
+            var success = await emailEnquiryService.ProcessEnquiryAsync(request, cancellationToken);
+            
+            if (!success)
+            {
+                logger.LogError("Email enquiry processing failed for {RequestEmail}", logPayload);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    ApiResponse<object>.FailureResult("Failed to process your enquiry. Please try again later."));
+            }
+
+            logger.LogInformation("Email enquiry successfully processed for {RequestEmail}", logPayload);
+            return Ok(ApiResponse<object>.SuccessResult(null, "Thank you for sending us an enquiry. We aim to respond within 24 hours."));
         }
     }
 }

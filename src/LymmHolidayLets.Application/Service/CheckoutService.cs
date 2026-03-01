@@ -2,171 +2,134 @@
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Exception;
-using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.ReadModel.Checkout;
-using Microsoft.AspNetCore.Http;
+using LymmHolidayLets.Domain.Model.Common;
+using Microsoft.Extensions.Logging;
 using Stripe;
 using Stripe.Checkout;
 
 namespace LymmHolidayLets.Application.Service
 {
-    // db additional products in deploy dacpac
-    // discounts in stripe and dacpac - nightly coupon
-    // session logic and cache
-    // tests around all
-    // extraction of domain logic
-    // validation updates
-    // database overflow - take care not repeat saves
-    // honeypot
-    // rate limit
-
-    public sealed class CheckoutSession(string sessionId, DateOnly checkIn, DateOnly checkout)
-    {
-        public string SessionId { get; set; } = sessionId;
-        public DateOnly CheckIn { get; set; } = checkIn;
-        public DateOnly Checkout { get; set; } = checkout;
-        public DateTime Added { get; set; } = DateTime.UtcNow;
-    }
-
     public sealed class CheckoutService(
-        ILogger logger,
-        IHttpContextAccessor httpContextAccessor,
+        ILogger<CheckoutService> logger,
         IManageCheckoutSessionService manageCheckoutSessionService,
         ICheckoutCommand checkoutCommand,
         ICheckoutQuery checkoutQuery,
         IStripeService stripeService)
         : ICheckoutService
     {
-        // Instantiate a Singleton of the Semaphore with a value of 1. This means that only 1 thread can be granted access at a time.
-        private static readonly SemaphoreSlim SemaphoreSlim = new(initialCount: 1, maxCount: 1);
+        /// <summary>
+        /// Internal result type for BuildCheckoutData to avoid long tuple returns.
+        /// </summary>
+        private sealed record CheckoutData(
+            Product Product,
+            Coupon? Coupon,
+            IEnumerable<PropertyAdditionalProduct> AdditionalProducts,
+            string PropertyName,
+            decimal NightlyPrice,
+            decimal OverallPrice);
 
-        public (string?, Session?) Checkout(string host, byte propertyId, DateOnly checkIn, DateOnly checkout, short? numberOfAdults, short? numberOfChildren, short? numberOfInfants, bool available = true)
+        public (string? error, Session? session) Checkout(string host, byte propertyId, DateOnly checkIn, DateOnly checkout, short? numberOfAdults, short? numberOfChildren, short? numberOfInfants, bool available = true)
         {
             try
             {
-                (Product? product, Coupon? coupon, IEnumerable<PropertyAdditionalProduct> additionalProducts, string? propertyName, string? error) 
-                    = GetCreateProductAndCouponAdditionalProducts(propertyId, checkIn, checkout, available);
+                var (error, data) = BuildCheckoutData(propertyId, checkIn, checkout, available);
 
-                if (product is null || propertyName is null) 
+                if (error is not null || data is null)
                 {
+                    logger.LogWarning("Checkout aborted for PropertyId={PropertyId} CheckIn={CheckIn} CheckOut={CheckOut}: {Error}",
+                        propertyId, checkIn, checkout, error);
                     return (error, null);
                 }
-                
-                Session? session = stripeService.CreateSession(host, propertyName,product, coupon, additionalProducts, 
-                                                             propertyId, checkIn, checkout, numberOfAdults, numberOfChildren, numberOfInfants);
 
-                if (session == null) return (null, session);
+                Session? session = stripeService.CreateSession(host, data.PropertyName, data.Product, data.Coupon,
+                    data.AdditionalProducts, propertyId, checkIn, checkout, numberOfAdults, numberOfChildren, numberOfInfants);
 
+                if (session is null)
+                {
+                    logger.LogWarning("Stripe session creation returned null for PropertyId={PropertyId}", propertyId);
+                    return ("Failed to create payment session. Please try again.", null);
+                }
+
+                PersistCheckout(propertyId, checkIn, checkout, data);
                 manageCheckoutSessionService.AddUpdateSessionCache(session, checkIn, checkout);
 
-                return (null, session);                
+                logger.LogInformation("Checkout session created successfully for PropertyId={PropertyId} CheckIn={CheckIn} CheckOut={CheckOut} OverallPrice={OverallPrice}",
+                    propertyId, checkIn, checkout, data.OverallPrice);
+
+                return (null, session);
             }
             catch (InvalidCheckoutDataException ex)
             {
-                logger.LogError("Error with Checkout", httpContextAccessor.HttpContext, null, ex);
+                logger.LogError(ex, "Invalid checkout data for PropertyId={PropertyId} CheckIn={CheckIn} CheckOut={CheckOut}",
+                    propertyId, checkIn, checkout);
             }
             catch (Exception ex)
             {
-                logger.LogError("Error with Checkout", httpContextAccessor.HttpContext, null, ex);
+                logger.LogError(ex, "Unexpected error during checkout for PropertyId={PropertyId} CheckIn={CheckIn} CheckOut={CheckOut}",
+                    propertyId, checkIn, checkout);
             }
 
-            return (null, null);
+            return ("An unexpected error occurred. Please try again.", null);
         }
 
-        private (Product?, Coupon?, IEnumerable<PropertyAdditionalProduct>, string?, string?) GetCreateProductAndCouponAdditionalProducts(byte propertyId, DateOnly checkIn, DateOnly checkout, bool available)
+        /// <summary>
+        /// Fetches property/pricing data and creates the Stripe product and coupon.
+        /// Does not persist anything — side effect free.
+        /// </summary>
+        private (string? error, CheckoutData? data) BuildCheckoutData(byte propertyId, DateOnly checkIn, DateOnly checkout, bool available)
         {
-            // Asynchronously wait to enter the Semaphore. If no-one has been granted access to the Semaphore, code execution will proceed, otherwise this thread waits here until the semaphore is released 
-            SemaphoreSlim.Wait();
-            try
+            var stay = new DateRange(checkIn, checkout);
+            CheckoutAggregate? propertyCheckout = checkoutQuery.GetByPropertyIdAndDate(propertyId, stay.CheckIn, stay.CheckOut, available);
+
+            if (propertyCheckout is null)
             {
-                CheckoutAggregate? propertyCheckout = checkoutQuery.GetByPropertyIdAndDate(propertyId, checkIn, checkout, available);
-
-                if (propertyCheckout is null)
-                {
-                    return (null, null, new List<PropertyAdditionalProduct>(), null, "No Property Available");
-                }
-
-                if (propertyCheckout.TotalNightlyPrice is null)
-                {
-                    return (null, null, propertyCheckout.PropertyAdditionalProduct, null, "No Price Available for dates selected, please change date selection");
-                }
-
-                // for extraction where should this belong though????????
-                string productName = GetProductName(propertyCheckout.Property.FriendlyName, checkIn, checkout);
-                string productDescription = GetProductDescription(checkIn, checkout);
-
-                (decimal? percentOff, _) = CalculateService.CalculateApplicableDiscountPercentage(propertyCheckout.PropertyNightCoupon, checkIn, checkout);
-
-                decimal additional = propertyCheckout.PropertyAdditionalProduct.Sum(val => val.Quantity * val.StripeDefaultUnitPrice);
-
-                (Product product, Coupon? coupon) = stripeService.CreateProductAndCoupon(propertyCheckout.PreviousCheckout, 
-                                                                                            productName, productDescription,
-                                                                                            propertyCheckout.TotalNightlyPrice.Value, percentOff);
-
-                // check for overflow issue - continuously saving checkouts
-                UpsertCheckout(previousCheckout: propertyCheckout.PreviousCheckout, propertyId: propertyId, checkIn: checkIn, checkout: checkout, 
-                    stripeNightProductId: product.Id, stripeNightDefaultPriceId: product.DefaultPriceId, 
-                    stripeNightDefaultUnitPrice: propertyCheckout.TotalNightlyPrice.Value, stripeNightCouponId: coupon?.Id, stripeNightPercentage: percentOff,
-                    overallPrice: propertyCheckout.TotalNightlyPrice.Value + additional);
-
-                return (product, coupon, propertyCheckout.PropertyAdditionalProduct, propertyCheckout.Property.FriendlyName, null);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError("Error with Checkout", httpContextAccessor.HttpContext, null, ex);
-            }
-            finally
-            {
-                //When the task is ready, release the semaphore. It is vital to ALWAYS release the semaphore when we are ready, or else we will end up with a Semaphore that is forever locked.
-                //This is why it is important to do the Release within a try...finally clause; program execution may crash or take a different path, this way you are guaranteed execution
-                SemaphoreSlim.Release();
+                logger.LogWarning("No property available for PropertyId={PropertyId} Stay={Stay}", propertyId, stay);
+                return ("No Property Available", null);
             }
 
-            return (null, null, [], null, null);
+            if (propertyCheckout.TotalNightlyPrice is null)
+            {
+                logger.LogWarning("No price available for PropertyId={PropertyId} Stay={Stay}", propertyId, stay);
+                return ("No Price Available for dates selected, please change date selection", null);
+            }
+
+            var productName = $"{propertyCheckout.Property.FriendlyName} - {stay}";
+            var productDescription = $"Price for {stay.Nights} {(stay.Nights == 1 ? "Night" : "Nights")}";
+
+            (decimal? percentOff, _) = CalculateService.CalculateApplicableDiscountPercentage(
+                propertyCheckout.PropertyNightCoupon, stay.CheckIn, stay.CheckOut);
+
+            (Product product, Coupon? coupon) = stripeService.CreateProductAndCoupon(
+                propertyCheckout.PreviousCheckout, productName, productDescription,
+                propertyCheckout.TotalNightlyPrice.Value, percentOff);
+
+            decimal additional = propertyCheckout.PropertyAdditionalProduct.Sum(p => p.Quantity * p.StripeDefaultUnitPrice);
+            decimal overallPrice = propertyCheckout.TotalNightlyPrice.Value + additional;
+
+            return (null, new CheckoutData(product, coupon, propertyCheckout.PropertyAdditionalProduct,
+                propertyCheckout.Property.FriendlyName, propertyCheckout.TotalNightlyPrice.Value, overallPrice));
         }
 
-
-        private void UpsertCheckout(Checkout? previousCheckout, byte propertyId, DateOnly checkIn, DateOnly checkout, 
-            string stripeNightProductId, string stripeNightDefaultPriceId,
-            decimal stripeNightDefaultUnitPrice, string? stripeNightCouponId, decimal? stripeNightPercentage, decimal overallPrice)
+        /// <summary>
+        /// Persists the checkout record to the database. Separated from BuildCheckoutData
+        /// so data building and persistence are distinct responsibilities.
+        /// </summary>
+        private void PersistCheckout(byte propertyId, DateOnly checkIn, DateOnly checkout, CheckoutData data)
         {
-            if (previousCheckout == null)
-            {
-                checkoutCommand.Create(new Model.Command.Checkout(
-                    propertyId,
-                    checkIn,
-                    checkout,
-                    stripeNightProductId,
-                    stripeNightDefaultPriceId,
-                    stripeNightDefaultUnitPrice,
-                    stripeNightCouponId,
-                    stripeNightPercentage,
-                    overallPrice));
-            }
-            else
-            {
-                checkoutCommand.Update(new Model.Command.Checkout(
-                    previousCheckout.Id,
-                    propertyId,
-                    checkIn,
-                    checkout,
-                    stripeNightProductId,
-                    stripeNightDefaultPriceId,
-                    stripeNightDefaultUnitPrice,
-                    stripeNightCouponId,
-                    stripeNightPercentage,
-                    overallPrice));
-            }
-        }
+            checkoutCommand.Upsert(new Model.Command.Checkout(
+                propertyId,
+                checkIn,
+                checkout,
+                data.Product.Id,
+                data.Product.DefaultPriceId,
+                data.NightlyPrice,
+                data.Coupon?.Id,
+                data.Coupon?.PercentOff,
+                data.OverallPrice));
 
-        private static string GetProductName(string friendlyName, DateOnly checkIn, DateOnly checkout)
-        {
-            return $"{friendlyName} - {checkIn:dd/MM/yyyy} to {checkout:dd/MM/yyyy}";
-        }
-
-        private static string GetProductDescription(DateOnly checkIn, DateOnly checkout)
-        {
-            return $"Price for {checkout.DayNumber - checkIn.DayNumber} Nights";
+            logger.LogInformation("Checkout upserted for PropertyId={PropertyId} CheckIn={CheckIn} CheckOut={CheckOut}",
+                propertyId, checkIn, checkout);
         }
     }
 }

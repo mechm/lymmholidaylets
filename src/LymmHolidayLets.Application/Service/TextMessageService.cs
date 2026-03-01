@@ -8,35 +8,61 @@ namespace LymmHolidayLets.Application.Service
 {
     public sealed class TextMessageService(IConfiguration config, Domain.Interface.ILogger logger) : ITextMessageService
     {
-        public Task SendText(string messageBody, string[] multiNumbers)
-		{
-            try
+        private const string DefaultFromNumber = "+447897031197";
+
+        public async Task SendText(string messageBody, string[] multiNumbers)
+        {
+            if (string.IsNullOrWhiteSpace(messageBody))
             {
-                foreach (var t in multiNumbers)
+                logger.LogError("TextMessageService|SendText|Message body is empty");
+                return;
+            }
+
+            if (multiNumbers.Length == 0)
+            {
+                logger.LogError("TextMessageService|SendText|No recipient numbers provided");
+                return;
+            }
+
+            var accountSid = config["Twilio:AccountSid"];
+            var authToken = config["Twilio:AuthToken"];
+            var fromNumber = config["Twilio:FromNumber"] ?? DefaultFromNumber;
+
+            if (string.IsNullOrEmpty(accountSid) || string.IsNullOrEmpty(authToken))
+            {
+                logger.LogError("TextMessageService|SendText|Twilio configuration is missing (AccountSid or AuthToken)");
+                return;
+            }
+
+            // Ideally TwilioClient.Init would be called once at startup in Program.cs
+            TwilioClient.Init(accountSid, authToken);
+
+            var sendTasks = multiNumbers
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Select(async number =>
                 {
-                    TwilioClient.Init(config["Twilio:AccountSid"], config["Twilio:AuthToken"]);
-
-                    var messageOptions = new CreateMessageOptions(
-                        new PhoneNumber(t))
+                    try
                     {
-                        From = new PhoneNumber("+447897031197"),
-                        Body = messageBody
-                    };
+                        var options = new CreateMessageOptions(new PhoneNumber(number))
+                        {
+                            From = new PhoneNumber(fromNumber),
+                            Body = messageBody
+                        };
 
-                    var output = MessageResource.Create(messageOptions);
+                        var result = await MessageResource.CreateAsync(options);
 
-                    if (output.Status == MessageResource.StatusEnum.Failed)
-                    {
-                        logger.LogError("Unable to send text");
+                        if (result.ErrorCode.HasValue)
+                        {
+                            logger.LogError($"Twilio Error for {number}: {result.ErrorMessage} (Code: {result.ErrorCode})");
+                        }
                     }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError($"TextMessageService|SendText|{ex.Message}");
-            }
+                    catch (Exception ex)
+                    {
+                        logger.LogError($"TextMessageService|SendText|Exception for {number}: {ex.Message}", ex);
+                    }
+                });
 
-            return Task.CompletedTask;
+            await Task.WhenAll(sendTasks);
         }
-	}
+    }
 }

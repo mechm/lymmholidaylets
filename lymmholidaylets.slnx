@@ -27,4 +27,7 @@
   <Folder Name="/solution/">
     <File Path="docker-compose.yml" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="src\LymmHolidayLets.Api.Tests\LymmHolidayLets.Api.Tests.csproj" Type="Classic C#" />
+  </Folder>
 </Solution>

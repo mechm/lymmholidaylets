@@ -4,20 +4,13 @@ using Stripe.Checkout;
 
 namespace LymmHolidayLets.Application.Service
 {
-    public sealed class ManageCheckoutSessionService : IManageCheckoutSessionService
+    public sealed class ManageCheckoutSessionService(IMemoryCache cache) : IManageCheckoutSessionService
     {
-        private readonly IMemoryCache _cache;
-
         private const string SessionKey = "sessions";
-
-        public ManageCheckoutSessionService(IMemoryCache cache)
-        {
-            _cache = cache;
-        }
 
         public IList<CheckoutSession> GetCurrentSessions()
         {
-            return !_cache.TryGetValue(SessionKey, out IList<CheckoutSession>? currentSessions) ? new List<CheckoutSession>() : currentSessions ?? new List<CheckoutSession>();
+            return !cache.TryGetValue(SessionKey, out IList<CheckoutSession>? currentSessions) ? new List<CheckoutSession>() : currentSessions ?? new List<CheckoutSession>();
         }
 
         public IList<CheckoutSession> GetSessionsBasedOnDates(IList<CheckoutSession> currentSessions, 
@@ -32,7 +25,7 @@ namespace LymmHolidayLets.Application.Service
         {
             if (currentSessions.Count == 0)
             {
-                _cache.Remove(SessionKey);
+                cache.Remove(SessionKey);
             }
             else
             {
@@ -42,7 +35,7 @@ namespace LymmHolidayLets.Application.Service
 
         public void AddUpdateSessionCache(Session session, DateOnly checkIn, DateOnly checkout)
         {
-            if (_cache.TryGetValue(SessionKey, out IList<CheckoutSession>? currentSessions))
+            if (cache.TryGetValue(SessionKey, out IList<CheckoutSession>? currentSessions))
             {
                 currentSessions?.Add(new CheckoutSession(session.Id, checkIn, checkout));
             }
@@ -61,7 +54,7 @@ namespace LymmHolidayLets.Application.Service
         {
             if (currentSessions != null)
             {
-                _cache.Set(SessionKey, currentSessions, new MemoryCacheEntryOptions()
+                cache.Set(SessionKey, currentSessions, new MemoryCacheEntryOptions()
                     .SetPriority(CacheItemPriority.NeverRemove)
                     .SetSlidingExpiration(TimeSpan.FromMinutes(60)));
             }

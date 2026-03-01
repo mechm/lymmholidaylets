@@ -1,16 +1,23 @@
 ﻿using LymmHolidayLets.Api.Infrastructure.SiteMap;
 using Microsoft.AspNetCore.Mvc;
+using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class SiteMapController : Controller
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    public sealed class SiteMapController(ILogger<SiteMapController> logger) : ControllerBase
     {
-        // GET api/sitemap/index.xml
+        /// <summary>
+        /// Returns the sitemap index XML.
+        /// </summary>
         [HttpGet("index.xml")]
+        [Produces("application/xml")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult Index()
         {
+            logger.LogInformation("Sitemap index requested");
             return new XmlSiteMapIndex();
         }
     }

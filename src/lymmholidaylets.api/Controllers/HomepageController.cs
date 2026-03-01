@@ -1,41 +1,35 @@
-﻿using LymmHolidayLets.Api.Models.Homepage;
-using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Api.Models.Homepage;
+using LymmHolidayLets.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public sealed class HomepageController(IMemoryCache cache, IHomepageQuery homepageQuery) : ControllerBase
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    public sealed class HomepageController(
+        IHomepageService homepageService,
+        ILogger<HomepageController> logger) : ControllerBase
     {
-        // GET api/homepage/init
+        /// <summary>
+        /// Returns homepage data including reviews and slideshow images.
+        /// </summary>
         [HttpGet("init")]
-        public IActionResult Index()
+        [ProducesResponseType(typeof(HomepageModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Index()
         {
-            const string homepageKey = "homepage";
+            var homepage = await homepageService.GetHomepageDataAsync();
 
-            if (cache.TryGetValue(homepageKey, out HomepageModel? homepage) && homepage != null)
+            if (homepage == null)
             {
-                return Ok(homepage);
+                logger.LogWarning("Failed to load homepage data");
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    ApiResponse<object>.FailureResult("Failed to load homepage data."));
             }
 
-            var homepageDetail = homepageQuery.GetHomePageDetail();
-
-            homepage = new HomepageModel(
-                homepageDetail.Reviews.Select(review => new
-                    ReviewModel(review.FriendlyName, review.Company, review.Description, review.Name,
-                        review.Position, review.DateTimeAdded)),
-                homepageDetail.Slides.Select(slide => new
-                    SlideshowModel(slide.ImagePath, slide.ImagePathAlt, slide.CaptionTitle, slide.Caption,
-                        slide.ShortMobileCaption, slide.Link)));
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetPriority(CacheItemPriority.NeverRemove)
-                .SetAbsoluteExpiration(DateTimeOffset.Now.AddHours(3));
-            cache.Set(homepageKey, homepage, cacheEntryOptions);
-
-            return Ok(homepage);
+            return Ok(ApiResponse<HomepageModel>.SuccessResult(homepage));
         }
     }
 }

@@ -6,12 +6,9 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperTemplateRepository : RepositoryBase<Template>, IDapperTemplateRepository
+    public sealed class DapperTemplateRepository(DbSession session)
+        : RepositoryBase<Template>(session), IDapperTemplateRepository
     {
-        public DapperTemplateRepository(DbSession session) : base(session)
-        {
-        }
-
         public IEnumerable<Template> GetAll()
         {
             const string procedure = "Template_GetAll";

@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Domain.Model.Page.Entity;
+﻿﻿using LymmHolidayLets.Domain.Model.Page.Entity;
 using LymmHolidayLets.Domain.ReadModel.Page;
 
 namespace LymmHolidayLets.Application.Interface.Query
@@ -8,6 +8,7 @@ namespace LymmHolidayLets.Application.Interface.Query
         Page? GetById(int id);
         IEnumerable<PageSummary> GetAllPageSummary();
         PageDetail? GetPageByAliasTitle(string aliasTitle);
+        Task<PageDetail?> GetPageByAliasTitleAsync(string aliasTitle);
         bool SiteUrlExists(string aliasTitle);
         bool SiteUrlExistsExcludingPage(string aliasTitle, int pageId);
         bool PageExitsByTemplateId(int templateId);

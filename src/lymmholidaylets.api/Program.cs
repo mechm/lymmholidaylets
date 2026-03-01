@@ -1,6 +1,14 @@
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using LymmHolidayLets.Api.Infrastructure.ExceptionHandling;
+using Serilog;
 using System.Threading.RateLimiting;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Asp.Versioning;
 using LymmHolidayLets.Api.GraphQL;
+using LymmHolidayLets.Api.Validators;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Query;
 using LymmHolidayLets.Domain.DataAdapter;
@@ -16,18 +24,72 @@ using LymmHolidayLets.Infrastructure.Repository.Dapper;
 using LymmHolidayLets.Infrastructure.Repository.EF;
 using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Command;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Domain.Dto.Email;
 using LymmHolidayLets.Infrastructure.Emailer;
+using SendGrid;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using LymmHolidayLets.Application.Service;
+using Microsoft.OpenApi;
+
+
+// Bootstrap logger for startup errors before host is built
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+Log.Information("Starting LymmHolidayLets.Api");
+
+try
+{
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Serilog from app settings (replaces default ILogger<T> provider)
+builder.Host.UseSerilog((context, services, configuration) =>
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
+
 
 builder.Services.AddControllers();
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = ApiVersionReader.Combine(
+        new UrlSegmentApiVersionReader(),
+        new HeaderApiVersionReader("x-api-version"),
+        new QueryStringApiVersionReader("api-version"));
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+builder.Services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
+builder.Services.AddValidatorsFromAssemblyContaining<EmailEnquiryRequestValidator>();
 builder.Services.AddHttpClient();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Info = new OpenApiInfo
+        {
+            Title = "Lymm Holiday Lets API",
+            Version = "v1",
+            Description = "API for managing Lymm Holiday Lets bookings, payments, and content."
+        };
+        return Task.CompletedTask;
+    });
+});
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options =>
 {
@@ -94,6 +156,8 @@ builder.Services.AddTransient<IDapperEmailEnquiryRepository, DapperEmailEnquiryR
 builder.Services.AddTransient<IDapperFAQRepository, DapperFAQRepository>();
 builder.Services.AddTransient<IDapperReviewRepository, DapperReviewRepository>();
 builder.Services.AddTransient<IDapperStaffRepository, DapperStaffRepository>();
+builder.Services.AddTransient<IDapperWebhookEventRepository, DapperWebhookEventRepository>();
+
 
 builder.Services.AddTransient<ICalendarRepositoryEF, CalendarRepositoryEF>();
 builder.Services.AddTransient<IPropertyRepositoryEF, PropertyRepositoryEF>();
@@ -101,18 +165,32 @@ builder.Services.AddTransient<IPageRepositoryEF, PageRepositoryEF>();
 
 
 // Infrastructure -- Utilities
-//builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddSingleton<ISendGridClient>(new SendGridClient(builder.Configuration["SendGrid:ApiKey"]));
+builder.Services.AddTransient<IEmailService, SendGridEmailService>();
 //builder.Services.AddTransient<IFileUploader, FileUploader>();
 
 //builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
 //builder.Services.AddTransient<IViewRenderService, ViewRenderService>();
 builder.Services.AddTransient<IEmailEnquiryCommand, EmailEnquiryCommand>();
-builder.Services.AddTransient<IEmailService, EmailService>();
+builder.Services.AddTransient<IBookingCommand, BookingCommand>();
+builder.Services.AddTransient<IWebhookEventCommand, WebhookEventCommand>();
+
+
 
 // Add our new services
+builder.Services.AddTransient<IStripeService, StripeService>();
+builder.Services.AddTransient<ICalGenerator, CalGenerator>();
+builder.Services.AddTransient<ITextMessageService, TextMessageService>();
+
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.ICalService, LymmHolidayLets.Api.Services.CalService>();
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.IHomepageService, LymmHolidayLets.Api.Services.HomepageService>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IEmailEnquiryService, LymmHolidayLets.Api.Services.EmailEnquiryService>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IRecaptchaValidationService, LymmHolidayLets.Api.Services.RecaptchaValidationService>();
 builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
+builder.Services.AddTransient<IEmailGeneratorService, EmailGeneratorService>();
+builder.Services.AddTransient<IStripeWebhookProcessor, StripeWebhookProcessor>();
+builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessionService>();
+
 builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
 
 builder.Services.AddTransient<LymmHolidayLets.Domain.Interface.ILogger, NLogger>();
@@ -140,6 +218,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddMemoryCache();
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>("Database")
+    .AddCheck("Self", () => HealthCheckResult.Healthy());
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -151,7 +233,15 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
+
+// Serilog HTTP request logging (replaces default ASP.NET Core request logging)
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 
 app.UseCors("NextJsApp");
 
@@ -159,8 +249,29 @@ app.UseRateLimiter();
 
 app.UseAuthorization();
 
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    },
+    AllowCachingResponses = false
+});
+
 app.MapControllers();
 
 app.MapGraphQL("/graphql");
 
 app.Run();
+
+}
+catch (Exception ex) when (ex is not HostAbortedException)
+{
+    Log.Fatal(ex, "LymmHolidayLets.Api terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

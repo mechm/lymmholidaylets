@@ -1,9 +1,10 @@
-﻿using LymmHolidayLets.Domain.ReadModel.Review;
+﻿﻿using LymmHolidayLets.Domain.ReadModel.Review;
 
 namespace LymmHolidayLets.Domain.DataAdapter
 {
     public interface IDapperReviewDataAdapter
     {
-        IEnumerable<ReviewSummary> GetAllApprovedReviews();
+        IReadOnlyList<ReviewSummary> GetAllApprovedReviews();
+        Task<IReadOnlyList<ReviewSummary>> GetAllApprovedReviewsAsync();
     }
 }

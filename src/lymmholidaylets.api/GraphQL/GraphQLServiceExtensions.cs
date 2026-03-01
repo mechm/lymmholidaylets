@@ -4,7 +4,7 @@ namespace LymmHolidayLets.Api.GraphQL
 {
     public static class GraphQLServiceExtensions
     {
-        public static IServiceCollection AddApiGraphQl(this IServiceCollection services)
+        public static void AddApiGraphQl(this IServiceCollection services)
         {
             services.AddGraphQLServer()
                     .AddQueryType<Query>()
@@ -14,8 +14,6 @@ namespace LymmHolidayLets.Api.GraphQL
                     .AddFiltering()
                     .AddSorting()
                     .AddProjections();
-
-            return services;
         }
     }
 }

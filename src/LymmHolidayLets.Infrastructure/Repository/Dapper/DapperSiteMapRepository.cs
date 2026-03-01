@@ -6,30 +6,20 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperSiteMapRepository : RepositoryBase<SiteMap>, IDapperSiteMapRepository
+    public sealed class DapperSiteMapRepository(DbSession session)
+        : RepositoryBase<SiteMap>(session), IDapperSiteMapRepository
     {
-        public DapperSiteMapRepository(DbSession session) : base(session) 
-        {        
-        }
-
         public IEnumerable<SiteMap> GetAll()
         {
             const string procedure = "SiteMap_GetAll";
 
             try
             {
-                IList<SiteMap> siteMaps = new List<SiteMap>();
-
                 using var connection = Session.Connection;
                 var results = connection.Query(procedure,
                     commandType: CommandType.StoredProcedure);
 
-                foreach (var sitemap in results)
-                {
-                    siteMaps.Add(new SiteMap(sitemap.SiteMapId, sitemap.Url));
-                }                
-
-                return siteMaps;
+                return results.Select(sitemap => new SiteMap(sitemap.SiteMapId, sitemap.Url)).ToList();
             }
             catch (System.Exception ex)
             {
@@ -43,8 +33,6 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 
             try
             {
-                SiteMap sitemap;
-
                 using var connection = Session.Connection;
                 var result = connection.QueryFirstOrDefault(procedure, new
                 {
@@ -57,7 +45,7 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                     return null;
                 }
 
-                sitemap = new SiteMap(result.SiteMapId, result.Url);
+                var sitemap = new SiteMap(result.SiteMapId, result.Url);
 
                 return sitemap;
             }

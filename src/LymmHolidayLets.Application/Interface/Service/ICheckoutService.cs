@@ -1,7 +1,7 @@
-﻿namespace LymmHolidayLets.Application.Interface.Service
+﻿﻿namespace LymmHolidayLets.Application.Interface.Service
 {
 	public interface ICheckoutService
 	{
-		(string?, Stripe.Checkout.Session?) Checkout(string host, byte propertyId, DateOnly checkIn, DateOnly checkout, short? numberOfAdult, short? noChildren, short? noInfant, bool available = true);
+		(string? error, Stripe.Checkout.Session? session) Checkout(string host, byte propertyId, DateOnly checkIn, DateOnly checkout, short? numberOfAdults, short? numberOfChildren, short? numberOfInfants, bool available = true);
 	}
 }

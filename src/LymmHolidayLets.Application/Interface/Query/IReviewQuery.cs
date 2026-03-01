@@ -7,6 +7,7 @@ namespace LymmHolidayLets.Application.Interface.Query
     {
         Review? GetById(int id);
         IEnumerable<Review> GetAll();
-        IEnumerable<ReviewSummary> GetAllApprovedReviews();
+        IReadOnlyList<ReviewSummary> GetAllApprovedReviews();
+        Task<IReadOnlyList<ReviewSummary>> GetAllApprovedReviewsAsync();
     }
 }

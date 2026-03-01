@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Application.Interface.Query;
+﻿﻿using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.ICal.Entity;
 using LymmHolidayLets.Domain.ReadModel.AvailabilityICal;
@@ -14,9 +14,19 @@ namespace LymmHolidayLets.Application.Query
             return icalRepository.GetAll();
         }
 
+        public Task<IReadOnlyList<ICal>> GetAllAsync()
+        {
+            return icalRepository.GetAllAsync();
+        }
+
         public IEnumerable<AvailabilityICal> GetICalAvailability(byte propertyId)
         {
             return icalDataAdapter.GetICalAvailability(propertyId);
+        }
+
+        public Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId)
+        {
+            return icalDataAdapter.GetICalAvailabilityAsync(propertyId);
         }
     }
 }

@@ -28,5 +28,22 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                 throw new DataAccessException($"An error occurred finding all icals with the procedure {procedure}", ex);
             }
         }
+
+        public async Task<IReadOnlyList<ICal>> GetAllAsync()
+        {
+            const string procedure = "ICal_GetAll";
+
+            try
+            {
+                using var connection = Session.Connection;
+                var results = await connection.QueryAsync(procedure, Session.Transaction, commandType: CommandType.StoredProcedure);
+
+                return results.Select(cal => new ICal(cal.ID, cal.PropertyID, cal.FriendlyName, cal.Identifier)).ToList();
+            }
+            catch (System.Exception ex)
+            {
+                throw new DataAccessException($"An error occurred finding all icals with the procedure {procedure}", ex);
+            }
+        }
     }
 }

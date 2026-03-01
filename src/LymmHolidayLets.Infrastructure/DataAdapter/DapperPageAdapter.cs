@@ -7,26 +7,20 @@ using LymmHolidayLets.Domain.ReadModel.Page;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperPageDataAdapter : SqlQueryBase, IDapperPageDataAdapter
+    public sealed class DapperPageDataAdapter(DbSession session) : SqlQueryBase(session), IDapperPageDataAdapter
     {
-        public DapperPageDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public bool SiteUrlExists(string aliasTitle)
         {
             const string procedure = "Page_SiteAliasTitle_Exists";
 
             try
             {
-                bool pageExists;
-
                 using var sqlConnection = _session.Connection;
-                pageExists = sqlConnection.ExecuteScalar<bool>(procedure, new
-                {
-                    aliasTitle,
-                }, _session.Transaction,
-                           commandType: CommandType.StoredProcedure);
+                var pageExists = sqlConnection.ExecuteScalar<bool>(procedure, new
+                    {
+                        aliasTitle,
+                    }, _session.Transaction,
+                    commandType: CommandType.StoredProcedure);
 
                 return pageExists;
             }
@@ -42,15 +36,13 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                bool pageExists;
-
                 using var connection = _session.Connection;
-                pageExists = connection.ExecuteScalar<bool>(procedure, new
-                {
-                    AliasTitle = aliasTitle,
-                    PageId = pageId
-                },
-                commandType: CommandType.StoredProcedure);              
+                var pageExists = connection.ExecuteScalar<bool>(procedure, new
+                    {
+                        AliasTitle = aliasTitle,
+                        PageId = pageId
+                    },
+                    commandType: CommandType.StoredProcedure);              
 
                 return pageExists;
             }
@@ -66,19 +58,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                IList<PageSummary> pages = new List<PageSummary>();
-
                 using var connection = _session.Connection;
                 var results = connection.Query(procedure,
                                 commandType: CommandType.StoredProcedure);
 
-                foreach (var page in results)
-                {
-                    pages.Add(new PageSummary(page.PageId, page.AliasTitle, page.Title,
-                        page.TemplateDescription, page.Visible));
-                }              
-
-                return pages;
+                return results.Select(page => new PageSummary(page.PageId, page.AliasTitle, page.Title, page.TemplateDescription, page.Visible)).ToList();
             }
             catch (System.Exception ex)
             {
@@ -116,20 +100,44 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             }
         }
 
+        public async Task<PageDetail?> GetPageByAliasTitleAsync(string aliasTitle)
+        {
+            const string procedure = "Page_GetByAliasTitle";
+
+            try
+            {
+                using var connection = _session.Connection;
+                var result = await connection.QueryFirstOrDefaultAsync(procedure, new
+                {
+                    AliasTitle = aliasTitle
+                },
+                commandType: CommandType.StoredProcedure);
+
+                if (result is null)
+                    return null;
+
+                return new PageDetail(result.AliasTitle, result.MetaDescription,
+                    result.Title, result.MainImage, result.MainImageAlt, result.Description,
+                    result.Template, result.Visible);
+            }
+            catch (System.Exception ex)
+            {
+                throw new DataAccessException($"An error occured finding a page with the procedure {procedure}", ex);
+            }
+        }
+
         public bool PageExitsByTemplateId(int templateId)
         {
             const string procedure = "Page_Exists_GetByTemplateId";
 
             try
             {
-                bool pageExists;
-
                 using var connection = _session.Connection;
-                pageExists = connection.ExecuteScalar<bool>(procedure, new
-                {
-                    templateId
-                },
-                commandType: CommandType.StoredProcedure);              
+                var pageExists = connection.ExecuteScalar<bool>(procedure, new
+                    {
+                        templateId
+                    },
+                    commandType: CommandType.StoredProcedure);              
 
                 return pageExists;
             }

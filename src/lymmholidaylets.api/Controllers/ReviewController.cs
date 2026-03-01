@@ -1,33 +1,46 @@
 ﻿using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.ReadModel.Review;
+using LymmHolidayLets.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
-{    
+{
     [ApiController]
-    [Route("api/[controller]")]
-    public class ReviewController(IMemoryCache cache, IReviewQuery reviewQuery): ControllerBase
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    public sealed class ReviewController(
+        IMemoryCache cache,
+        ILogger<ReviewController> logger,
+        IReviewQuery reviewQuery) : ControllerBase
     {
-        // GET api/review/init
+        private const string ReviewsCacheKey = "reviews";
+
+        /// <summary>
+        /// Gets all approved reviews.
+        /// </summary>
         [HttpGet("init")]
-        public IActionResult Index()
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<ReviewSummary>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IEnumerable<ReviewSummary>>> Index()
         {
-            const string reviewKey = "reviews";
-            if (cache.TryGetValue(reviewKey, out IEnumerable<ReviewSummary>? reviews) && reviews !=null)
+            var reviews = await cache.GetOrCreateAsync(ReviewsCacheKey, async entry =>
             {
-                return Ok(reviews);
+                logger.LogInformation("Reviews cache miss. Fetching from database.");
+                entry.Priority = CacheItemPriority.Normal;
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                return await reviewQuery.GetAllApprovedReviewsAsync();
+            });
+
+            if (reviews is null)
+            {
+                logger.LogWarning("No reviews found.");
+                return Ok(ApiResponse<IEnumerable<ReviewSummary>>.SuccessResult(new List<ReviewSummary>()));
             }
 
-            reviews = reviewQuery.GetAllApprovedReviews();
-   
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetPriority(CacheItemPriority.NeverRemove)
-                .SetAbsoluteExpiration(DateTimeOffset.Now.AddMinutes(10));
-
-            cache.Set(reviewKey, reviews, cacheEntryOptions);
-
-            return Ok(reviews);
+            logger.LogDebug("Reviews served successfully.");
+            return Ok(ApiResponse<IEnumerable<ReviewSummary>>.SuccessResult(reviews));
         }
     }
 }

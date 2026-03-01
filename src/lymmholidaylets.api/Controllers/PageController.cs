@@ -1,60 +1,61 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
-
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.ReadModel.Page;
+using LymmHolidayLets.Api.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public sealed class PageController(IMemoryCache cache,
-        LymmHolidayLets.Domain.Interface.ILogger logger, IPageQuery pageQuery) : ControllerBase
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    public sealed class PageController(
+        IMemoryCache cache,
+        ILogger<PageController> logger,
+        IPageQuery pageQuery) : ControllerBase
     {
-        // GET api/page/detail/{id}
+        /// <summary>
+        /// Gets page details by alias title.
+        /// </summary>
+        /// <param name="id">Alias title of the page</param>
         [HttpGet("detail/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<PageDetail>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Detail(string id)
         {
-            try
+            if (string.IsNullOrWhiteSpace(id))
             {
-                if (string.IsNullOrEmpty(id))
-                {
-                    logger.LogWarning("Unable to retrieve a page with no alias title.", HttpContext);
-                    return BadRequest(new { error = "Missing alias title (id)." });
-                }
+                logger.LogWarning("Page detail requested with no alias title");
+                return BadRequest(ApiResponse<object>.FailureResult("Missing alias title (id)."));
+            }
 
-                var cacheKey = $"page-detail-{id}";
+            var cacheKey = $"page-detail-{id}";
 
-                if (!cache.TryGetValue(cacheKey, out PageDetail? page))
-                {
-                    page = pageQuery.GetPageByAliasTitle(id);
+            var page = await cache.GetOrCreateAsync(cacheKey, async entry =>
+            {
+                logger.LogInformation("Page cache miss for AliasTitle={AliasTitle}. Fetching from database.", id);
+                entry.Priority = CacheItemPriority.Normal;
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24);
+                return await pageQuery.GetPageByAliasTitleAsync(id);
+            });
 
-                    if (page is null)
-                    {
-                        logger.LogWarning($"Unable to retrieve a page with alias title - {id}.", HttpContext);
-                        return NotFound();
-                    }
-
-                    var cacheEntryOptions = new MemoryCacheEntryOptions()
-                        .SetPriority(CacheItemPriority.NeverRemove)
-                        .SetAbsoluteExpiration(DateTimeOffset.MaxValue);
-
-                    cache.Set(cacheKey, page, cacheEntryOptions);
-                }
-
-                if (page is { Visible: true })
-                {
-                    return Ok(page);
-                }
-
-                logger.LogWarning($"Unable to retrieve a visible page with alias title - {id}.", HttpContext);
+            if (page is null)
+            {
+                logger.LogWarning("Page not found for AliasTitle={AliasTitle}", id);
                 return NotFound();
             }
-            catch (Exception ex)
+
+            if (!page.Visible)
             {
-                await logger.LogError($"Error retrieving a page with alias title - {id}.", HttpContext, null, ex);
-                return StatusCode(500);
+                logger.LogWarning("Page not visible for AliasTitle={AliasTitle}", id);
+                return NotFound();
             }
+
+            logger.LogInformation("Page returned successfully for AliasTitle={AliasTitle}", id);
+            return Ok(ApiResponse<PageDetail>.SuccessResult(page));
         }
     }
 }

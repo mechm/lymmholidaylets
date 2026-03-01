@@ -5,5 +5,6 @@ namespace LymmHolidayLets.Application.Interface.Query
     public interface IHomepageQuery
     {
         HomepageAggregate GetHomePageDetail();
+        Task<HomepageAggregate> GetHomePageDetailAsync();
     }
 }

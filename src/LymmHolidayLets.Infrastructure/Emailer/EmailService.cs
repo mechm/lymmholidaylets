@@ -6,16 +6,9 @@ using LymmHolidayLets.Domain.Interface;
 
 namespace LymmHolidayLets.Infrastructure.Emailer
 {
-	public sealed class EmailService : IEmailService
+	public sealed class EmailService(IOptions<SmtpConfig> smtpConfig, ILogger logger) : IEmailService
 	{
-		private readonly ILogger _logger;
-		private readonly SmtpConfig _smtpConfig;
-
-		public EmailService(IOptions<SmtpConfig> smtpConfig, ILogger logger)
-		{
-			_smtpConfig = smtpConfig.Value;
-			_logger = logger;
-		}
+		private readonly SmtpConfig _smtpConfig = smtpConfig.Value;
 
 		// TODO better to call an api endpoint to send email rather than doing it directly in the service,
 		// as this would allow for better error handling and retry logic,
@@ -56,7 +49,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 			}
 			catch (System.Exception ex)
 			{
-				_logger.LogError($"EmailService|SendAsync|{ex.Message}");
+				logger.LogError($"EmailService|SendAsync|{ex.Message}");
 			}
 		}
 	}

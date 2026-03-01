@@ -18,3 +18,5 @@ INSERT INTO Users (Username, Email) VALUES
 ('MatthewC', 'matthew@example.com'), 
 ('TestUser', 'test@example.com');
 GO
+
+

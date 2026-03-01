@@ -775,3 +775,70 @@ SELECT 3, N'Google', N'Superb cottage, very cosy and comfortable for a family we
 WHERE NOT EXISTS (SELECT 1 FROM [dbo].[Review] WHERE [RegistrationCode] = '33333333-3333-3333-3333-333333333333');
 GO
 
+/* ==========================================================================
+   1. Create the WebhookEvent Table
+   ========================================================================== */
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[WebhookEvent]') AND type in (N'U'))
+    BEGIN
+        CREATE TABLE [dbo].[WebhookEvent] (
+                                              [Id]               INT            IDENTITY(1,1) NOT NULL,
+                                              [ExternalId]       NVARCHAR(255)  NOT NULL, -- Stripe Event ID (e.g., evt_...)
+                                              [Data]             NVARCHAR(MAX)  NOT NULL, -- Full JSON payload
+                                              [State]            TINYINT        NOT NULL, -- 0: Pending, 1: Processing, 2: Processed, 3: Failed
+                                              [ProcessingErrors] NVARCHAR(MAX)  NULL,
+                                              [CreatedAt]        DATETIME       NOT NULL DEFAULT (GETUTCDATE()),
+                                              [UpdatedAt]        DATETIME       NOT NULL DEFAULT (GETUTCDATE()),
+                                              CONSTRAINT [PK_WebhookEvent] PRIMARY KEY CLUSTERED ([Id] ASC)
+        );
+        -- Index for fast lookup via Stripe ID
+        CREATE UNIQUE NONCLUSTERED INDEX [IX_WebhookEvent_ExternalId]
+            ON [dbo].[WebhookEvent] ([ExternalId] ASC);
+    END
+GO
+/* ==========================================================================
+   2. Stored Procedure: WebhookEvent_GetByExternalId
+   ========================================================================== */
+CREATE OR ALTER PROCEDURE [dbo].[WebhookEvent_GetByExternalId]
+@externalId NVARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT [Id], [ExternalId], [Data], [State], [ProcessingErrors], [CreatedAt], [UpdatedAt]
+    FROM [dbo].[WebhookEvent]
+    WHERE [ExternalId] = @externalId;
+END
+GO
+/* ==========================================================================
+   3. Stored Procedure: WebhookEvent_Create
+   ========================================================================== */
+CREATE OR ALTER PROCEDURE [dbo].[WebhookEvent_Create]
+    @ExternalId       NVARCHAR(255),
+    @Data             NVARCHAR(MAX),
+    @State            TINYINT,
+    @CreatedAt        DATETIME,
+    @UpdatedAt        DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    INSERT INTO [dbo].[WebhookEvent] ([ExternalId], [Data], [State], [CreatedAt], [UpdatedAt])
+    VALUES (@ExternalId, @Data, @State, @CreatedAt, @UpdatedAt);
+END
+GO
+/* ==========================================================================
+   4. Stored Procedure: WebhookEvent_Update
+   ========================================================================== */
+CREATE OR ALTER PROCEDURE [dbo].[WebhookEvent_Update]
+    @ExternalId       NVARCHAR(255),
+    @State            TINYINT,
+    @ProcessingErrors NVARCHAR(MAX) = NULL,
+    @UpdatedAt        DATETIME
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE [dbo].[WebhookEvent]
+    SET [State] = @State,
+        [ProcessingErrors] = @ProcessingErrors,
+        [UpdatedAt] = @UpdatedAt
+    WHERE [ExternalId] = @ExternalId;
+END
+GO

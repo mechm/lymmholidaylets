@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Domain.ReadModel.Page;
+﻿﻿using LymmHolidayLets.Domain.ReadModel.Page;
 
 namespace LymmHolidayLets.Domain.DataAdapter
 {
@@ -8,6 +8,7 @@ namespace LymmHolidayLets.Domain.DataAdapter
         bool SiteUrlExistsExcludingPage(string aliasTitle, int pageId);
         IEnumerable<PageSummary> GetAllSummary();
         PageDetail? GetPageByAliasTitle(string aliasTitle);
+        Task<PageDetail?> GetPageByAliasTitleAsync(string aliasTitle);
         bool PageExitsByTemplateId(int templateId);
     }
 }

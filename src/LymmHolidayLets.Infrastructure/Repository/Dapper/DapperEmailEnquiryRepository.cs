@@ -6,32 +6,20 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperEmailEnquiryRepository : RepositoryBase<EmailEnquiry>, IDapperEmailEnquiryRepository
+    public sealed class DapperEmailEnquiryRepository(DbSession session)
+        : RepositoryBase<EmailEnquiry>(session), IDapperEmailEnquiryRepository
     {
-        public DapperEmailEnquiryRepository(DbSession session) : base(session)
-        {
-        }
-
         public IEnumerable<EmailEnquiry> GetAll()
         {
             const string procedure = "Email_Enquiry_GetAll";
 
             try
             {
-                IList<EmailEnquiry> emailEnquiries = new List<EmailEnquiry>();
-
                 using var connection = Session.Connection;
                 var results = connection.Query(procedure,
                         commandType: CommandType.StoredProcedure);
 
-                foreach (var emailEnquiry in results)
-                {
-                    emailEnquiries.Add(new EmailEnquiry(emailEnquiry.EmailEnquiryId, emailEnquiry.Name,
-                        emailEnquiry.Company, emailEnquiry.EmailAddress, emailEnquiry.TelephoneNo,
-                        emailEnquiry.Subject, emailEnquiry.Message, emailEnquiry.DateTimeOfEnquiry));
-                }               
-
-                return emailEnquiries;
+                return results.Select(emailEnquiry => new EmailEnquiry(emailEnquiry.EmailEnquiryId, emailEnquiry.Name, emailEnquiry.Company, emailEnquiry.EmailAddress, emailEnquiry.TelephoneNo, emailEnquiry.Subject, emailEnquiry.Message, emailEnquiry.DateTimeOfEnquiry)).ToList();
             }
             catch (System.Exception ex)
             {
@@ -45,8 +33,6 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 
             try
             {
-                EmailEnquiry emailEnquiry;
-
                 using var connection = Session.Connection;
                 var result = connection.QueryFirstOrDefault(procedure, new
                 {
@@ -59,7 +45,7 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                     return null;
                 }
 
-                emailEnquiry = new EmailEnquiry(result.EmailEnquiryId, result.Name,
+                var emailEnquiry = new EmailEnquiry(result.EmailEnquiryId, result.Name,
                     result.Company, result.EmailAddress, result.TelephoneNo,
                     result.Subject, result.Message, result.DateTimeOfEnquiry);
               

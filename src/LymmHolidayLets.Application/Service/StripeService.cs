@@ -13,9 +13,7 @@ namespace LymmHolidayLets.Application.Service
 	/// </summary>
 	public sealed class StripeService(ILogger logger) : IStripeService
     {
-        private readonly ILogger _logger = logger;
-
-        public (Product, Coupon?) CreateProductAndCoupon(Checkout? previousCheckout, string productName, string productDescription, decimal unitAmount, decimal? percentOff) 
+	    public (Product, Coupon?) CreateProductAndCoupon(Checkout? previousCheckout, string productName, string productDescription, decimal unitAmount, decimal? percentOff) 
 		{
             Product nightlyProduct = GetOrCreateProduct(previousCheckout?.StripeNightProductId, productName, productDescription, unitAmount);
             Coupon? nightlyCoupon = GetOrCreateCoupon(previousCheckout?.StripeNightCouponId, productName, percentOff, nightlyProduct.Id);
@@ -53,15 +51,15 @@ namespace LymmHolidayLets.Application.Service
                                       IEnumerable<PropertyAdditionalProduct> additionalProducts, 
 									  short propertyId, DateOnly checkIn, DateOnly checkout, short? numberOfAdults, short? numberOfChildren, short? numberOfInfants)
 		{
-            // Setup the session options for the session for stripe
+            // Set up the session options for the session for stripe
             SessionCreateOptions options = new()
 			{
 				PhoneNumberCollection = new SessionPhoneNumberCollectionOptions { Enabled = true },
 				Metadata = new Dictionary<string, string> {
 							{ "PropertyID", propertyId.ToString() },
                             { "PropertyName", propertyName },
-							{ "CheckInDate", checkIn.ToString(CultureInfo.CurrentCulture) },
-							{ "CheckoutDate", checkout.ToString(CultureInfo.CurrentCulture) },
+							{ "CheckInDate", checkIn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) },
+							{ "CheckoutDate", checkout.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) },
 							{ "NoAdult", numberOfAdults.HasValue ? numberOfAdults.Value.ToString() : "" },
 							{ "NoChildren", numberOfChildren.HasValue ? numberOfChildren.Value.ToString() : "" },
 						    { "NoInfant", numberOfInfants.HasValue ? numberOfInfants.Value.ToString() : "" }
@@ -72,7 +70,7 @@ namespace LymmHolidayLets.Application.Service
 				AutomaticTax = new SessionAutomaticTaxOptions { Enabled = true },
 				LineItems =
                 [
-                    new()
+                    new SessionLineItemOptions
                     {
 							Price = nightlyProduct.DefaultPriceId,
 							Quantity = 1,
@@ -92,13 +90,13 @@ namespace LymmHolidayLets.Application.Service
             
             if (nightlyCoupon != null)
 			{
-				options.Discounts = new List<SessionDiscountOptions>
-				{
-					new()
-                    {
+				options.Discounts =
+				[
+					new SessionDiscountOptions
+					{
 						Coupon = nightlyCoupon.Id,
-					},
-				};
+					}
+				];
 			}
 
 			SessionService sessionService = new();
@@ -116,11 +114,10 @@ namespace LymmHolidayLets.Application.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error On Expire Session", ex);
+                logger.LogError("Error On Expire Session", ex);
             }
             return null;
         }
-
 
         /// <summary>
         /// This method changes the point's location to
@@ -228,7 +225,7 @@ namespace LymmHolidayLets.Application.Service
 			{
 				return service.Get(id, new CouponGetOptions
                 {
-					Expand = new List<string>{ "applies_to" },
+					Expand = ["applies_to"],
                 });
 			}
 			catch (Exception ex)
@@ -241,7 +238,6 @@ namespace LymmHolidayLets.Application.Service
 		{
 			var options = new CouponCreateOptions
 			{
-				//Name = name,
 				PercentOff = percentage,
 				Duration = duration,
 				AppliesTo = new CouponAppliesToOptions

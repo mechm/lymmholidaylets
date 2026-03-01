@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Domain.Model.ICal.Entity;
+﻿﻿using LymmHolidayLets.Domain.Model.ICal.Entity;
 
 
 namespace LymmHolidayLets.Domain.Repository
@@ -6,5 +6,6 @@ namespace LymmHolidayLets.Domain.Repository
     public interface IDapperICalRepository : IDapperRepository<ICal>
     {
         IList<ICal> GetAll();
+        Task<IReadOnlyList<ICal>> GetAllAsync();
     }
 }

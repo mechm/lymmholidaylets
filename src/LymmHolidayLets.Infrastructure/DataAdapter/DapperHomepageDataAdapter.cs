@@ -1,4 +1,4 @@
-﻿using Dapper;
+﻿﻿using Dapper;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.ReadModel.Homepage;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -30,6 +30,27 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
                     homepageAggregate = new HomepageAggregate(review, slide);
                 }
                 return homepageAggregate;
+            }
+            catch (System.Exception ex)
+            {
+                throw new DataAccessException(
+                    $"An error occurred finding homepage detail with the procedure {procedure}", ex);
+            }
+        }
+
+        public async Task<HomepageAggregate> GetHomePageDetailAsync()
+        {
+            const string procedure = "Homepage_GetAll";
+
+            try
+            {
+                using var sqlConnection = _session.Connection;
+                using var result = await sqlConnection.QueryMultipleAsync(procedure, null, _session.Transaction,
+                  commandType: CommandType.StoredProcedure);
+
+                var review = await result.ReadAsync<Review>();
+                var slide = await result.ReadAsync<Slideshow>();
+                return new HomepageAggregate(review, slide);
             }
             catch (System.Exception ex)
             {
