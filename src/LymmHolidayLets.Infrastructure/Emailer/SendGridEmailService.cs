@@ -1,5 +1,6 @@
 ﻿using LymmHolidayLets.Domain.Dto.Email;
 using LymmHolidayLets.Domain.Interface;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
@@ -10,12 +11,12 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 {
     public class SendGridEmailService : IEmailService
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<SendGridEmailService> _logger;
         private readonly SmtpConfig _smtpConfig;
         private readonly ISendGridClient _sendGridClient;
         private readonly AsyncRetryPolicy _retryPolicy;
 
-        public SendGridEmailService(IOptions<SmtpConfig> smtpConfig, ILogger logger, ISendGridClient sendGridClient)
+        public SendGridEmailService(IOptions<SmtpConfig> smtpConfig, ILogger<SendGridEmailService> logger, ISendGridClient sendGridClient)
         {
             _smtpConfig = smtpConfig.Value;
             _logger = logger;
@@ -25,7 +26,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
                 .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                     (ex, time) =>
                     {
-                        _logger.LogError($"Error sending email. Retrying in {time.TotalSeconds}s. Exception: {ex.Message}");
+                        _logger.LogError(ex, "Error sending email. Retrying in {RetryDelay}s", time.TotalSeconds);
                     });
         }
 
@@ -53,10 +54,10 @@ namespace LymmHolidayLets.Infrastructure.Emailer
                 if (!response.IsSuccessStatusCode)
                 {
                     var responseBody = await response.Body.ReadAsStringAsync();
-                    _logger.LogError($"Failed to send email. Status code: {response.StatusCode}. Body: {responseBody}");
+                    _logger.LogError("Failed to send email. Status code: {StatusCode}. Body: {ResponseBody}", response.StatusCode, responseBody);
                     throw new System.Exception($"Failed to send email. Status code: {response.StatusCode}");
                 }
-                _logger.LogInfo($"Email sent to {emailMessage.ToEmailAddress} successfully.");
+                _logger.LogInformation("Email sent to {ToEmailAddress} successfully.", emailMessage.ToEmailAddress);
             });
         }
     }

@@ -7,7 +7,7 @@ using System.Data;
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
     public sealed class DapperWebhookEventRepository(DbSession session)
-        : RepositoryBase<WebhookEvent>(session), IDapperWebhookEventRepository
+        : RepositoryBase<WebhookEvent>(session), IWebhookEventRepository
     {
         public WebhookEvent? GetByExternalId(string externalId)
         {

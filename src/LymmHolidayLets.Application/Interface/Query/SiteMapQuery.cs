@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Domain.DataAdapter;
+using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.SiteMap.Entity;
 using LymmHolidayLets.Domain.Repository;
 
@@ -6,10 +6,10 @@ namespace LymmHolidayLets.Application.Interface.Query
 {
     public sealed class SiteMapQuery : ISiteMapQuery
     {
-        private readonly IDapperSiteMapRepository _siteMapRepository;
+        private readonly ISiteMapRepository _siteMapRepository;
         private readonly IDapperSiteMapDataAdapter _siteMapDataAdapter;
 
-        public SiteMapQuery(IDapperSiteMapRepository siteMapRepository,
+        public SiteMapQuery(ISiteMapRepository siteMapRepository,
             IDapperSiteMapDataAdapter siteMapDataAdapter)
         {
             _siteMapRepository = siteMapRepository;

@@ -1,4 +1,4 @@
-﻿﻿using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.ICal.Entity;
 using LymmHolidayLets.Domain.ReadModel.AvailabilityICal;
@@ -6,7 +6,7 @@ using LymmHolidayLets.Domain.Repository;
 
 namespace LymmHolidayLets.Application.Query
 {
-    public sealed class CalQuery(IDapperICalRepository icalRepository, IDapperICalDataAdapter icalDataAdapter)
+    public sealed class CalQuery(IICalRepository icalRepository, IDapperICalDataAdapter icalDataAdapter)
         : ICalQuery
     {
         public IList<ICal> GetAll()
@@ -14,9 +14,9 @@ namespace LymmHolidayLets.Application.Query
             return icalRepository.GetAll();
         }
 
-        public Task<IReadOnlyList<ICal>> GetAllAsync()
+        public Task<IReadOnlyList<ICal>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return icalRepository.GetAllAsync();
+            return icalRepository.GetAllAsync(cancellationToken);
         }
 
         public IEnumerable<AvailabilityICal> GetICalAvailability(byte propertyId)
@@ -24,9 +24,9 @@ namespace LymmHolidayLets.Application.Query
             return icalDataAdapter.GetICalAvailability(propertyId);
         }
 
-        public Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId)
+        public Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId, CancellationToken cancellationToken = default)
         {
-            return icalDataAdapter.GetICalAvailabilityAsync(propertyId);
+            return icalDataAdapter.GetICalAvailabilityAsync(propertyId, cancellationToken);
         }
     }
 }

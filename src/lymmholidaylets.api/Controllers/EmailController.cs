@@ -1,4 +1,4 @@
-﻿﻿using LymmHolidayLets.Api.Models;
+﻿using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Email;
 using LymmHolidayLets.Api.Services;
 using Microsoft.AspNetCore.Mvc;

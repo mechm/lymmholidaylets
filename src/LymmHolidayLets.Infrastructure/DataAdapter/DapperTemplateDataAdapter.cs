@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.ReadModel.Page;
 using LymmHolidayLets.Infrastructure.Exception;

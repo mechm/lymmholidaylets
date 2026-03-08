@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Template;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -7,7 +7,7 @@ using System.Data;
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
     public sealed class DapperTemplateRepository(DbSession session)
-        : RepositoryBase<Template>(session), IDapperTemplateRepository
+        : RepositoryBase<Template>(session), ITemplateRepository
     {
         public IEnumerable<Template> GetAll()
         {

@@ -3,6 +3,7 @@ using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Model.Command;
 using LymmHolidayLets.Domain.Dto.Email;
 using LymmHolidayLets.Domain.Interface;
+using Microsoft.Extensions.Logging;
 
 namespace LymmHolidayLets.Api.Services
 {
@@ -11,7 +12,7 @@ namespace LymmHolidayLets.Api.Services
         IEmailService emailService,
         IEmailTemplateBuilder emailTemplateBuilder,
         IConfiguration configuration,
-        Domain.Interface.ILogger logger) : IEmailEnquiryService
+        ILogger<EmailEnquiryService> logger) : IEmailEnquiryService
     {
         private readonly IDictionary<string, string?>? _ccEmails = configuration.GetSection("Keys:CCEmail").Get<Dictionary<string, string?>>();
 
@@ -40,7 +41,7 @@ namespace LymmHolidayLets.Api.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to process email enquiry for {request.EmailAddress}: {ex.Message}", ex);
+                logger.LogError(ex, "Failed to process email enquiry for {EmailAddress}", request.EmailAddress);
                 return Task.FromResult(false);
             }
         }
@@ -74,11 +75,11 @@ namespace LymmHolidayLets.Api.Services
 
                 await emailService.SendAsync(message, htmlBody);
                 
-                logger.LogInfo($"Email sent successfully for enquiry from {request.EmailAddress}", "EmailEnquiryService");
+                logger.LogInformation("Email sent successfully for enquiry from {EmailAddress}", request.EmailAddress);
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to send enquiry email for {request.EmailAddress}: {ex.Message}", ex);
+                logger.LogError(ex, "Failed to send enquiry email for {EmailAddress}", request.EmailAddress);
                 // Could add retry logic here or queue for later retry
             }
         }

@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.ReadModel.Property;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -7,12 +7,8 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperPropertyDataAdapter : SqlQueryBase, IDapperPropertyDataAdapter
+    public sealed class DapperPropertyDataAdapter(DbSession session) : SqlQueryBase(session), IDapperPropertyDataAdapter
     {
-        public DapperPropertyDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public PropertyBooking GetPropertyBookingById(byte propertyId)
         {
             const string procedure = "Property_Booking_GetByID";
@@ -40,27 +36,24 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                PropertyDetailAggregate propertyDetailAggregate;
-
                 using var sqlConnection = _session.Connection;
-                using (var result = sqlConnection.QueryMultiple(procedure, new
-                {
-                    propertyId,
-                }, _session.Transaction,
-                  commandType: CommandType.StoredProcedure))
-                {
-                    PropertyBooking? propertyBooking = result.ReadSingleOrDefault<PropertyBooking>();
-                   
-                    if (propertyBooking == null) 
+                using var result = sqlConnection.QueryMultiple(procedure, new
                     {
-                        return null;
-                    }
-
-                    IEnumerable<DateOnly> datesBooked = result.Read<DateOnly>();
-                    IEnumerable<FAQ> faqs = result.Read<FAQ>();
-                    IEnumerable<Review> review = result.Read<Review>();
-                    propertyDetailAggregate = new PropertyDetailAggregate(propertyBooking, datesBooked, faqs, review);
+                        propertyId,
+                    }, _session.Transaction,
+                    commandType: CommandType.StoredProcedure);
+                var propertyBooking = result.ReadSingleOrDefault<PropertyBooking>();
+                   
+                if (propertyBooking == null) 
+                {
+                    return null;
                 }
+
+                IEnumerable<DateOnly> datesBooked = result.Read<DateOnly>();
+                IEnumerable<FAQ> faqs = result.Read<FAQ>();
+                IEnumerable<Review> review = result.Read<Review>();
+                
+                var propertyDetailAggregate = new PropertyDetailAggregate(propertyBooking, datesBooked, faqs, review);
                 return propertyDetailAggregate;
             }
             catch (System.Exception ex)
@@ -76,17 +69,13 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                PropertyCheckInCheckOutTime? propertyCheckInCheckOutTime;
-
                 using var sqlConnection = _session.Connection;
-                using (var result = sqlConnection.QueryMultiple(procedure, new
-                {
-                    propertyId,
-                }, _session.Transaction,
-                  commandType: CommandType.StoredProcedure))
-                {
-                    propertyCheckInCheckOutTime = result.ReadSingleOrDefault<PropertyCheckInCheckOutTime>();              
-                }
+                using var result = sqlConnection.QueryMultiple(procedure, new
+                    {
+                        propertyId,
+                    }, _session.Transaction,
+                    commandType: CommandType.StoredProcedure);
+                var propertyCheckInCheckOutTime = result.ReadSingleOrDefault<PropertyCheckInCheckOutTime>();
                 return propertyCheckInCheckOutTime;
             }
             catch (System.Exception ex)

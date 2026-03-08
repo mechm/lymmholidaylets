@@ -1,6 +1,5 @@
 ﻿using LymmHolidayLets.Application.Interface.Service;
 using Microsoft.Extensions.Caching.Memory;
-using Stripe.Checkout;
 
 namespace LymmHolidayLets.Application.Service
 {
@@ -33,17 +32,17 @@ namespace LymmHolidayLets.Application.Service
             }
         }
 
-        public void AddUpdateSessionCache(Session session, DateOnly checkIn, DateOnly checkout)
+        public void AddUpdateSessionCache(string sessionId, DateOnly checkIn, DateOnly checkout)
         {
             if (cache.TryGetValue(SessionKey, out IList<CheckoutSession>? currentSessions))
             {
-                currentSessions?.Add(new CheckoutSession(session.Id, checkIn, checkout));
+                currentSessions?.Add(new CheckoutSession(sessionId, checkIn, checkout));
             }
             else
             {
                 currentSessions = new List<CheckoutSession>
                 {
-                    new(session.Id, checkIn, checkout)
+                    new(sessionId, checkIn, checkout)
                 };
             }
 

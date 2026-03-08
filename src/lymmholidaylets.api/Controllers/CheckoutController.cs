@@ -11,6 +11,7 @@ namespace LymmHolidayLets.Api.Controllers
     [ApiController]
     public sealed class CheckoutController(
         ICheckoutService checkoutService,
+        IManageCheckoutSessionService manageCheckoutSessionService,
         ILogger<CheckoutController> logger) : ControllerBase
     {
         /// <summary>
@@ -28,7 +29,7 @@ namespace LymmHolidayLets.Api.Controllers
         public ActionResult Create([FromBody] CheckoutItemForm model)
         {
             var host = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}";
-            var (error, session) = checkoutService.Checkout(
+            var (error, result) = checkoutService.Checkout(
                 host,
                 model.PropertyId,
                 model.Checkin,
@@ -43,14 +44,17 @@ namespace LymmHolidayLets.Api.Controllers
                 return BadRequest(ApiResponse<object>.FailureResult(error));
             }
 
-            if (session == null)
+            if (result == null)
             {
-                logger.LogError("Null session returned from checkout service for PropertyId={PropertyId}", model.PropertyId);
+                logger.LogError("Null result returned from checkout service for PropertyId={PropertyId}", model.PropertyId);
                 return BadRequest(ApiResponse<object>.FailureResult("Please try again later or contact us for further support"));
             }
 
+            // Session cache management belongs at the API boundary, not inside the application service.
+            manageCheckoutSessionService.AddUpdateSessionCache(result.SessionId, result.CheckIn, result.CheckOut);
+
             logger.LogInformation("Checkout session created for PropertyId={PropertyId}", model.PropertyId);
-            return Ok(ApiResponse<object>.SuccessResult(new { url = session.Url }));
+            return Ok(ApiResponse<object>.SuccessResult(new { url = result.SessionUrl }));
         }
     }
 }

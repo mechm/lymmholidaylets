@@ -1,4 +1,4 @@
-﻿﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.ReadModel.AvailabilityICal;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -30,17 +30,20 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             }
         }
 
-        public async Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId)
+        public async Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId, CancellationToken cancellationToken = default)
         {
             const string procedure = "ICalBooking_Available_GetByPropertyID";
 
             try
             {
                 using var connection = _session.Connection;
-                var availability = await connection.QueryAsync<AvailabilityICal>(procedure,
+                var command = new CommandDefinition(
+                    procedure,
                     new { PropertyID = propertyId },
                     _session.Transaction,
-                    commandType: CommandType.StoredProcedure);
+                    commandType: CommandType.StoredProcedure,
+                    cancellationToken: cancellationToken);
+                var availability = await connection.QueryAsync<AvailabilityICal>(command);
 
                 return availability.AsList();
             }

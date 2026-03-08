@@ -1,12 +1,13 @@
 ﻿using LymmHolidayLets.Application.Interface.Service;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
-using Microsoft.Extensions.Configuration;
 
 namespace LymmHolidayLets.Application.Service
 {
-    public sealed class TextMessageService(IConfiguration config, Domain.Interface.ILogger logger) : ITextMessageService
+    public sealed class TextMessageService(IConfiguration config, ILogger<TextMessageService> logger) : ITextMessageService
     {
         private const string DefaultFromNumber = "+447897031197";
 
@@ -53,12 +54,12 @@ namespace LymmHolidayLets.Application.Service
 
                         if (result.ErrorCode.HasValue)
                         {
-                            logger.LogError($"Twilio Error for {number}: {result.ErrorMessage} (Code: {result.ErrorCode})");
+                            logger.LogError("Twilio Error for {Number}: {ErrorMessage} (Code: {ErrorCode})", number, result.ErrorMessage, result.ErrorCode);
                         }
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError($"TextMessageService|SendText|Exception for {number}: {ex.Message}", ex);
+                        logger.LogError(ex, "TextMessageService|SendText|Exception for {Number}", number);
                     }
                 });
 

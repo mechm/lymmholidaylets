@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Domain.Interface;
+using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.Model.UrlRedirect.ValueType;
 
 namespace LymmHolidayLets.Domain.DataAdapter

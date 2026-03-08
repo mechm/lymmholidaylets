@@ -1,4 +1,4 @@
-﻿﻿using LymmHolidayLets.Domain.Interface;
+using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.ReadModel.AvailabilityICal;
 
 namespace LymmHolidayLets.Domain.DataAdapter
@@ -6,6 +6,6 @@ namespace LymmHolidayLets.Domain.DataAdapter
     public interface IDapperICalDataAdapter : IDapperSqlQueryBase
     {
         IEnumerable<AvailabilityICal> GetICalAvailability(byte propertyId);
-        Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId);
+        Task<IReadOnlyList<AvailabilityICal>> GetICalAvailabilityAsync(byte propertyId, CancellationToken cancellationToken = default);
     }
 }

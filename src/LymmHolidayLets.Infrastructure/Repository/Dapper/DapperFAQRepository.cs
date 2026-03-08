@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.FAQ.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperFAQRepository : RepositoryBase<FAQ>, IDapperFAQRepository
+    public sealed class DapperFAQRepository : RepositoryBase<FAQ>, IFAQRepository
     {
         public DapperFAQRepository(DbSession session) : base(session)
         {

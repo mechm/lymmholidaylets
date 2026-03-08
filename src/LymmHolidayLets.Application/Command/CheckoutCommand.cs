@@ -1,10 +1,10 @@
-﻿﻿using LymmHolidayLets.Application.Interface.Command;
+using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Model.Command;
 using LymmHolidayLets.Domain.Repository;
 
 namespace LymmHolidayLets.Application.Command
 {
-    public sealed class CheckoutCommand(IDapperCheckoutRepository checkoutRepository) : ICheckoutCommand
+    public sealed class CheckoutCommand(ICheckoutRepository checkoutRepository) : ICheckoutCommand
     {
 	    public void Upsert(Checkout checkout)
 		{

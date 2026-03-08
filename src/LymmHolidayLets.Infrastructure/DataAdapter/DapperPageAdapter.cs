@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Infrastructure.Exception;
+using LymmHolidayLets.Infrastructure.Exception;
 using System.Data;
 using Dapper;
 using LymmHolidayLets.Infrastructure.Repository;

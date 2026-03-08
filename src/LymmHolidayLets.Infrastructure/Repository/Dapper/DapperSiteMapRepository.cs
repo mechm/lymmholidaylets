@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.SiteMap.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -7,7 +7,7 @@ using System.Data;
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
     public sealed class DapperSiteMapRepository(DbSession session)
-        : RepositoryBase<SiteMap>(session), IDapperSiteMapRepository
+        : RepositoryBase<SiteMap>(session), ISiteMapRepository
     {
         public IEnumerable<SiteMap> GetAll()
         {

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace LymmHolidayLets.Api.Services
@@ -6,7 +7,7 @@ namespace LymmHolidayLets.Api.Services
     public sealed class RecaptchaValidationService(
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
-        Domain.Interface.ILogger logger) : IRecaptchaValidationService
+        ILogger<RecaptchaValidationService> logger) : IRecaptchaValidationService
     {
         public async Task<bool> ValidateAsync(string? token, CancellationToken cancellationToken = default)
         {
@@ -53,7 +54,7 @@ namespace LymmHolidayLets.Api.Services
                         logger.LogWarning("ReCaptcha response was null or could not be deserialized");
                         return false;
                     case { Success: false, ErrorMessage: not null }:
-                        logger.LogInfo($"Unsuccessful recaptcha result - {string.Join(", ", result.ErrorMessage)}", "RecaptchaValidationService");
+                        logger.LogInformation("Unsuccessful recaptcha result - {ErrorMessages}", string.Join(", ", result.ErrorMessage));
                         break;
                 }
 
@@ -66,7 +67,7 @@ namespace LymmHolidayLets.Api.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error with recaptcha verification: {ex.Message}", ex);
+                logger.LogError(ex, "Error with recaptcha verification");
                 return false;
             }
         }

@@ -5,17 +5,17 @@ using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Domain.Dto.Email;
-using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.Model.WebhookEvent.Enum;
 using LymmHolidayLets.Domain.ReadModel.Property;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace LymmHolidayLets.Application.Service
 {
     public sealed class StripeWebhookProcessor(
         IConfiguration config,
-        ILogger logger,
+        ILogger<StripeWebhookProcessor> logger,
         IMemoryCache cache,
         IPropertyQuery propertyQuery,
         IEmailGeneratorService emailGeneratorService,
@@ -33,17 +33,21 @@ namespace LymmHolidayLets.Application.Service
             {
                 stripeEvent = EventUtility.ConstructEvent(json, signature, config["StripeSettings:CheckoutWebHookKey"]);
 
-                // Idempotency check
+                // Idempotency check: Stripe may send the same event multiple times if it doesn't receive a 200 OK.
+                // We track event IDs in the database to ensures we don't process the same booking or payment twice.
                 var existingEvent = webhookEventCommand.GetByExternalId(stripeEvent.Id);
                 if (existingEvent != null)
                 {
+                    // If the event is already processed or currently being handled, we return true (200 OK)
+                    // so Stripe stops retrying, while avoiding duplicate side effects.
                     if (existingEvent.State is (int)WebhookEventState.Processed or (int)WebhookEventState.Processing)
                     {
-                        return true; // Already handled or in flight
+                        return true; 
                     }
                 }
                 else
                 {
+                    // First time seeing this event, record it so subsequent retries are caught.
                     webhookEventCommand.Create(stripeEvent.Id, json);
                 }
 
@@ -56,7 +60,7 @@ namespace LymmHolidayLets.Application.Service
                         break;
 
                     default:
-                        logger.LogWarning($"Unhandled event type: {stripeEvent.Type}");
+                        logger.LogWarning("Unhandled event type: {EventType}", stripeEvent.Type);
                         webhookEventCommand.MarkAsProcessed(stripeEvent.Id);
                         break;
                 }
@@ -65,7 +69,7 @@ namespace LymmHolidayLets.Application.Service
             }
             catch (Exception ex)
             {
-                logger.LogError("Error in StripeWebhookProcessor", ex);
+                logger.LogError(ex, "Error in StripeWebhookProcessor");
                 if (stripeEvent != null)
                 {
                     webhookEventCommand.MarkAsFailed(stripeEvent.Id, ex.Message);
@@ -176,7 +180,7 @@ namespace LymmHolidayLets.Application.Service
             }
             catch (Exception ex)
             {
-                logger.LogError("Error sending booking notifications", ex);
+                logger.LogError(ex, "Error sending booking notifications");
             }
         }
     }

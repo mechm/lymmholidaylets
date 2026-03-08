@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.UrlRedirect.ValueType;
 using LymmHolidayLets.Infrastructure;
 using LymmHolidayLets.Infrastructure.Exception;

@@ -1,3 +1,4 @@
+using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Homepage;
 using LymmHolidayLets.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -22,14 +23,15 @@ namespace LymmHolidayLets.Api.Controllers
         {
             var homepage = await homepageService.GetHomepageDataAsync();
 
-            if (homepage == null)
+            if (homepage != null)
             {
-                logger.LogWarning("Failed to load homepage data");
-                return StatusCode(StatusCodes.Status500InternalServerError, 
-                    ApiResponse<object>.FailureResult("Failed to load homepage data."));
+                return Ok(ApiResponse<HomepageModel>.SuccessResult(homepage));
             }
+            
+            logger.LogWarning("Failed to load homepage data");
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                ApiResponse<object>.FailureResult("Failed to load homepage data."));
 
-            return Ok(ApiResponse<HomepageModel>.SuccessResult(homepage));
         }
     }
 }

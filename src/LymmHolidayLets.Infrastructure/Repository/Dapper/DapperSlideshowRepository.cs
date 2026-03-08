@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Slideshow.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,36 +6,21 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperSlideshowRepository : RepositoryBase<Slideshow>, IDapperSlideshowRepository
+    public sealed class DapperSlideshowRepository(DbSession session)
+        : RepositoryBase<Slideshow>(session), ISlideshowRepository
     {
-        public DapperSlideshowRepository(DbSession session) : base(session)
-        {
-        }
-
         public IEnumerable<Slideshow> GetAll()
         {
             const string procedure = "Slideshow_GetAll";
 
             try
             {
-                IList<Slideshow> slideshows = new List<Slideshow>();
-
                 using var connection = Session.Connection;
                 var results = connection.Query(procedure,
                     commandType: CommandType.StoredProcedure);
 
-                foreach (var slideshow in results)
-                {
-                    slideshows.Add(new Slideshow(slideshow.ID,
-                        slideshow.ImagePath, slideshow.ImagePathAlt,
-                        slideshow.CaptionTitle, slideshow.Caption, slideshow.ShortMobileCaption,
-                        slideshow.Link,
-                        slideshow.SequenceOrder,
-                        slideshow.Visible));
-                }
-                
 
-                return slideshows;
+                return results.Select(slideshow => new Slideshow(slideshow.ID, slideshow.ImagePath, slideshow.ImagePathAlt, slideshow.CaptionTitle, slideshow.Caption, slideshow.ShortMobileCaption, slideshow.Link, slideshow.SequenceOrder, slideshow.Visible)).ToList();
             }
             catch (System.Exception ex)
             {
@@ -49,8 +34,6 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 
             try
             {
-                Slideshow slideShow;
-
                 using var connection = Session.Connection;
                 var result = connection.QueryFirstOrDefault(procedure, new
                 {
@@ -63,7 +46,7 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                     return null;
                 }
 
-                slideShow = new Slideshow(result.ID,
+                var slideShow = new Slideshow(result.ID,
                     result.ImagePath, result.ImagePathAlt, result.CaptionTitle, result.Caption, result.ShortMobileCaption,
                     result.Link, result.SequenceOrder, result.Visible);
                 

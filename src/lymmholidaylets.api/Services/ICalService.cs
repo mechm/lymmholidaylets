@@ -4,6 +4,6 @@ namespace LymmHolidayLets.Api.Services
 {
     public interface ICalService
     {
-        Task<FileContentResult?> GetCalendarAsync(int id, Guid s);
+        Task<FileContentResult?> GetCalendarAsync(byte propertyId, Guid identifier, CancellationToken cancellationToken = default);
     }
 }

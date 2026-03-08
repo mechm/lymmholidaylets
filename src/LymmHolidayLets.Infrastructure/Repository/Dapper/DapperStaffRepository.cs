@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Staff.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperStaffRepository : RepositoryBase<Staff>, IDapperStaffRepository
+    public sealed class DapperStaffRepository : RepositoryBase<Staff>, IStaffRepository
     {
         public DapperStaffRepository(DbSession session) : base(session)
         {

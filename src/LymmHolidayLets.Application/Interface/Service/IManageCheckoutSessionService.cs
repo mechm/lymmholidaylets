@@ -1,5 +1,4 @@
 ﻿using LymmHolidayLets.Application.Service;
-using Stripe.Checkout;
 
 namespace LymmHolidayLets.Application.Interface.Service
 {
@@ -8,6 +7,8 @@ namespace LymmHolidayLets.Application.Interface.Service
         IList<CheckoutSession> GetCurrentSessions();
         IList<CheckoutSession> GetSessionsBasedOnDates(IList<CheckoutSession> currentSessions, DateOnly checkIn, DateOnly checkout);
         void UpdateSessionCache(IList<CheckoutSession> currentSessions);
-        void AddUpdateSessionCache(Session session, DateOnly checkIn, DateOnly checkout);
+        void AddUpdateSessionCache(string sessionId, DateOnly checkIn, DateOnly checkout);
     }
 }
+
+

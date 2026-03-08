@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.EmailEnquiry.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -7,7 +7,7 @@ using System.Data;
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
     public sealed class DapperEmailEnquiryRepository(DbSession session)
-        : RepositoryBase<EmailEnquiry>(session), IDapperEmailEnquiryRepository
+        : RepositoryBase<EmailEnquiry>(session), IEmailEnquiryRepository
     {
         public IEnumerable<EmailEnquiry> GetAll()
         {

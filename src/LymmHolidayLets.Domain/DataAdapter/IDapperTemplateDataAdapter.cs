@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Domain.Interface;
+using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.ReadModel.Page;
 
 namespace LymmHolidayLets.Domain.DataAdapter

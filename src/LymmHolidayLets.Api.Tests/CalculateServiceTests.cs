@@ -17,7 +17,7 @@ namespace LymmHolidayLets.Api.Tests
             };
             var checkIn = new DateOnly(2026, 2, 1);
             var checkout = new DateOnly(2026, 2, 2);
-            var (percentage, nights) = CalculateService.CalculateApplicableDiscountPercentage(
+            var (percentage, nights) = CalculateService.Calculate(
                 discounts, checkIn, checkout);
             Assert.Null(percentage);
             Assert.Equal(1, nights);
@@ -33,7 +33,7 @@ namespace LymmHolidayLets.Api.Tests
             };
             var checkIn = new DateOnly(2026, 2, 1);
             var checkout = new DateOnly(2026, 2, 4);
-            var (percentage, nights) = CalculateService.CalculateApplicableDiscountPercentage(
+            var (percentage, nights) = CalculateService.Calculate(
                 discounts, checkIn, checkout);
             Assert.Equal(15, percentage);
             Assert.Equal(3, nights);
@@ -50,7 +50,7 @@ namespace LymmHolidayLets.Api.Tests
             };
             var checkIn = new DateOnly(2026, 2, 1);
             var checkout = new DateOnly(2026, 2, 4);
-            var (percentage, nights) = CalculateService.CalculateApplicableDiscountPercentage(
+            var (percentage, nights) = CalculateService.Calculate(
                 discounts, checkIn, checkout);
             Assert.Equal(15, percentage);
             Assert.Equal(3, nights);

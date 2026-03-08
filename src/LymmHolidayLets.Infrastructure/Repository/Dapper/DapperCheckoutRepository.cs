@@ -1,4 +1,4 @@
-﻿﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Checkout.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -7,7 +7,7 @@ using System.Data;
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
 	public sealed class DapperCheckoutRepository(DbSession session)
-		: RepositoryBase<Checkout>(session), IDapperCheckoutRepository
+		: RepositoryBase<Checkout>(session), ICheckoutRepository
 	{
 		public void Upsert(Checkout checkout)
 		{

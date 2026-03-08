@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.UrlRedirect.ValueType;
 

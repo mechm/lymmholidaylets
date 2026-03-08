@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Calendar.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperCalendarRepository : RepositoryBase<Calendar>, IDapperCalendarRepository
+    public sealed class DapperCalendarRepository : RepositoryBase<Calendar>, ICalendarRepository
 	{
 		public DapperCalendarRepository(DbSession session) : base(session)
 		{

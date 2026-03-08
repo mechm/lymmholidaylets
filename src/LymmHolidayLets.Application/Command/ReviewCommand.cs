@@ -1,18 +1,11 @@
-﻿using LymmHolidayLets.Application.Interface.Command;
+using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Model.Command;
 using LymmHolidayLets.Domain.Repository;
 
 namespace LymmHolidayLets.Application.Command
 {
-    public sealed class ReviewCommand : IReviewCommand
+    public sealed class ReviewCommand(IReviewRepository reviewRepository) : IReviewCommand
     {
-        private readonly IDapperReviewRepository _reviewRepository;
-
-        public ReviewCommand(IDapperReviewRepository reviewRepository)
-        {
-            _reviewRepository = reviewRepository;
-        }
-
         public void Create(Review review)
         {
             if (review.Approved)
@@ -20,7 +13,7 @@ namespace LymmHolidayLets.Application.Command
                 review.DateTimeApproved = DateTime.UtcNow;
             }
 
-            _reviewRepository.Create(new
+            reviewRepository.Create(new
                 Domain.Model.Review.Entity.Review(review.PropertyID, review.Company,
                     review.Description, review.PrivateNote, review.Name,
                     review.EmailAddress, review.Position,
@@ -43,14 +36,14 @@ namespace LymmHolidayLets.Application.Command
                     review.DateTimeAdded, review.DateTimeApproved,
                     review.Approved);
 
-            _reviewRepository.Create(reviewToSave);
+            reviewRepository.Create(reviewToSave);
 
             review.RegistrationCode = reviewToSave.RegistrationCode;
         }
 
         public void Update(Review review)
         {
-            var currentReview = _reviewRepository.GetById(review.ReviewId);
+            var currentReview = reviewRepository.GetById(review.ReviewId);
             if (currentReview == null) 
             {
                 return;
@@ -65,7 +58,7 @@ namespace LymmHolidayLets.Application.Command
                 review.DateTimeApproved = null;
             }
 
-            _reviewRepository.Update(new
+            reviewRepository.Update(new
                 Domain.Model.Review.Entity.Review(review.ReviewId, 
                     review.PropertyID, review.Company,
                     review.Description, review.PrivateNote, review.Name,
@@ -79,7 +72,7 @@ namespace LymmHolidayLets.Application.Command
 
         public void Delete(int id)
         {
-            _reviewRepository.Delete(id);
+            reviewRepository.Delete(id);
         }
     }
 }

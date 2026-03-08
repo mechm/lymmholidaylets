@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.Calendar.Entity;
 using LymmHolidayLets.Domain.Repository;
@@ -7,15 +7,15 @@ using LymmHolidayLets.Domain.Repository.EF;
 namespace LymmHolidayLets.Application.Query
 {
     public sealed class CalendarQuery(IDapperCalendarDataAdapter calendarDataAdapter,
-        IDapperCalendarRepository calendarRepository, ICalendarRepositoryEF calendarRepositoryEF) : ICalendarQuery
+        ICalendarRepository calendarRepository, ICalendarRepositoryEF calendarRepositoryEf) : ICalendarQuery
     {
         private readonly IDapperCalendarDataAdapter _calendarDataAdapter = calendarDataAdapter;
-        private readonly IDapperCalendarRepository _calendarRepository = calendarRepository;
-        private readonly ICalendarRepositoryEF _calendarRepositoryEF = calendarRepositoryEF;
+        private readonly ICalendarRepository _calendarRepository = calendarRepository;
+        private readonly ICalendarRepositoryEF _calendarRepositoryEf = calendarRepositoryEf;
 
         public IQueryable<CalendarEF> GetCalendarById(int id)
         {
-            return _calendarRepositoryEF.GetCalendarByIdAsync(id);
+            return _calendarRepositoryEf.GetCalendarByIdAsync(id);
         }
 
         public Calendar? GetById(int id)

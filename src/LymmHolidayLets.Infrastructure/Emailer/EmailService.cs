@@ -1,12 +1,13 @@
-﻿using Microsoft.Extensions.Options;
+﻿using LymmHolidayLets.Domain.Dto.Email;
+using LymmHolidayLets.Domain.Interface;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MimeKit;
 using MailKit.Net.Smtp;
-using LymmHolidayLets.Domain.Dto.Email;
-using LymmHolidayLets.Domain.Interface;
 
 namespace LymmHolidayLets.Infrastructure.Emailer
 {
-	public sealed class EmailService(IOptions<SmtpConfig> smtpConfig, ILogger logger) : IEmailService
+	public sealed class EmailService(IOptions<SmtpConfig> smtpConfig, ILogger<EmailService> logger) : IEmailService
 	{
 		private readonly SmtpConfig _smtpConfig = smtpConfig.Value;
 
@@ -49,7 +50,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 			}
 			catch (System.Exception ex)
 			{
-				logger.LogError($"EmailService|SendAsync|{ex.Message}");
+				logger.LogError(ex, "EmailService|SendAsync failed");
 			}
 		}
 	}

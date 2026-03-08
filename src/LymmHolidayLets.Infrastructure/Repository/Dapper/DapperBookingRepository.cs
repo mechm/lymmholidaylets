@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Booking.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperBookingRepository : RepositoryBase<Booking>, IDapperBookingRepository
+    public sealed class DapperBookingRepository : RepositoryBase<Booking>, IBookingRepository
 	{
 		public DapperBookingRepository(DbSession session) : base(session)
 		{
@@ -18,8 +18,6 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 
             try
             {
-                Booking booking;
-
                 using var connection = Session.Connection;
                 var result = connection.QueryFirstOrDefault(procedure, new
                 {
@@ -31,12 +29,10 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                     return null;
                 }
 
-                booking = new Booking(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
+                return new Booking(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
                                         result.NoAdult, result.NoChildren, result.NoInfant, result.NoOfGuests,
                                         result.Name, result.Email, result.Telephone,
                                         result.PostalCode, result.Country, result.Total, result.Created, result.Updated);
-
-                return booking;
             }
             catch (System.Exception ex)
             {
@@ -50,21 +46,14 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 
             try
             {
-                IList<Booking> bookings = new List<Booking>();
-
                 using var connection = Session.Connection;
                 var results = connection.Query(procedure,
                     commandType: CommandType.StoredProcedure);
 
-                foreach (var result in results)
-                {
-                    bookings.Add(new Booking(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
+                return results.Select(result => new Booking(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
                                         result.NoAdult, result.NoChildren, result.NoInfant, result.NoOfGuests,
                                         result.Name, result.Email, result.Telephone,
-                                        result.PostalCode, result.Country, result.Total, result.Created, result.Updated));
-                }
-
-                return bookings;
+                                        result.PostalCode, result.Country, result.Total, result.Created, result.Updated)).ToList();
             }
             catch (System.Exception ex)
             {
@@ -84,14 +73,14 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 					booking.SessionID,
 					booking.EventID,
 					booking.PropertyID,
-					booking.CheckIn,
-					booking.CheckOut,
+					CheckIn = booking.Period.CheckIn,
+					CheckOut = booking.Period.CheckOut,
 					booking.NoAdult,
 					booking.NoChildren,
 					booking.NoInfant,
-					booking.Name,
-					booking.Email,
-					booking.Telephone,
+					Name = booking.Contact.Name,
+					Email = booking.Contact.Email,
+					Telephone = booking.Contact.Telephone,
 					booking.PostalCode,
 					booking.Country,
 					booking.Total,
@@ -119,14 +108,14 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                     booking.SessionID,
                     booking.EventID,
                     booking.PropertyID,
-                    booking.CheckIn,
-                    booking.CheckOut,
+                    CheckIn = booking.Period.CheckIn,
+                    CheckOut = booking.Period.CheckOut,
                     booking.NoAdult,
                     booking.NoChildren,
                     booking.NoInfant,
-                    booking.Name,
-                    booking.Email,
-                    booking.Telephone,
+                    Name = booking.Contact.Name,
+                    Email = booking.Contact.Email,
+                    Telephone = booking.Contact.Telephone,
                     booking.PostalCode,
                     booking.Country,
                     booking.Total,

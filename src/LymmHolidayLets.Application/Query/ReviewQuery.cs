@@ -1,4 +1,4 @@
-﻿﻿using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.Review.Entity;
 using LymmHolidayLets.Domain.Repository;
@@ -7,7 +7,7 @@ using LymmHolidayLets.Domain.ReadModel.Review;
 namespace LymmHolidayLets.Application.Query
 {
     public sealed class ReviewQuery(
-        IDapperReviewRepository reviewRepository,
+        IReviewRepository reviewRepository,
         IDapperReviewDataAdapter reviewDataAdapter)
         : IReviewQuery
     {

@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Page.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,33 +6,21 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperPageRepository : RepositoryBase<Page>, IDapperPageRepository
+    public sealed class DapperPageRepository(DbSession session) : RepositoryBase<Page>(session), IPageRepository
     {
-        public DapperPageRepository(DbSession session) : base(session)
-        {
-        }
-
         public IEnumerable<Page> GetAll()
         {
             const string procedure = "Page_GetAll";
 
             try
             {
-                IList<Page> pages = new List<Page>();
-
                 using var connection = Session.Connection;
                 var results = connection.Query(procedure,
                         commandType: CommandType.StoredProcedure);
 
-                foreach (var page in results)
-                {
-                    pages.Add(new Page(page.PageId, page.AliasTitle, page.MetaDescription,
-                        page.Title, page.MainImage, page.MainImageAlt, page.Description,
-                        new Template(page.TemplateId, page.TemplateDescription),
-                        page.Visible));
-                }
-
-                return pages;
+                return results.Select(page => new Page(page.PageId, page.AliasTitle, 
+                    page.MetaDescription, page.Title, page.MainImage, page.MainImageAlt, 
+                    page.Description, new Template(page.TemplateId, page.TemplateDescription), page.Visible)).ToList();
             }
             catch (System.Exception ex)
             {
@@ -46,8 +34,6 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 
             try
             {
-                Page page;
-
                 using var connection = Session.Connection;
                 var result = connection.QueryFirstOrDefault(procedure, new
                 {
@@ -60,7 +46,7 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                     return null;
                 }
 
-                page = new Page(result.PageId, result.AliasTitle, result.MetaDescription,
+                var page = new Page(result.PageId, result.AliasTitle, result.MetaDescription,
                     result.Title, result.MainImage, result.MainImageAlt, result.Description,
                     new Template(result.TemplateId, result.TemplateDescription), result.Visible);
 

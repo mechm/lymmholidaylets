@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.Review.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperReviewRepository : RepositoryBase<Review>, IDapperReviewRepository
+    public sealed class DapperReviewRepository : RepositoryBase<Review>, IReviewRepository
     {
         public DapperReviewRepository(DbSession session) : base(session)
         {

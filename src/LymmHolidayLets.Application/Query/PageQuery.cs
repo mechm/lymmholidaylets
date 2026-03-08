@@ -1,4 +1,4 @@
-﻿﻿using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.Page.Entity;
 using LymmHolidayLets.Domain.ReadModel.Page;
@@ -9,7 +9,7 @@ namespace LymmHolidayLets.Application.Query
 {
     public sealed class PageQuery(
         IDapperPageDataAdapter pageDataAdapter,
-        IDapperPageRepository pageRepository,
+        IPageRepository pageRepository,
         IPageRepositoryEF pageRepositoryEf)
         : IPageQuery
     {

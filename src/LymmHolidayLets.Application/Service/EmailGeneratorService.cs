@@ -14,7 +14,7 @@ namespace LymmHolidayLets.Application.Service
 
         public async Task EmailBookingConfirmationToCompany(BookingConfirmationForCompany bookingConfirmationForCompany)
         {
-            string html = await emailTemplateBuilder.BuildHtmlBookingEmailToCompany(bookingConfirmationForCompany);
+            var html = await emailTemplateBuilder.BuildHtmlBookingEmailToCompany(bookingConfirmationForCompany);
 
             await emailService.SendAsync(
                 new EmailMessage
@@ -28,7 +28,7 @@ namespace LymmHolidayLets.Application.Service
 
         public async Task EmailBookingConfirmationToCustomer(BookingConfirmationForCustomer bookingConfirmationForCustomer)
         {
-            string html = await emailTemplateBuilder.BuildHtmlBookingEmailToCustomer(bookingConfirmationForCustomer);
+            var html = await emailTemplateBuilder.BuildHtmlBookingEmailToCustomer(bookingConfirmationForCustomer);
 
             await emailService.SendAsync(
                 new EmailMessage

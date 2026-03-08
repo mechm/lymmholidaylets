@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using LymmHolidayLets.Application.Service;
@@ -12,20 +12,30 @@ namespace LymmHolidayLets.Api.Tests
         public async Task SendText_EmptyMessage_LogsError()
         {
             var config = new Mock<IConfiguration>();
-            var logger = new Mock<Domain.Interface.ILogger>();
+            var logger = new Mock<ILogger<TextMessageService>>();
             var service = new TextMessageService(config.Object, logger.Object);
-            await service.SendText("", new[] { "+1234567890" });
-            logger.Verify(l => l.LogError(It.Is<string>(s => s.Contains("Message body is empty"))), Times.Once);
+            await service.SendText("", ["+1234567890"]);
+            logger.Verify(l => l.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Message body is empty")),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
 
         [Fact]
         public async Task SendText_EmptyNumbers_LogsError()
         {
             var config = new Mock<IConfiguration>();
-            var logger = new Mock<Domain.Interface.ILogger>();
+            var logger = new Mock<ILogger<TextMessageService>>();
             var service = new TextMessageService(config.Object, logger.Object);
-            await service.SendText("Hello", new string[0]);
-            logger.Verify(l => l.LogError(It.Is<string>(s => s.Contains("No recipient numbers provided"))), Times.Once);
+            await service.SendText("Hello", []);
+            logger.Verify(l => l.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("No recipient numbers provided")),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
 
         [Fact]
@@ -34,10 +44,15 @@ namespace LymmHolidayLets.Api.Tests
             var config = new Mock<IConfiguration>();
             config.Setup(c => c["Twilio:AccountSid"]).Returns((string)null);
             config.Setup(c => c["Twilio:AuthToken"]).Returns((string)null);
-            var logger = new Mock<Domain.Interface.ILogger>();
+            var logger = new Mock<ILogger<TextMessageService>>();
             var service = new TextMessageService(config.Object, logger.Object);
-            await service.SendText("Hello", new[] { "+1234567890" });
-            logger.Verify(l => l.LogError(It.Is<string>(s => s.Contains("Twilio configuration is missing"))), Times.Once);
+            await service.SendText("Hello", ["+1234567890"]);
+            logger.Verify(l => l.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Twilio configuration is missing")),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
 
         [Fact]
@@ -47,11 +62,11 @@ namespace LymmHolidayLets.Api.Tests
             config.Setup(c => c["Twilio:AccountSid"]).Returns("dummySid");
             config.Setup(c => c["Twilio:AuthToken"]).Returns("dummyToken");
             config.Setup(c => c["Twilio:FromNumber"]).Returns("+10000000000");
-            var logger = new Mock<Domain.Interface.ILogger>();
+            var logger = new Mock<ILogger<TextMessageService>>();
             var service = new TextMessageService(config.Object, logger.Object);
-            // This test assumes SendText returns true/false or throws on error. If it doesn't, just verify no error is logged.
-            await service.SendText("Hello", new[] { "+1234567890" });
-            logger.Verify(l => l.LogError(It.IsAny<string>()), Times.Never);
+            // Twilio will throw with dummy credentials; verify the service handles it gracefully without rethrowing.
+            var exception = await Record.ExceptionAsync(() => service.SendText("Hello", ["+1234567890"]));
+            Assert.Null(exception);
         }
     }
 }

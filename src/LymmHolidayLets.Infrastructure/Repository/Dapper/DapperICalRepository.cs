@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using LymmHolidayLets.Domain.Model.ICal.Entity;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Infrastructure.Exception;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.Repository.Dapper
 {
-    public sealed class DapperICalRepository : RepositoryBase<ICal>, IDapperICalRepository
+    public sealed class DapperICalRepository : RepositoryBase<ICal>, IICalRepository
     {
         public DapperICalRepository(DbSession session) : base(session)
         {
@@ -29,14 +29,19 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
             }
         }
 
-        public async Task<IReadOnlyList<ICal>> GetAllAsync()
+        public async Task<IReadOnlyList<ICal>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             const string procedure = "ICal_GetAll";
 
             try
             {
                 using var connection = Session.Connection;
-                var results = await connection.QueryAsync(procedure, Session.Transaction, commandType: CommandType.StoredProcedure);
+                var command = new CommandDefinition(
+                    procedure,
+                    transaction: Session.Transaction,
+                    commandType: CommandType.StoredProcedure,
+                    cancellationToken: cancellationToken);
+                var results = await connection.QueryAsync(command);
 
                 return results.Select(cal => new ICal(cal.ID, cal.PropertyID, cal.FriendlyName, cal.Identifier)).ToList();
             }

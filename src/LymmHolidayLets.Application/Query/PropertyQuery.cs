@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.ReadModel.Property;
 using LymmHolidayLets.Domain.Repository.EF;

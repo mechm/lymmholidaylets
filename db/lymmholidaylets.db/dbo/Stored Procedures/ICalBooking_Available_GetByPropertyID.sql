@@ -16,17 +16,16 @@ BEGIN
 				ROW_NUMBER() OVER (ORDER BY [date]) rn1,
 				ROW_NUMBER() OVER (PARTITION BY [Available], [BookingID] ORDER BY [date]) rn2
 		FROM  [dbo].[Calendar] WITH (NOLOCK)
-		WHERE [PropertyID] =  @PropertyID --and [Available] = 0
+		WHERE [PropertyID] =  @PropertyID
 	)
 
-	SELECT
-		CASE WHEN b.ID IS NULL AND t.[StartDate] < @TodayDate THEN DATEADD(DAY, -2, @TodayDate) ELSE t.[StartDate] END AS [StartDate],
+	SELECT IIF(b.ID IS NULL AND t.[StartDate] < @TodayDate, DATEADD(DAY, -2, @TodayDate), t.[StartDate]) AS [StartDate],
 		t.[EndDate],
 		t.[BookingID], 
 		b.[Name],
-		RIGHT(b.Telephone,4) LastFourDigitTelephone, 
+		RIGHT(b.Telephone,4)                                                                                LastFourDigitTelephone, 
 		b.[NoOfGuests],
-		CASE WHEN b.ID IS NOT NULL THEN DATEDIFF(DAY,t.[StartDate],t.[EndDate]) END AS NoOfNights,
+		CASE WHEN b.ID IS NOT NULL THEN DATEDIFF(DAY,t.[StartDate],t.[EndDate]) END                      AS NoOfNights,
 		p.FriendlyName, 
 		available
 	FROM(

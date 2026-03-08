@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.Model.Booking.Entity;
 using LymmHolidayLets.Domain.Repository;
 
@@ -6,8 +6,8 @@ namespace LymmHolidayLets.Application.Query
 {
     public sealed class BookingQuery : IBookingQuery
     {
-        private readonly IDapperBookingRepository _bookingRepository;
-        public BookingQuery(IDapperBookingRepository bookingRepository)
+        private readonly IBookingRepository _bookingRepository;
+        public BookingQuery(IBookingRepository bookingRepository)
         {
             _bookingRepository = bookingRepository;
         }

@@ -18,7 +18,6 @@ using LymmHolidayLets.Domain.Repository.EF;
 using LymmHolidayLets.Infrastructure;
 using LymmHolidayLets.Infrastructure.DataAdapter;
 using LymmHolidayLets.Infrastructure.DependencyInjection;
-using LymmHolidayLets.Infrastructure.Logging;
 using LymmHolidayLets.Infrastructure.Repository;
 using LymmHolidayLets.Infrastructure.Repository.Dapper;
 using LymmHolidayLets.Infrastructure.Repository.EF;
@@ -122,6 +121,7 @@ builder.Services.AddTransient<IHomepageQuery, HomepageQuery>();
 builder.Services.AddTransient<IReviewQuery, ReviewQuery>();
 builder.Services.AddTransient<IPropertyQuery, PropertyQuery>();
 builder.Services.AddTransient<ISiteMapQuery, SiteMapQuery>();
+builder.Services.AddTransient<ICheckoutQuery, CheckoutQuery>();
 
 
 // Data access
@@ -144,19 +144,19 @@ builder.Services.AddTransient<IDapperReviewDataAdapter, DapperReviewDataAdapter>
 // Infrastructure -- Repository
 builder.Services.AddTransient<DbSession>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
-builder.Services.AddTransient<IDapperCheckoutRepository, DapperCheckoutRepository>();
-builder.Services.AddTransient<IDapperBookingRepository, DapperBookingRepository>();
-builder.Services.AddTransient<IDapperCalendarRepository, DapperCalendarRepository>();
-builder.Services.AddTransient<IDapperICalRepository, DapperICalRepository>();
-builder.Services.AddTransient<IDapperPageRepository, DapperPageRepository>();
-builder.Services.AddTransient<IDapperTemplateRepository, DapperTemplateRepository>();
-builder.Services.AddTransient<IDapperSiteMapRepository, DapperSiteMapRepository>();
-builder.Services.AddTransient<IDapperSlideshowRepository, DapperSlideshowRepository>();
-builder.Services.AddTransient<IDapperEmailEnquiryRepository, DapperEmailEnquiryRepository>();
-builder.Services.AddTransient<IDapperFAQRepository, DapperFAQRepository>();
-builder.Services.AddTransient<IDapperReviewRepository, DapperReviewRepository>();
-builder.Services.AddTransient<IDapperStaffRepository, DapperStaffRepository>();
-builder.Services.AddTransient<IDapperWebhookEventRepository, DapperWebhookEventRepository>();
+builder.Services.AddTransient<ICheckoutRepository, DapperCheckoutRepository>();
+builder.Services.AddTransient<IBookingRepository, DapperBookingRepository>();
+builder.Services.AddTransient<ICalendarRepository, DapperCalendarRepository>();
+builder.Services.AddTransient<IICalRepository, DapperICalRepository>();
+builder.Services.AddTransient<IPageRepository, DapperPageRepository>();
+builder.Services.AddTransient<ITemplateRepository, DapperTemplateRepository>();
+builder.Services.AddTransient<ISiteMapRepository, DapperSiteMapRepository>();
+builder.Services.AddTransient<ISlideshowRepository, DapperSlideshowRepository>();
+builder.Services.AddTransient<IEmailEnquiryRepository, DapperEmailEnquiryRepository>();
+builder.Services.AddTransient<IFAQRepository, DapperFAQRepository>();
+builder.Services.AddTransient<IReviewRepository, DapperReviewRepository>();
+builder.Services.AddTransient<IStaffRepository, DapperStaffRepository>();
+builder.Services.AddTransient<IWebhookEventRepository, DapperWebhookEventRepository>();
 
 
 builder.Services.AddTransient<ICalendarRepositoryEF, CalendarRepositoryEF>();
@@ -174,6 +174,8 @@ builder.Services.AddTransient<IEmailService, SendGridEmailService>();
 builder.Services.AddTransient<IEmailEnquiryCommand, EmailEnquiryCommand>();
 builder.Services.AddTransient<IBookingCommand, BookingCommand>();
 builder.Services.AddTransient<IWebhookEventCommand, WebhookEventCommand>();
+builder.Services.AddTransient<ICheckoutCommand, CheckoutCommand>();
+
 
 
 
@@ -181,6 +183,8 @@ builder.Services.AddTransient<IWebhookEventCommand, WebhookEventCommand>();
 builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<ICalGenerator, CalGenerator>();
 builder.Services.AddTransient<ITextMessageService, TextMessageService>();
+builder.Services.AddTransient<ICalculateService, CalculateService>();
+builder.Services.AddTransient<ICheckoutService, CheckoutService>();
 
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.ICalService, LymmHolidayLets.Api.Services.CalService>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IHomepageService, LymmHolidayLets.Api.Services.HomepageService>();
@@ -193,7 +197,7 @@ builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessi
 
 builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
 
-builder.Services.AddTransient<LymmHolidayLets.Domain.Interface.ILogger, NLogger>();
+
 
 
 // register EF Core with SQL logging (development)
@@ -275,3 +279,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Allows WebApplicationFactory<Program> to reference this entry point in integration tests
+public partial class Program { }
