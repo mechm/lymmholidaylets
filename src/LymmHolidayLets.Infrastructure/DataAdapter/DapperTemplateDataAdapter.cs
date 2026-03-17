@@ -34,7 +34,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             {
                 bool templateExists;
 
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 templateExists = connection.ExecuteScalar<bool>(procedure, new
                 {
                     description
@@ -57,7 +57,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             {
                 bool templateExists;
 
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 templateExists = connection.ExecuteScalar<bool>(procedure, new
                 {
                     description,

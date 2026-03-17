@@ -6,9 +6,21 @@ namespace LymmHolidayLets.Application.Query
 {
 	public sealed class CheckoutQuery(IDapperCheckoutDataAdapter checkoutDataAdapter) : ICheckoutQuery
 	{
-		public CheckoutAggregate? GetByPropertyIdAndDate(byte propertyId, DateOnly checkIn, DateOnly checkout, bool available)
+		/// <summary>
+		/// Looks up property, pricing, additional products, night coupons, and previous checkout
+		/// for the given property and date range. Availability is always checked (Available = true).
+		/// </summary>
+		public CheckoutLookupResult GetByPropertyIdAndDate(byte propertyId, DateOnly checkIn, DateOnly checkout)
 		{
-			return checkoutDataAdapter.GetCheckoutPropertyDetail(propertyId, checkIn, checkout, available);
+			var aggregate = checkoutDataAdapter.GetCheckoutPropertyDetail(propertyId, checkIn, checkout, available: true);
+
+			if (aggregate is null)
+				return new CheckoutLookupResult.PropertyNotFound();
+
+			if (aggregate.TotalNightlyPrice is null)
+				return new CheckoutLookupResult.DatesUnavailable(aggregate.Property.FriendlyName);
+
+			return new CheckoutLookupResult.Available(aggregate);
 		}
     }
 }

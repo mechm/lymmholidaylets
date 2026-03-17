@@ -5,36 +5,29 @@ using LymmHolidayLets.Domain.Repository;
 
 namespace LymmHolidayLets.Application.Query
 {
-    public sealed class TemplateQuery : ITemplateQuery
+    public sealed class TemplateQuery(
+        IDapperTemplateDataAdapter templateDataAdapter,
+        ITemplateRepository templateRepository)
+        : ITemplateQuery
     {
-        private readonly IDapperTemplateDataAdapter _templateDataAdapter;
-        private readonly ITemplateRepository _templateRepository;
-
-        public TemplateQuery(IDapperTemplateDataAdapter templateDataAdapter,
-            ITemplateRepository templateRepository)
-        {
-            _templateDataAdapter = templateDataAdapter;
-            _templateRepository = templateRepository;
-        }      
-
         public IEnumerable<Template> GetAll()
         {
-            return _templateRepository.GetAll();
+            return templateRepository.GetAll();
         }
 
         public Template? GetById(int id)
         {
-            return _templateRepository.GetById(id);
+            return templateRepository.GetById(id);
         }
 
         public bool TemplateItemExists(string description)
         {
-            return _templateDataAdapter.TemplateItemExists(description);
+            return templateDataAdapter.TemplateItemExists(description);
         }
 
         public bool TemplateItemExistsExcludingDescription(string description, int templateId)
         {
-            return _templateDataAdapter.TemplateItemExistsExcludingDescription(description, templateId);
+            return templateDataAdapter.TemplateItemExistsExcludingDescription(description, templateId);
         }
     }
 }

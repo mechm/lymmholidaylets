@@ -31,10 +31,10 @@ public class BookingWorkflowTests(ApiFactory factory) : IClassFixture<ApiFactory
 
         // Arrange: checkout returns a valid session
         factory.CheckoutService
-            .Setup(s => s.Checkout(
-                It.IsAny<string>(), It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
-                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>()))
-            .Returns((null, new CheckoutResult
+            .Setup(s => s.CheckoutAsync(
+                It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
+                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CheckoutResponse.Success(new CheckoutResult
             {
                 SessionId = "cs_test_workflow",
                 SessionUrl = "https://checkout.stripe.com/pay/cs_test_workflow",

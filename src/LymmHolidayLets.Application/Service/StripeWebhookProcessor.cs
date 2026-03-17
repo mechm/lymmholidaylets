@@ -112,7 +112,7 @@ namespace LymmHolidayLets.Application.Service
             DateTime checkoutUtc = DateTime.SpecifyKind(checkout.ToDateTime(checkinCheckOut.CheckOutTimeBefore), DateTimeKind.Utc);
 
             // Execute logical tasks
-            UpdateSessions(checkIn, checkout);
+            await UpdateSessionsAsync(checkIn, checkout);
             UpdateBooking(session, stripeEvent.Id, propertyId, checkInUtc, checkoutUtc, noAdult, noChildren, noInfant);
 
             cache.Remove($"ical-availability-{propertyId}");
@@ -124,7 +124,7 @@ namespace LymmHolidayLets.Application.Service
             webhookEventCommand.MarkAsProcessed(stripeEvent.Id);
         }
 
-        private void UpdateSessions(DateOnly checkIn, DateOnly checkout)
+        private async Task UpdateSessionsAsync(DateOnly checkIn, DateOnly checkout)
         {
             IList<CheckoutSession> currentSessions = manageCheckoutSessionService.GetCurrentSessions();
 
@@ -134,7 +134,7 @@ namespace LymmHolidayLets.Application.Service
             {
                 if (!(checkoutSession.CheckIn == checkIn && checkoutSession.Checkout == checkout))
                 {
-                    stripeService.ExpireSession(checkoutSession.SessionId);
+                    await stripeService.ExpireSessionAsync(checkoutSession.SessionId);
                 }
                 currentSessions.Remove(checkoutSession);
             }

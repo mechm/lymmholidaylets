@@ -15,11 +15,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 return connection.Query<ReviewSummary>(procedure, new
                 {
                     approved = true
-                }, _session.Transaction,
+                }, Session.Transaction,
                 commandType: CommandType.StoredProcedure).AsList();
             }
             catch (System.Exception ex)
@@ -34,11 +34,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var results = await connection.QueryAsync<ReviewSummary>(procedure, new
                 {
                     approved = true
-                }, _session.Transaction,
+                }, Session.Transaction,
                 commandType: CommandType.StoredProcedure);
                 return results.AsList();
             }

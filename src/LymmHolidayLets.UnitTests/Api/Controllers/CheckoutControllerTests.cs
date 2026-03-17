@@ -43,47 +43,39 @@ public class CheckoutControllerTests
         CheckOut = new DateOnly(2026, 6, 8)
     };
 
-    [Fact]
-    public void Create_WhenServiceReturnsError_ReturnsBadRequest()
-    {
+    private void SetupCheckoutFailure(string error) =>
         _checkoutService
-            .Setup(s => s.Checkout(
-                It.IsAny<string>(), It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
-                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>()))
-            .Returns(("No Property Available", null));
+            .Setup(s => s.CheckoutAsync(
+                It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
+                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CheckoutResponse.Failure(error));
 
-        var result = _sut.Create(ValidForm());
+    private void SetupCheckoutSuccess() =>
+        _checkoutService
+            .Setup(s => s.CheckoutAsync(
+                It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
+                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CheckoutResponse.Success(ValidResult()));
+
+    [Fact]
+    public async Task Create_WhenServiceReturnsError_ReturnsBadRequest()
+    {
+        SetupCheckoutFailure("Property is not available for the selected dates");
+
+        var result = await _sut.Create(ValidForm(), CancellationToken.None);
 
         var bad = result.Should().BeOfType<BadRequestObjectResult>().Subject;
         var body = bad.Value.Should().BeOfType<ApiResponse<object>>().Subject;
         body.Success.Should().BeFalse();
-        body.Message.Should().Be("No Property Available");
+        body.Message.Should().Be("Property is not available for the selected dates");
     }
 
     [Fact]
-    public void Create_WhenServiceReturnsNullResult_ReturnsBadRequest()
+    public async Task Create_WhenSuccess_ReturnsOkWithStripeUrl()
     {
-        _checkoutService
-            .Setup(s => s.Checkout(
-                It.IsAny<string>(), It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
-                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>()))
-            .Returns((null, (CheckoutResult?)null));
+        SetupCheckoutSuccess();
 
-        var result = _sut.Create(ValidForm());
-
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public void Create_WhenSuccess_ReturnsOkWithStripeUrl()
-    {
-        _checkoutService
-            .Setup(s => s.Checkout(
-                It.IsAny<string>(), It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
-                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>()))
-            .Returns((null, ValidResult()));
-
-        var result = _sut.Create(ValidForm());
+        var result = await _sut.Create(ValidForm(), CancellationToken.None);
 
         var ok = result.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<object>>().Subject;
@@ -91,15 +83,11 @@ public class CheckoutControllerTests
     }
 
     [Fact]
-    public void Create_WhenSuccess_UpdatesSessionCache()
+    public async Task Create_WhenSuccess_UpdatesSessionCache()
     {
-        _checkoutService
-            .Setup(s => s.Checkout(
-                It.IsAny<string>(), It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
-                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>()))
-            .Returns((null, ValidResult()));
+        SetupCheckoutSuccess();
 
-        _sut.Create(ValidForm());
+        await _sut.Create(ValidForm(), CancellationToken.None);
 
         _sessionService.Verify(
             s => s.AddUpdateSessionCache(

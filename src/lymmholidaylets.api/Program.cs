@@ -196,6 +196,8 @@ builder.Services.AddTransient<IStripeWebhookProcessor, StripeWebhookProcessor>()
 builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessionService>();
 
 builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
+builder.Services.Configure<LymmHolidayLets.Application.Model.Service.CheckoutOptions>(
+    builder.Configuration.GetSection("Checkout"));
 
 
 

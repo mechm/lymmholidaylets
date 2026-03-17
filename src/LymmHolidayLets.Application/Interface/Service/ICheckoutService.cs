@@ -1,17 +1,17 @@
-﻿using LymmHolidayLets.Application.Model.Service;
+﻿﻿using LymmHolidayLets.Application.Model.Service;
 
 namespace LymmHolidayLets.Application.Interface.Service
 {
     public interface ICheckoutService
     {
-        (string? error, CheckoutResult? result) Checkout(
-            string host,
+        Task<CheckoutResponse> CheckoutAsync(
             byte propertyId,
             DateOnly checkIn,
             DateOnly checkout,
             short? numberOfAdults,
             short? numberOfChildren,
-            short? numberOfInfants);
+            short? numberOfInfants,
+            CancellationToken cancellationToken = default);
     }
 }
 

@@ -18,6 +18,7 @@ namespace LymmHolidayLets.Api.Controllers
         /// Creates a Stripe checkout session for a property booking.
         /// </summary>
         /// <param name="model">The checkout details including property, dates, and guests.</param>
+        /// <param name="cancellationToken">Token to cancel the request.</param>
         /// <returns>A JSON object containing the Stripe Checkout URL.</returns>
         /// <response code="200">Successfully created a checkout session.</response>
         /// <response code="400">Invalid booking data or property unavailable.</response>
@@ -26,35 +27,28 @@ namespace LymmHolidayLets.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public ActionResult Create([FromBody] CheckoutItemForm model)
+        public async Task<IActionResult> Create([FromBody] CheckoutItemForm model, CancellationToken cancellationToken)
         {
-            var host = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}";
-            var (error, result) = checkoutService.Checkout(
-                host,
+            var response = await checkoutService.CheckoutAsync(
                 model.PropertyId,
                 model.Checkin,
                 model.Checkout,
                 model.NumberOfAdults,
                 model.NumberOfChildren,
-                model.NumberOfInfants);
+                model.NumberOfInfants,
+                cancellationToken);
 
-            if (error != null)
+            if (!response.IsSuccess)
             {
-                logger.LogWarning("Checkout error for PropertyId={PropertyId}: {Error}", model.PropertyId, error);
-                return BadRequest(ApiResponse<object>.FailureResult(error));
-            }
-
-            if (result == null)
-            {
-                logger.LogError("Null result returned from checkout service for PropertyId={PropertyId}", model.PropertyId);
-                return BadRequest(ApiResponse<object>.FailureResult("Please try again later or contact us for further support"));
+                logger.LogWarning("Checkout error for PropertyId={PropertyId}: {Error}", model.PropertyId, response.Error);
+                return BadRequest(ApiResponse<object>.FailureResult(response.Error!));
             }
 
             // Session cache management belongs at the API boundary, not inside the application service.
-            manageCheckoutSessionService.AddUpdateSessionCache(result.SessionId, result.CheckIn, result.CheckOut);
+            manageCheckoutSessionService.AddUpdateSessionCache(response.Result!.SessionId, response.Result.CheckIn, response.Result.CheckOut);
 
             logger.LogInformation("Checkout session created for PropertyId={PropertyId}", model.PropertyId);
-            return Ok(ApiResponse<object>.SuccessResult(new { url = result.SessionUrl }));
+            return Ok(ApiResponse<object>.SuccessResult(new { url = response.Result.SessionUrl }));
         }
     }
 }

@@ -48,7 +48,6 @@ namespace LymmHolidayLets.Api.Controllers
 
             // 2. ReCaptcha Verification
             var recaptchaValid = await recaptchaValidationService.ValidateAsync(request.ReCaptchaToken, cancellationToken);
-            
             if (!recaptchaValid)
             {
                 logger.LogWarning("ReCaptcha verification failed for {RequestEmail}", logPayload);
@@ -57,7 +56,6 @@ namespace LymmHolidayLets.Api.Controllers
 
             // 3. Process Enquiry
             var success = await emailEnquiryService.ProcessEnquiryAsync(request, cancellationToken);
-            
             if (!success)
             {
                 logger.LogError("Email enquiry processing failed for {RequestEmail}", logPayload);

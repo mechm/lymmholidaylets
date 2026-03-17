@@ -43,7 +43,7 @@ public class ReviewEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         factory.ReviewQuery
             .Setup(q => q.GetAllApprovedReviewsAsync())
-            .ReturnsAsync((IEnumerable<ReviewSummary>?)null);
+            .ReturnsAsync((IReadOnlyList<ReviewSummary>)null);
 
         var response = await _client.GetAsync("/api/v1/review/init");
 

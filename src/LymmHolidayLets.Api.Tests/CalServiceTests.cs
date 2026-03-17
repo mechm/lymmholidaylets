@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿﻿using System.Text;
 using LymmHolidayLets.Api.Services;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.Interface;
@@ -63,7 +63,7 @@ public class CalServiceTests
         var icalList = new List<ICal> { CreateICal(id, guid) };
         using var cache = CreateCache(icalList);
 
-        _icalGenerator.Setup(g => g.GenerateCalendarAsync(id)).ThrowsAsync(new Exception("fail"));
+        _icalGenerator.Setup(g => g.GenerateCalendarAsync(id, It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("fail"));
         var service = CreateService(cache);
 
         var result = await service.GetCalendarAsync(id, guid);
@@ -78,7 +78,7 @@ public class CalServiceTests
         var icalList = new List<ICal> { CreateICal(id, guid) };
         using var cache = CreateCache(icalList);
 
-        _icalGenerator.Setup(g => g.GenerateCalendarAsync(id)).ReturnsAsync("");
+        _icalGenerator.Setup(g => g.GenerateCalendarAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync("");
         var service = CreateService(cache);
 
         var result = await service.GetCalendarAsync(id, guid);
@@ -94,7 +94,7 @@ public class CalServiceTests
         var icalList = new List<ICal> { CreateICal(id, guid) };
         using var cache = CreateCache(icalList);
 
-        _icalGenerator.Setup(g => g.GenerateCalendarAsync(id)).ReturnsAsync(calendarString);
+        _icalGenerator.Setup(g => g.GenerateCalendarAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(calendarString);
         var service = CreateService(cache);
 
         var result = await service.GetCalendarAsync(id, guid);
@@ -122,6 +122,6 @@ public class CalServiceTests
 
         Assert.NotNull(result);
         Assert.Equal("text/calendar; charset=utf-8", result.ContentType);
-        _icalGenerator.Verify(g => g.GenerateCalendarAsync(It.IsAny<byte>()), Times.Never);
+        _icalGenerator.Verify(g => g.GenerateCalendarAsync(It.IsAny<byte>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

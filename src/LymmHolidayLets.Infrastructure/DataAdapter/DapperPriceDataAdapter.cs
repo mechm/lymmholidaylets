@@ -21,13 +21,13 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             {
                 PriceAggregate priceDetail;
 
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 using (var result = sqlConnection.QueryMultiple(procedure, new
                 {
                     propertyId,
                     checkIn,
                     checkOut
-                }, _session.Transaction,
+                }, Session.Transaction,
                 commandType: CommandType.StoredProcedure))
                 {
                     decimal? totalNightlyPrice = result.ReadSingleOrDefault<decimal?>();

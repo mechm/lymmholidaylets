@@ -26,10 +26,10 @@ public class CheckoutEndpointTests(ApiFactory factory) : IClassFixture<ApiFactor
     public async Task Post_CreateCheckoutSession_WhenSuccess_Returns200WithUrl()
     {
         factory.CheckoutService
-            .Setup(s => s.Checkout(
-                It.IsAny<string>(), It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
-                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>()))
-            .Returns((null, new CheckoutResult
+            .Setup(s => s.CheckoutAsync(
+                It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
+                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CheckoutResponse.Success(new CheckoutResult
             {
                 SessionId = "cs_test_123",
                 SessionUrl = "https://checkout.stripe.com/pay/cs_test_123",
@@ -48,10 +48,10 @@ public class CheckoutEndpointTests(ApiFactory factory) : IClassFixture<ApiFactor
     public async Task Post_CreateCheckoutSession_WhenPropertyUnavailable_Returns400()
     {
         factory.CheckoutService
-            .Setup(s => s.Checkout(
-                It.IsAny<string>(), It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
-                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>()))
-            .Returns(("No Property Available", null));
+            .Setup(s => s.CheckoutAsync(
+                It.IsAny<byte>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
+                It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CheckoutResponse.Failure("Property 1 was not found."));
 
         var response = await _client.PostAsJsonAsync("/api/v1/checkout/create-checkout-session", ValidForm());
 

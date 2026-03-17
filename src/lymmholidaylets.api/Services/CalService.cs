@@ -59,7 +59,7 @@ namespace LymmHolidayLets.Api.Services
             {
                 try
                 {
-                    calendar = await icalGenerator.GenerateCalendarAsync(propertyId);
+                    calendar = await icalGenerator.GenerateCalendarAsync(propertyId, cancellationToken);
                 }
                 catch (Exception ex)
                 {

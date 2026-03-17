@@ -15,10 +15,10 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var propertyBooking = connection.QueryFirst<PropertyBooking>(procedure,
                     new { PropertyID = propertyId },
-                    _session.Transaction,
+                    Session.Transaction,
                     commandType: CommandType.StoredProcedure);
 
                 return propertyBooking;
@@ -36,11 +36,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 using var result = sqlConnection.QueryMultiple(procedure, new
                     {
                         propertyId,
-                    }, _session.Transaction,
+                    }, Session.Transaction,
                     commandType: CommandType.StoredProcedure);
                 var propertyBooking = result.ReadSingleOrDefault<PropertyBooking>();
                    
@@ -69,11 +69,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 using var result = sqlConnection.QueryMultiple(procedure, new
                     {
                         propertyId,
-                    }, _session.Transaction,
+                    }, Session.Transaction,
                     commandType: CommandType.StoredProcedure);
                 var propertyCheckInCheckOutTime = result.ReadSingleOrDefault<PropertyCheckInCheckOutTime>();
                 return propertyCheckInCheckOutTime;

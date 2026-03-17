@@ -15,14 +15,14 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
 			try
 			{
-				using var sqlConnection = _session.Connection;
+				using var sqlConnection = Session.Connection;
 				using var result = sqlConnection.QueryMultiple(procedure, new
 					{
 						propertyId,
 						checkIn,
 						checkOut,
 						available
-					}, _session.Transaction, 
+					}, Session.Transaction, 
 					commandType: CommandType.StoredProcedure);
 				Property? property = result.ReadSingleOrDefault<Property>();
                 if (property == null) 

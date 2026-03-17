@@ -2,21 +2,14 @@
 
 namespace LymmHolidayLets.Domain.Model.ICal.Entity
 {
-    public sealed class ICal : IAggregateRoot
+    public sealed class ICal(byte id, byte propertyId, string friendlyName, Guid identifier)
+        : IAggregateRoot
     {
         // read
-        public ICal(byte id, byte propertyID, string friendlyName, Guid identifier)
-        {
-            ID = id;
-            PropertyID = propertyID;
-            FriendlyName = friendlyName;
-            Identifier = identifier;       
-        }
 
-        public byte ID { get; init; }
-        public byte PropertyID { get; init; }
-        public string FriendlyName { get; init; }
-        public Guid Identifier { get; init; }
-      
+        public byte ID { get; init; } = id;
+        public byte PropertyID { get; } = propertyId;
+        public string FriendlyName { get; init; } = friendlyName;
+        public Guid Identifier { get; } = identifier;
     }
 }

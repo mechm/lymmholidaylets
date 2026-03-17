@@ -18,12 +18,12 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 var available = sqlConnection.ExecuteScalar<bool>(procedure, new
                 {
                     propertyId,
                     date = date.ToDateTime(new TimeOnly(0, 0)),
-                }, _session.Transaction, commandType: CommandType.StoredProcedure);
+                }, Session.Transaction, commandType: CommandType.StoredProcedure);
                 return available;
             }
             catch (System.Exception ex)
@@ -39,7 +39,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 sqlConnection.Open();
 
                 IEnumerable<Domain.ReadModel.Calendar.Calendar> availability = sqlConnection.Query<Domain.ReadModel.Calendar.Calendar>(procedure,
@@ -49,7 +49,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
                         checkOut,
                         available
                     },
-                    _session.Transaction,
+                    Session.Transaction,
                     commandType: CommandType.StoredProcedure);
                 return availability;
             }

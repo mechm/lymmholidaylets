@@ -18,7 +18,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 bool siteMapExists = sqlConnection.ExecuteScalar<bool>(procedure, new
                 {
                     url
@@ -39,7 +39,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 bool siteMapExists = sqlConnection.ExecuteScalar<bool>(procedure, new
                 {
                     url,

@@ -6,19 +6,20 @@ namespace LymmHolidayLets.Application.Command
 {
     public sealed class CheckoutCommand(ICheckoutRepository checkoutRepository) : ICheckoutCommand
     {
-	    public void Upsert(Checkout checkout)
-		{
-			checkoutRepository.Upsert(
-				new Domain.Model.Checkout.Entity.Checkout(
-					checkout.PropertyId,
-					checkout.CheckIn,
-					checkout.CheckOut,
-					checkout.StripeNightProductId,
-					checkout.StripeNightDefaultPriceId,
-					checkout.StripeNightDefaultUnitPrice,
-					checkout.StripeNightCouponId,
-					checkout.StripeNightPercentage,
-					checkout.OverallPrice));
-		}
-	}
+        public Task UpsertAsync(Checkout checkout, CancellationToken cancellationToken = default)
+        {
+            return checkoutRepository.UpsertAsync(
+                new Domain.Model.Checkout.Entity.Checkout(
+                    checkout.PropertyId,
+                    checkout.CheckIn,
+                    checkout.CheckOut,
+                    checkout.StripeNightProductId,
+                    checkout.StripeNightDefaultPriceId,
+                    checkout.StripeNightDefaultUnitPrice,
+                    checkout.StripeNightCouponId,
+                    checkout.StripeNightPercentage,
+                    checkout.OverallPrice),
+                cancellationToken);
+        }
+    }
 }

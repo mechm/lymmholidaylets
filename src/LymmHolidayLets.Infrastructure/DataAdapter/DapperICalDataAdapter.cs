@@ -15,10 +15,10 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var availability = connection.Query<AvailabilityICal>(procedure,
                     new { PropertyID = propertyId },
-                    _session.Transaction, 
+                    Session.Transaction, 
                     commandType: CommandType.StoredProcedure);
 
                 return availability;
@@ -36,11 +36,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var command = new CommandDefinition(
                     procedure,
                     new { PropertyID = propertyId },
-                    _session.Transaction,
+                    Session.Transaction,
                     commandType: CommandType.StoredProcedure,
                     cancellationToken: cancellationToken);
                 var availability = await connection.QueryAsync<AvailabilityICal>(command);

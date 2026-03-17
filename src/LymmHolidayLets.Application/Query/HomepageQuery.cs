@@ -4,23 +4,16 @@ using LymmHolidayLets.Domain.ReadModel.Homepage;
 
 namespace LymmHolidayLets.Application.Query
 {
-    public sealed class HomepageQuery : IHomepageQuery
+    public sealed class HomepageQuery(IDapperHomepageDataAdapter homepageDataAdapter) : IHomepageQuery
     {
-        private readonly IDapperHomepageDataAdapter _homepageDataAdapter;
-
-        public HomepageQuery(IDapperHomepageDataAdapter homepageDataAdapter)
-        {
-            _homepageDataAdapter = homepageDataAdapter;
-        }
-
         public HomepageAggregate GetHomePageDetail() 
         { 
-            return _homepageDataAdapter.GetHomePageDetail();
+            return homepageDataAdapter.GetHomePageDetail();
         }
 
         public Task<HomepageAggregate> GetHomePageDetailAsync()
         {
-            return _homepageDataAdapter.GetHomePageDetailAsync();
+            return homepageDataAdapter.GetHomePageDetailAsync();
         }
     }
 }

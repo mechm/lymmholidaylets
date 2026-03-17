@@ -19,7 +19,7 @@ namespace LymmHolidayLets.Domain.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var urlRedirects = connection.Query<UrlRedirect>(procedure,
                     commandType: CommandType.StoredProcedure);
 

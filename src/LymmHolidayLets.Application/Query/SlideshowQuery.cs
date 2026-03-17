@@ -4,23 +4,16 @@ using LymmHolidayLets.Domain.Repository;
 
 namespace LymmHolidayLets.Application.Query
 {
-    public sealed class SlideshowQuery : ISlideshowQuery
+    public sealed class SlideshowQuery(ISlideshowRepository slideshowRepository) : ISlideshowQuery
     {
-        private ISlideshowRepository _slideshowRepository;
-
-        public SlideshowQuery(ISlideshowRepository slideshowRepository)
-        {
-            _slideshowRepository = slideshowRepository;
-        }
-
         public Slideshow? GetById(byte id)
         {
-            return _slideshowRepository.GetById(id);
+            return slideshowRepository.GetById(id);
         }
 
         public IEnumerable<Slideshow> GetAll()
         {
-            return _slideshowRepository.GetAll();
+            return slideshowRepository.GetAll();
         }
     }
 }

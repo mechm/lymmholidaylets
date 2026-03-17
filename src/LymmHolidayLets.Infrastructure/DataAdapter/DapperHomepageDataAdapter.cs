@@ -21,8 +21,8 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             {
                 HomepageAggregate homepageAggregate;
 
-                using var sqlConnection = _session.Connection;
-                using (var result = sqlConnection.QueryMultiple(procedure, null, _session.Transaction,
+                using var sqlConnection = Session.Connection;
+                using (var result = sqlConnection.QueryMultiple(procedure, null, Session.Transaction,
                   commandType: CommandType.StoredProcedure))
                 {
                     IEnumerable<Review> review = result.Read<Review>();
@@ -44,8 +44,8 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
-                using var result = await sqlConnection.QueryMultipleAsync(procedure, null, _session.Transaction,
+                using var sqlConnection = Session.Connection;
+                using var result = await sqlConnection.QueryMultipleAsync(procedure, null, Session.Transaction,
                   commandType: CommandType.StoredProcedure);
 
                 var review = await result.ReadAsync<Review>();

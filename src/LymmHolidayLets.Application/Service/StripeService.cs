@@ -26,11 +26,18 @@ namespace LymmHolidayLets.Application.Service
 	    /// <param name="productDescription">Short description shown on the Stripe checkout page.</param>
 	    /// <param name="unitAmount">The total nightly price in GBP used to create or validate the Stripe price.</param>
 	    /// <param name="percentOff">Discount percentage to apply via coupon, or <c>null</c> for no discount.</param>
+	    /// <param name="cancellationToken">Token to cancel the operation.</param>
 	    /// <returns>A tuple of the resolved <see cref="Product"/> and an optional <see cref="Coupon"/>.</returns>
-	    public (Product product, Coupon? coupon) CreateProductAndCoupon(Checkout? previousCheckout, string productName, string productDescription, decimal unitAmount, decimal? percentOff) 
+	    public async Task<(Product product, Coupon? coupon)> CreateProductAndCouponAsync(
+            Checkout? previousCheckout,
+            string productName,
+            string productDescription,
+            decimal unitAmount,
+            decimal? percentOff,
+            CancellationToken cancellationToken = default)
 		{
-            Product nightlyProduct = GetOrCreateProduct(previousCheckout?.StripeNightProductId, productName, productDescription, unitAmount);
-            Coupon? nightlyCoupon = GetOrCreateCoupon(previousCheckout?.StripeNightCouponId, productName, percentOff, nightlyProduct.Id);
+            Product nightlyProduct = await GetOrCreateProductAsync(previousCheckout?.StripeNightProductId, productName, productDescription, unitAmount, cancellationToken);
+            Coupon? nightlyCoupon = await GetOrCreateCouponAsync(previousCheckout?.StripeNightCouponId, productName, percentOff, nightlyProduct.Id, cancellationToken);
 
             return (nightlyProduct, nightlyCoupon);
         }
@@ -58,8 +65,9 @@ namespace LymmHolidayLets.Application.Service
         /// <param name="numberOfAdults">Number of adults, stored in session metadata.</param>
         /// <param name="numberOfChildren">Number of children, stored in session metadata.</param>
         /// <param name="numberOfInfants">Number of infants, stored in session metadata.</param>
+        /// <param name="cancellationToken">Token to cancel the operation.</param>
         /// <returns>The created <see cref="Session"/>, or <c>null</c> if creation fails.</returns>
-        public Session? CreateSession(
+        public async Task<Session?> CreateSessionAsync(
             string host,
             string propertyName,
             string productId,
@@ -71,7 +79,8 @@ namespace LymmHolidayLets.Application.Service
             DateOnly checkout,
             short? numberOfAdults,
             short? numberOfChildren,
-            short? numberOfInfants)
+            short? numberOfInfants,
+            CancellationToken cancellationToken = default)
         {
             // Build session options — phone collection is required for booking contact purposes
             SessionCreateOptions options = new()
@@ -84,9 +93,9 @@ namespace LymmHolidayLets.Application.Service
                             { "PropertyName", propertyName },
 							{ "CheckInDate", checkIn.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) },
 							{ "CheckoutDate", checkout.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) },
-							{ "NoAdult", numberOfAdults.HasValue ? numberOfAdults.Value.ToString() : "" },
-							{ "NoChildren", numberOfChildren.HasValue ? numberOfChildren.Value.ToString() : "" },
-						    { "NoInfant", numberOfInfants.HasValue ? numberOfInfants.Value.ToString() : "" }
+							{ "NoAdult", (numberOfAdults ?? 0).ToString() },
+							{ "NoChildren", (numberOfChildren ?? 0).ToString() },
+						    { "NoInfant", (numberOfInfants ?? 0).ToString() }
 				},
 			    Mode = "payment",
 				SuccessUrl = host + "/payment/success",
@@ -131,7 +140,7 @@ namespace LymmHolidayLets.Application.Service
 
 			SessionService sessionService = new();
 
-			return sessionService.Create(options);
+			return await sessionService.CreateAsync(options, cancellationToken: cancellationToken);
 		}
 
         /// <summary>
@@ -139,18 +148,19 @@ namespace LymmHolidayLets.Application.Service
         /// completing payment on a session that is no longer valid (e.g. dates now unavailable).
         /// </summary>
         /// <param name="sessionId">The Stripe session ID to expire.</param>
+        /// <param name="cancellationToken">Token to cancel the operation.</param>
         /// <returns>The expired <see cref="Session"/>, or <c>null</c> if expiry failed.</returns>
-        public Session? ExpireSession(string sessionId)
+        public async Task<Session?> ExpireSessionAsync(string sessionId, CancellationToken cancellationToken = default)
         {
             SessionService sessionService = new();
 
             try
             {
-                return sessionService.Expire(sessionId);
+                return await sessionService.ExpireAsync(sessionId, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error On Expire Session");
+                logger.LogError(ex, "Error expiring Stripe session {SessionId}", sessionId);
             }
             return null;
         }
@@ -159,40 +169,32 @@ namespace LymmHolidayLets.Application.Service
         /// Retrieves an existing Stripe product by ID and reuses it if the price is unchanged,
         /// or creates a new product if no ID is provided or the unit amount has changed.
         /// </summary>
-        /// <param name="id">The existing Stripe product ID, or <c>null</c> to force creation.</param>
-        /// <param name="name">The product display name.</param>
-        /// <param name="description">The product description.</param>
-        /// <param name="unitAmount">The expected nightly unit price in GBP.</param>
-        /// <returns>The existing or newly created Stripe <see cref="Product"/>.</returns>
-        private static Product GetOrCreateProduct(string? id, string name, string description, decimal unitAmount)
+        private static async Task<Product> GetOrCreateProductAsync(string? id, string name, string description, decimal unitAmount, CancellationToken cancellationToken)
 		{
 			if (id == null)
 			{
-				return CreateProduct(name, description, unitAmount);
+				return await CreateProductAsync(name, description, unitAmount, cancellationToken);
 			}
 
-			Product product = GetProduct(id);	
-			Price price = GetPrice(product.DefaultPriceId);
+			Product product = await GetProductAsync(id, cancellationToken);	
+			Price price = await GetPriceAsync(product.DefaultPriceId, cancellationToken);
 
 			return !price.UnitAmount.HasValue || price.UnitAmount.HasValue && price.UnitAmount.Value/100m != unitAmount
-				? CreateProduct(name, description, unitAmount)
+				? await CreateProductAsync(name, description, unitAmount, cancellationToken)
 				: product;
 		}
 
         /// <summary>
         /// Fetches a Stripe product by ID.
-        /// Throws <see cref="InvalidCheckoutDataException"/> if the product cannot be found,
-        /// which will be caught and logged by <see cref="CheckoutService"/>.
+        /// Throws <see cref="InvalidCheckoutDataException"/> if the product cannot be found.
         /// </summary>
-        /// <param name="id">The Stripe product ID.</param>
-        /// <returns>The matching Stripe <see cref="Product"/>.</returns>
-        private static Product GetProduct(string id)
+        private static async Task<Product> GetProductAsync(string id, CancellationToken cancellationToken)
 		{
 			var productService = new ProductService();
 
 			try
 			{
-				return productService.Get(id);
+				return await productService.GetAsync(id, cancellationToken: cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -204,11 +206,7 @@ namespace LymmHolidayLets.Application.Service
         /// Creates a new Stripe product with an inclusive-tax GBP default price.
         /// The unit amount is converted from pounds to pence (multiplied by 100) as required by the Stripe API.
         /// </summary>
-        /// <param name="name">The product display name.</param>
-        /// <param name="description">The product description shown on the Stripe checkout page.</param>
-        /// <param name="unitAmount">The price in GBP (e.g. 150.00).</param>
-        /// <returns>The newly created Stripe <see cref="Product"/>.</returns>
-        private static Product CreateProduct(string name, string description, decimal unitAmount)
+        private static async Task<Product> CreateProductAsync(string name, string description, decimal unitAmount, CancellationToken cancellationToken)
 		{
 			var productService = new ProductService();			
 
@@ -224,23 +222,20 @@ namespace LymmHolidayLets.Application.Service
 				}
 			};
 
-			return productService.Create(product);
+			return await productService.CreateAsync(product, cancellationToken: cancellationToken);
 		}
         
         /// <summary>
-        /// Fetches a Stripe price by ID, used to compare the stored unit amount against
-        /// the current nightly rate to determine whether the product needs to be recreated.
+        /// Fetches a Stripe price by ID to compare against the current nightly rate.
         /// Throws <see cref="InvalidCheckoutDataException"/> if the price cannot be found.
         /// </summary>
-        /// <param name="id">The Stripe price ID.</param>
-        /// <returns>The matching Stripe <see cref="Price"/>.</returns>
-        private static Price GetPrice(string id)
+        private static async Task<Price> GetPriceAsync(string id, CancellationToken cancellationToken)
 		{
 			var priceService = new PriceService();
 
 			try
 			{
-				return priceService.Get(id);
+				return await priceService.GetAsync(id, cancellationToken: cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -250,20 +245,13 @@ namespace LymmHolidayLets.Application.Service
 
 		/////////////////////////////////////////////////////////////////////
 		// Coupon helpers
-		// Stripe coupons are associated with specific products via AppliesTo.
-		// Reference: https://stripe.com/docs/api/coupons/create#create_coupon-applies_to-products
 		/////////////////////////////////////////////////////////////////////
 
 		/// <summary>
 		/// Returns <c>null</c> if no discount applies, reuses an existing coupon if still valid,
 		/// or creates a new one if the coupon ID is missing or no longer matches the product/percentage.
 		/// </summary>
-		/// <param name="couponId">The existing Stripe coupon ID from a previous checkout, if any.</param>
-		/// <param name="productName">Used as part of the coupon name when creating a new coupon.</param>
-		/// <param name="percentOff">The discount percentage. If <c>null</c>, no coupon is applied.</param>
-		/// <param name="productId">The Stripe product ID the coupon must be associated with.</param>
-		/// <returns>The resolved <see cref="Coupon"/>, or <c>null</c> if no discount applies.</returns>
-		private static Coupon? GetOrCreateCoupon(string? couponId, string productName, decimal? percentOff, string productId) 
+		private static async Task<Coupon?> GetOrCreateCouponAsync(string? couponId, string productName, decimal? percentOff, string productId, CancellationToken cancellationToken) 
         {
             if (percentOff == null)
 			{
@@ -271,15 +259,15 @@ namespace LymmHolidayLets.Application.Service
 			}
 			if (couponId == null)
 			{
-				return CreateCoupon(productName + percentOff.Value, percentOff, "forever", new List<string> { productId });
+				return await CreateCouponAsync(productName + percentOff.Value, percentOff, "forever", new List<string> { productId }, cancellationToken);
 			}
 
-            Coupon coupon = GetCoupon(couponId);
+            Coupon coupon = await GetCouponAsync(couponId, cancellationToken);
 
             // Recreate the coupon if it no longer applies to the current product or the percentage has changed
             if (!coupon.AppliesTo.Products.Contains(productId) || coupon.PercentOff.HasValue && coupon.PercentOff.Value.ToString("n2") != percentOff.Value.ToString("n2"))
 			{
-				return CreateCoupon(productName + percentOff.Value, percentOff, "forever", new List<string> { productId });
+				return await CreateCouponAsync(productName + percentOff.Value, percentOff, "forever", new List<string> { productId }, cancellationToken);
 			}
 			return coupon;			
 		}
@@ -289,18 +277,17 @@ namespace LymmHolidayLets.Application.Service
 		/// the associated products can be validated.
 		/// Throws <see cref="InvalidCheckoutDataException"/> if the coupon cannot be found.
 		/// </summary>
-		/// <param name="id">The Stripe coupon ID.</param>
-		/// <returns>The matching Stripe <see cref="Coupon"/>.</returns>
-		private static Coupon GetCoupon(string id)
+		private static async Task<Coupon> GetCouponAsync(string id, CancellationToken cancellationToken)
 		{
 			var service = new CouponService();
 
 			try
 			{
-				return service.Get(id, new CouponGetOptions
+				return await service.GetAsync(id, new CouponGetOptions
                 {
 					Expand = ["applies_to"],
-                });
+                },
+                cancellationToken: cancellationToken);
 			}
 			catch (Exception ex)
 			{
@@ -310,15 +297,8 @@ namespace LymmHolidayLets.Application.Service
 
 		/// <summary>
 		/// Creates a new Stripe coupon with a percentage discount, scoped to a specific product.
-		/// The coupon duration is set to <c>forever</c> as Stripe requires a duration even for
-		/// one-time payment mode sessions.
 		/// </summary>
-		/// <param name="name">The display name for the coupon.</param>
-		/// <param name="percentage">The percentage to discount off the applicable product price.</param>
-		/// <param name="duration">The Stripe duration value (e.g. <c>"forever"</c>, <c>"once"</c>).</param>
-		/// <param name="products">The list of Stripe product IDs this coupon applies to.</param>
-		/// <returns>The newly created Stripe <see cref="Coupon"/>.</returns>
-		private static Coupon CreateCoupon(string name, decimal? percentage, string duration, List<string> products)
+		private static async Task<Coupon> CreateCouponAsync(string name, decimal? percentage, string duration, List<string> products, CancellationToken cancellationToken)
 		{
 			var options = new CouponCreateOptions
 			{
@@ -331,7 +311,7 @@ namespace LymmHolidayLets.Application.Service
 				},
 			};
 			var service = new CouponService();
-			return service.Create(options);
+			return await service.CreateAsync(options, cancellationToken: cancellationToken);
 		}
 	}
 }

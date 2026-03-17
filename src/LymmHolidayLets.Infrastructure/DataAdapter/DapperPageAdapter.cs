@@ -15,11 +15,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var sqlConnection = _session.Connection;
+                using var sqlConnection = Session.Connection;
                 var pageExists = sqlConnection.ExecuteScalar<bool>(procedure, new
                     {
                         aliasTitle,
-                    }, _session.Transaction,
+                    }, Session.Transaction,
                     commandType: CommandType.StoredProcedure);
 
                 return pageExists;
@@ -36,7 +36,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var pageExists = connection.ExecuteScalar<bool>(procedure, new
                     {
                         AliasTitle = aliasTitle,
@@ -58,7 +58,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var results = connection.Query(procedure,
                                 commandType: CommandType.StoredProcedure);
 
@@ -78,7 +78,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             {
                 PageDetail? page = null;
 
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var result = connection.QueryFirstOrDefault(procedure, new
                 {
                     AliasTitle = aliasTitle
@@ -106,7 +106,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var result = await connection.QueryFirstOrDefaultAsync(procedure, new
                 {
                     AliasTitle = aliasTitle
@@ -132,7 +132,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                using var connection = _session.Connection;
+                using var connection = Session.Connection;
                 var pageExists = connection.ExecuteScalar<bool>(procedure, new
                     {
                         templateId
