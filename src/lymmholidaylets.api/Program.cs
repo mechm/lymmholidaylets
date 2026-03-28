@@ -87,6 +87,7 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
@@ -198,9 +199,6 @@ builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessi
 builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
 builder.Services.Configure<LymmHolidayLets.Application.Model.Service.CheckoutOptions>(
     builder.Configuration.GetSection("Checkout"));
-
-
-
 
 // register EF Core with SQL logging (development)
 builder.Services.AddDbContext<AppDbContext>(options =>

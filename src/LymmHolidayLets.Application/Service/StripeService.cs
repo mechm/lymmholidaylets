@@ -1,4 +1,4 @@
-﻿﻿using System.Globalization;
+﻿using System.Globalization;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Exception;
 using LymmHolidayLets.Domain.ReadModel.Checkout;

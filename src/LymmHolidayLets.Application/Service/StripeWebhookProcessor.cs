@@ -82,10 +82,10 @@ namespace LymmHolidayLets.Application.Service
         {
             if (stripeEvent.Data.Object is not Session { PaymentStatus: "paid" } session) return;
 
-            if (!session.Metadata.TryGetValue("PropertyID", out string? propertyIdStr) ||
-                !session.Metadata.TryGetValue("CheckInDate", out string? checkInDateStr) ||
-                !session.Metadata.TryGetValue("CheckoutDate", out string? checkoutDateStr) ||
-                !session.Metadata.TryGetValue("PropertyName", out string? propertyName))
+            if (!session.Metadata.TryGetValue("PropertyID", out var propertyIdStr) ||
+                !session.Metadata.TryGetValue("CheckInDate", out var checkInDateStr) ||
+                !session.Metadata.TryGetValue("CheckoutDate", out var checkoutDateStr) ||
+                !session.Metadata.TryGetValue("PropertyName", out var propertyName))
             {
                 throw new Exception("Missing metadata fields in Stripe session.");
             }

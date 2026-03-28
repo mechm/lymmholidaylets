@@ -15,11 +15,15 @@ namespace LymmHolidayLets.Application.Query
 			var aggregate = checkoutDataAdapter.GetCheckoutPropertyDetail(propertyId, checkIn, checkout, available: true);
 
 			if (aggregate is null)
+			{
 				return new CheckoutLookupResult.PropertyNotFound();
+			}
 
 			if (aggregate.TotalNightlyPrice is null)
+			{
 				return new CheckoutLookupResult.DatesUnavailable(aggregate.Property.FriendlyName);
-
+			}
+			
 			return new CheckoutLookupResult.Available(aggregate);
 		}
     }

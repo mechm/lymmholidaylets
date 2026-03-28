@@ -7,10 +7,15 @@ using LymmHolidayLets.Domain.ReadModel.Checkout;
 using LymmHolidayLets.Domain.Model.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Stripe.Checkout;
 
 namespace LymmHolidayLets.Application.Service
 {
+    /// <summary>
+    /// Orchestrates the checkout flow: validates input, looks up property availability and pricing,
+    /// synchronises with Stripe (product, coupon, session), and persists the checkout record.
+    /// All Stripe interactions are delegated to <see cref="IStripeService"/>; this class owns
+    /// the sequencing and error handling, not the payment-provider details.
+    /// </summary>
     public sealed class CheckoutService(
         ILogger<CheckoutService> logger,
         IOptions<CheckoutOptions> options,
@@ -64,14 +69,20 @@ namespace LymmHolidayLets.Application.Service
                 var (error, data) = await BuildCheckoutDataAsync(propertyId, stay, cancellationToken);
                 if (data is null)
                 {
-                    return FailWithWarning(propertyId, checkIn, checkout, error ?? "Unable to build checkout data.");
+                    return FailWithWarning(propertyId, stay, error ?? "Unable to build checkout data.");
                 }
 
-                // ── Step 3: Create Stripe session ──────────────────────────────
-                var session = await CreateStripeSessionAsync(propertyId, stay, guests, data, cancellationToken);
+                // ── Step 3: Create Stripe checkout session ──────────────────
+                var session = await stripeService.CreateSessionAsync(
+                    options.Value.BaseUrl, data.PropertyName, data.ProductId, data.DefaultPriceId,
+                    data.CouponId, data.AdditionalProducts,
+                    propertyId, stay.CheckIn, stay.CheckOut,
+                    guests.Adults, guests.Children, guests.Infants,
+                    cancellationToken);
+
                 if (session is null)
                 {
-                    return FailWithWarning(propertyId, checkIn, checkout,
+                    return FailWithWarning(propertyId, stay,
                         "Failed to create payment session. Please try again.");
                 }
 
@@ -107,39 +118,38 @@ namespace LymmHolidayLets.Application.Service
             }
         }
 
-        // ──────────────────────────────────────────────────────────────────────
-        //  Private helpers — each handles a single responsibility
-        // ──────────────────────────────────────────────────────────────────────
-
         /// <summary>
-        /// Fetches property/pricing data and creates the corresponding Stripe product &amp; coupon.
-        /// Returns <c>(error, null)</c> on failure or <c>(null, data)</c> on success.
-        /// Accepts a pre-validated <see cref="DateRange"/> — date validation is performed
-        /// in <see cref="CheckoutAsync"/> before this method is called.
-        /// Pure aside from the Stripe API call — does <b>not</b> persist anything.
+        /// Looks up property availability and pricing, then syncs with Stripe to get product/coupon IDs.
+        /// Does <b>not</b> persist anything — the caller is responsible for that.
         /// </summary>
+        /// <returns>
+        /// On failure: <c>error</c> contains a user-facing message and <c>data</c> is <c>null</c>.
+        /// On success: <c>error</c> is <c>null</c> and <c>data</c> is populated.
+        /// </returns>
         private async Task<(string? error, CheckoutData? data)> BuildCheckoutDataAsync(
             byte propertyId, DateRange stay, CancellationToken cancellationToken)
         {
-
             var lookupResult = checkoutQuery.GetByPropertyIdAndDate(propertyId, stay.CheckIn, stay.CheckOut);
 
-            return lookupResult switch
+            switch (lookupResult)
             {
-                CheckoutLookupResult.PropertyNotFound =>
-                    LogAndFail($"Property {propertyId} was not found.",
-                        "Property not found — PropertyId={PropertyId} does not exist", propertyId),
+                case CheckoutLookupResult.PropertyNotFound:
+                    logger.LogWarning("Property not found — PropertyId={PropertyId} does not exist", propertyId);
+                    return ($"Property {propertyId} was not found.", null);
 
-                CheckoutLookupResult.DatesUnavailable unavailable =>
-                    LogAndFail($"No availability for {stay}. The selected dates may already be booked or blocked.",
+                case CheckoutLookupResult.DatesUnavailable unavailable:
+                    logger.LogWarning(
                         "No available dates for PropertyId={PropertyId} ({PropertyName}) Stay={Stay}",
-                        propertyId, unavailable.PropertyName, stay),
+                        propertyId, unavailable.PropertyName, stay);
+                    return ($"No availability for {stay}. The selected dates may already be booked or blocked.", null);
 
-                CheckoutLookupResult.Available { Data: var pc } =>
-                    await BuildFromAvailableAsync(pc, stay, cancellationToken),
+                case CheckoutLookupResult.Available { Data: var pc }:
+                    return await BuildFromAvailableAsync(pc, stay, cancellationToken);
 
-                _ => LogAndFailError("Unexpected CheckoutLookupResult type: {Type}", lookupResult.GetType().Name)
-            };
+                default:
+                    logger.LogError("Unexpected CheckoutLookupResult type: {Type}", lookupResult.GetType().Name);
+                    return ("An unexpected error occurred.", null);
+            }
         }
 
         /// <summary>
@@ -182,24 +192,6 @@ namespace LymmHolidayLets.Application.Service
                 overallPrice));
         }
 
-        /// <summary>
-        /// Creates a Stripe checkout session from the pre-built checkout data and guest counts.
-        /// BaseUrl comes from <see cref="CheckoutOptions"/> so the application layer has
-        /// no dependency on the HTTP request context.
-        /// </summary>
-        private Task<Session?> CreateStripeSessionAsync(
-            byte propertyId, DateRange stay,
-            GuestCount guests, CheckoutData data, CancellationToken cancellationToken)
-        {
-            var host = options.Value.BaseUrl;
-
-            return stripeService.CreateSessionAsync(
-                host, data.PropertyName, data.ProductId, data.DefaultPriceId,
-                data.CouponId, data.AdditionalProducts,
-                propertyId, stay.CheckIn, stay.CheckOut,
-                guests.Adults, guests.Children, guests.Infants,
-                cancellationToken);
-        }
 
         /// <summary>
         /// Persists the checkout record <b>after</b> a Stripe session has been created.
@@ -224,10 +216,6 @@ namespace LymmHolidayLets.Application.Service
                     data.CouponPercentOff,
                     data.OverallPrice),
                     cancellationToken);
-
-                logger.LogInformation(
-                    "Checkout upserted for PropertyId={PropertyId} Stay={Stay}",
-                    propertyId, stay);
             }
             catch (Exception ex)
             {
@@ -238,35 +226,16 @@ namespace LymmHolidayLets.Application.Service
             }
         }
 
-        // ──────────────────────────────────────────────────────────────────────
-        //  Logging helpers — reduce repetition in BuildCheckoutDataAsync
-        // ──────────────────────────────────────────────────────────────────────
-
-        /// <summary>Logs a warning and returns a failure tuple for <see cref="BuildCheckoutDataAsync"/>.</summary>
-        private (string? error, CheckoutData? data) LogAndFail(
-            string userMessage, string logTemplate, params object[] logArgs)
-        {
-            logger.LogWarning(logTemplate, logArgs);
-            return (userMessage, null);
-        }
-
-        /// <summary>Logs an error and returns a failure tuple for unexpected cases.</summary>
-        private (string? error, CheckoutData? data) LogAndFailError(
-            string logTemplate, params object[] logArgs)
-        {
-            logger.LogError(logTemplate, logArgs);
-            return ("An unexpected error occurred.", null);
-        }
 
         /// <summary>
         /// Creates a <see cref="CheckoutResponse.Failure"/> and emits a structured warning log.
         /// Used from <see cref="CheckoutAsync"/> to reduce repetitive logging boilerplate.
         /// </summary>
-        private CheckoutResponse FailWithWarning(byte propertyId, DateOnly checkIn, DateOnly checkout, string error)
+        private CheckoutResponse FailWithWarning(byte propertyId, DateRange stay, string error)
         {
             logger.LogWarning(
-                "Checkout aborted — PropertyId={PropertyId}, CheckIn={CheckIn}, CheckOut={CheckOut}: {Error}",
-                propertyId, checkIn, checkout, error);
+                "Checkout aborted — PropertyId={PropertyId}, Stay={Stay}: {Error}",
+                propertyId, stay, error);
             return CheckoutResponse.Failure(error);
         }
     }

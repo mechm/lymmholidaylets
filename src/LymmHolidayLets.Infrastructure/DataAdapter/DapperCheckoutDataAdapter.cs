@@ -29,13 +29,25 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
                 {
 	                return null;
                 }
+
                 decimal? totalNightlyPrice = result.ReadSingleOrDefault<decimal?>();
+
+                // When no nightly price exists the dates are unavailable — the remaining
+                // result sets (additional products, coupons, previous checkout) are only
+                // needed for the happy path, so return early with minimal data.
+                if (totalNightlyPrice is null)
+                {
+                    return new CheckoutAggregate(property, null,
+                        [],
+                        [],
+                        null);
+                }
+
                 IEnumerable<PropertyAdditionalProduct> propertyAdditionalProduct = result.Read<PropertyAdditionalProduct>();
                 IEnumerable<PropertyNightCoupon> propertyNightCoupon = result.Read<PropertyNightCoupon>();
                 Checkout? checkout = result.ReadSingleOrDefault<Checkout>();
 
-                var checkoutDetail = new CheckoutAggregate(property, totalNightlyPrice, propertyAdditionalProduct, propertyNightCoupon, checkout);
-                return checkoutDetail;
+                return new CheckoutAggregate(property, totalNightlyPrice, propertyAdditionalProduct, propertyNightCoupon, checkout);
 			}
 			catch (System.Exception ex)
 			{

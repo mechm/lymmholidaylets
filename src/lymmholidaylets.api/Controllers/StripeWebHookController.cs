@@ -24,7 +24,6 @@ namespace LymmHolidayLets.Api.Controllers
 		public async Task<IActionResult> Index([ModelBinder(typeof(StripeWebhookModelBinder))] StripeWebhookRequest webhookRequest)
 		{
             var success = await webhookProcessor.ProcessEventAsync(webhookRequest.Json, webhookRequest.Signature);
-
             if (!success)
             {
                 return BadRequest("Stripe webhook processing failed.");

@@ -16,7 +16,10 @@
     <File Path="db/setup.sql" />
   </Folder>
   <Folder Name="/db/lymmholidaylets.db/">
-    <Project Path="db/lymmholidaylets.db/LymmHolidayLets.Db.sqlproj" />
+    <Project Path="db/lymmholidaylets.db/LymmHolidayLets.Db.sqlproj" Id="ef432e7a-c62c-41bc-8257-d917d54d4de2">
+      <Build />
+      <Deploy />
+    </Project>
   </Folder>
   <Folder Name="/Domain/">
     <Project Path="src/LymmHolidayLets.Domain/LymmHolidayLets.Domain.csproj" />
@@ -25,12 +28,13 @@
     <Project Path="src/LymmHolidayLets.Infrastructure/LymmHolidayLets.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/solution/">
+    <File Path="docker-compose.override.yml" />
     <File Path="docker-compose.yml" />
     <File Path="README.md" />
     <File Path="TODO.local.md" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="src\LymmHolidayLets.Api.Tests\LymmHolidayLets.Api.Tests.csproj" Type="Classic C#" />
+    <Project Path="src\LymmHolidayLets.Api.Tests\LymmHolidayLets.Api.Tests.csproj" />
     <Project Path="src\LymmHolidayLets.UnitTests\LymmHolidayLets.UnitTests.csproj" />
     <Project Path="src\LymmHolidayLets.IntegrationTests\LymmHolidayLets.IntegrationTests.csproj" />
   </Folder>

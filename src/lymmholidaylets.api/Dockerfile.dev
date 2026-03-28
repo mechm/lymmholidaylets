@@ -1,0 +1,4 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0
+WORKDIR /src
+# No COPY or RUN - source is bind-mounted via docker-compose volume.
+# Restore + build happen at container start via dotnet watch.
