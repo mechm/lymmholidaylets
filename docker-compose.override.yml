@@ -1,0 +1,13 @@
+services:
+  lymmholidaylets-api:
+    # Override: lightweight SDK container with hot-reload — no restore/publish at build time.
+    build:
+      context: .
+      dockerfile: src/LymmHolidayLets.Api/Dockerfile.dev
+    working_dir: /src
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    volumes:
+      - .:/src
+    command: dotnet watch run --project src/LymmHolidayLets.Api/LymmHolidayLets.Api.csproj --urls=http://0.0.0.0:80
