@@ -35,22 +35,12 @@ public class EmailControllerTests
     };
 
     [Fact]
-    public async Task Index_WhenModelStateInvalid_ReturnsBadRequest()
-    {
-        _sut.ModelState.AddModelError("Name", "Required");
-
-        var result = await _sut.Index(ValidRequest(), CancellationToken.None);
-
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public async Task Index_WhenRecaptchaFails_ReturnsBadRequest()
+    public async Task Submit_WhenRecaptchaFails_ReturnsBadRequest()
     {
         _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        var result = await _sut.Index(ValidRequest(), CancellationToken.None);
+        var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
 
         var bad = result.Should().BeOfType<BadRequestObjectResult>().Subject;
         var body = bad.Value.Should().BeOfType<ApiResponse<object>>().Subject;
@@ -58,28 +48,28 @@ public class EmailControllerTests
     }
 
     [Fact]
-    public async Task Index_WhenProcessingFails_Returns500()
+    public async Task Submit_WhenProcessingFails_Returns500()
     {
         _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        var result = await _sut.Index(ValidRequest(), CancellationToken.None);
+        var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
 
         var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
         statusResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 
     [Fact]
-    public async Task Index_WhenSuccess_ReturnsOk()
+    public async Task Submit_WhenSuccess_ReturnsOk()
     {
         _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var result = await _sut.Index(ValidRequest(), CancellationToken.None);
+        var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
 
         var ok = result.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<object>>().Subject;

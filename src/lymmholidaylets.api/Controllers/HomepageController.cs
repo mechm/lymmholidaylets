@@ -6,6 +6,11 @@ using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
 {
+    /// <summary>
+    /// Provides aggregated homepage data for the front-end, including approved reviews
+    /// and property slideshow images. Acts as a single initialisation call so the UI
+    /// can hydrate in one round-trip.
+    /// </summary>
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
@@ -14,16 +19,22 @@ namespace LymmHolidayLets.Api.Controllers
         ILogger<HomepageController> logger) : ControllerBase
     {
         /// <summary>
-        /// Returns homepage data including reviews and slideshow images.
+        /// Returns all data required to render the homepage, including approved reviews
+        /// and property slideshow images.
         /// </summary>
+        /// <returns>
+        /// A <see cref="HomepageModel"/> wrapped in a standard <see cref="ApiResponse{T}"/>.
+        /// </returns>
+        /// <response code="200">Homepage data loaded and returned successfully.</response>
+        /// <response code="500">An unexpected error occurred while loading homepage data.</response>
         [HttpGet("init")]
         [ProducesResponseType(typeof(HomepageModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Get()
         {
             var homepage = await homepageService.GetHomepageDataAsync();
 
-            if (homepage != null)
+            if (homepage is not null)
             {
                 return Ok(ApiResponse<HomepageModel>.SuccessResult(homepage));
             }

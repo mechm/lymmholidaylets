@@ -8,7 +8,8 @@ LymmHolidayLets is a modern .NET 10.0 solution for managing holiday property boo
 - **src/LymmHolidayLets.Application**: Application layer, business logic, service orchestration, and interfaces.
 - **src/LymmHolidayLets.Domain**: Domain models, interfaces, and core business rules.
 - **src/LymmHolidayLets.Infrastructure**: Data access, repositories, logging, email services, and dependency injection.
-- **src/LymmHolidayLets.Api.Tests**: Unit and integration tests for the API and services.
+- **src/LymmHolidayLets.UnitTests**: Fast unit tests (controllers, application services, API helpers).
+- **src/LymmHolidayLets.IntegrationTests**: HTTP-level tests against the API host (`WebApplicationFactory`).
 - **db/**: Database migration scripts, DACPAC, and setup files.
 - **lymmholidaylets.ui/**: Next.js frontend for property listings and booking.
 

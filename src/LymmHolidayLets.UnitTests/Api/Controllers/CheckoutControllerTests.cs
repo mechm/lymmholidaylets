@@ -78,8 +78,9 @@ public class CheckoutControllerTests
         var result = await _sut.Create(ValidForm(), CancellationToken.None);
 
         var ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        var body = ok.Value.Should().BeOfType<ApiResponse<object>>().Subject;
+        var body = ok.Value.Should().BeOfType<ApiResponse<CheckoutSessionResponse>>().Subject;
         body.Success.Should().BeTrue();
+        body.Data!.Url.Should().Be("https://checkout.stripe.com/pay/cs_test_123");
     }
 
     [Fact]

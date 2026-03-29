@@ -19,7 +19,7 @@ public class StripeWebHookControllerTests
     }
 
     [Fact]
-    public async Task Index_WhenProcessingFails_ReturnsBadRequest()
+    public async Task Receive_WhenProcessingFails_ReturnsBadRequest()
     {
         _webhookProcessor
             .Setup(p => p.ProcessEventAsync(It.IsAny<string>(), It.IsAny<string?>()))
@@ -27,13 +27,13 @@ public class StripeWebHookControllerTests
 
         var request = new StripeWebhookRequest { Json = "{}", Signature = "invalid-sig" };
 
-        var result = await _sut.Index(request);
+        var result = await _sut.Receive(request);
 
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     [Fact]
-    public async Task Index_WhenProcessingSucceeds_ReturnsOk()
+    public async Task Receive_WhenProcessingSucceeds_ReturnsOk()
     {
         _webhookProcessor
             .Setup(p => p.ProcessEventAsync(It.IsAny<string>(), It.IsAny<string?>()))
@@ -41,7 +41,7 @@ public class StripeWebHookControllerTests
 
         var request = new StripeWebhookRequest { Json = "{}", Signature = "whsec_valid" };
 
-        var result = await _sut.Index(request);
+        var result = await _sut.Receive(request);
 
         result.Should().BeOfType<OkResult>();
     }

@@ -34,7 +34,6 @@
     <File Path="TODO.local.md" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="src\LymmHolidayLets.Api.Tests\LymmHolidayLets.Api.Tests.csproj" />
     <Project Path="src\LymmHolidayLets.UnitTests\LymmHolidayLets.UnitTests.csproj" />
     <Project Path="src\LymmHolidayLets.IntegrationTests\LymmHolidayLets.IntegrationTests.csproj" />
   </Folder>

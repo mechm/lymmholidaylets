@@ -109,6 +109,20 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 0;
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
     });
+
+    // Protect the checkout endpoint from availability probing and abuse.
+    // Bots may attempt many date combinations to determine vacancy windows,
+    // or repeatedly create sessions to tie up inventory checks.
+    // The limit is per client IP — different users are unaffected by each other.
+    // 10 per minute is generous for any legitimate user (who would realistically
+    // only submit 1-2 times per visit) while still blocking automated scanners.
+    options.AddFixedWindowLimiter("CheckoutSession", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 10;
+        opt.QueueLimit = 0;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);

@@ -20,21 +20,21 @@ public class ReviewControllerTests
     private ReviewController CreateSut() => new(_cache, _logger.Object, _reviewQuery.Object);
 
     [Fact]
-    public async Task Index_WhenNoReviews_ReturnsOkWithEmptyList()
+    public async Task GetApproved_WhenNoReviews_ReturnsOkWithEmptyList()
     {
         _reviewQuery.Setup(q => q.GetAllApprovedReviewsAsync())
             .ReturnsAsync((IReadOnlyList<ReviewSummary>?)null);
 
-        var result = await CreateSut().Index();
+        var result = await CreateSut().GetApproved();
 
-        var ok = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<IEnumerable<ReviewSummary>>>().Subject;
         body.Success.Should().BeTrue();
         body.Data.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task Index_WhenReviewsExist_ReturnsOkWithReviews()
+    public async Task GetApproved_WhenReviewsExist_ReturnsOkWithReviews()
     {
         IReadOnlyList<ReviewSummary> reviews = new List<ReviewSummary>
         {
@@ -42,22 +42,22 @@ public class ReviewControllerTests
         };
         _reviewQuery.Setup(q => q.GetAllApprovedReviewsAsync()).ReturnsAsync(reviews);
 
-        var result = await CreateSut().Index();
+        var result = await CreateSut().GetApproved();
 
-        var ok = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<IEnumerable<ReviewSummary>>>().Subject;
         body.Data.Should().HaveCount(1);
     }
 
     [Fact]
-    public async Task Index_CachesResultOnSecondCall()
+    public async Task GetApproved_CachesResultOnSecondCall()
     {
         _reviewQuery.Setup(q => q.GetAllApprovedReviewsAsync())
             .ReturnsAsync(new List<ReviewSummary>() as IReadOnlyList<ReviewSummary>);
         var sut = CreateSut();
 
-        await sut.Index();
-        await sut.Index();
+        await sut.GetApproved();
+        await sut.GetApproved();
 
         _reviewQuery.Verify(q => q.GetAllApprovedReviewsAsync(), Times.Once);
     }

@@ -15,14 +15,16 @@ public class EmailEnquiryServiceTests
     private readonly Mock<IEmailEnquiryCommand> _emailEnquiryCommand = new();
     private readonly Mock<IEmailService> _emailService = new();
     private readonly Mock<IEmailTemplateBuilder> _emailTemplateBuilder = new();
-    private readonly Mock<IConfiguration> _config = new();
+    // Use a real empty configuration — Mock<IConfiguration>.GetSection() returns null
+    // which causes ConfigurationBinder.Get<T> to throw ArgumentNullException.
+    private readonly IConfiguration _config = new ConfigurationBuilder().Build();
     private readonly Mock<ILogger<EmailEnquiryService>> _logger = new();
 
     private EmailEnquiryService CreateSut() => new(
         _emailEnquiryCommand.Object,
         _emailService.Object,
         _emailTemplateBuilder.Object,
-        _config.Object,
+        _config,
         _logger.Object);
 
     private static EmailEnquiryRequest ValidRequest() => new()

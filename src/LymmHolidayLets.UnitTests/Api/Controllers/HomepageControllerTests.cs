@@ -23,23 +23,23 @@ public class HomepageControllerTests
     }
 
     [Fact]
-    public async Task Index_WhenServiceReturnsNull_Returns500()
+    public async Task Get_WhenServiceReturnsNull_Returns500()
     {
         _homepageService.Setup(s => s.GetHomepageDataAsync()).ReturnsAsync((HomepageModel?)null);
 
-        var result = await _sut.Index();
+        var result = await _sut.Get();
 
         var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
         statusResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 
     [Fact]
-    public async Task Index_WhenSuccess_ReturnsOkWithModel()
+    public async Task Get_WhenSuccess_ReturnsOkWithModel()
     {
         var model = new HomepageModel([], []);
         _homepageService.Setup(s => s.GetHomepageDataAsync()).ReturnsAsync(model);
 
-        var result = await _sut.Index();
+        var result = await _sut.Get();
 
         var ok = result.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<HomepageModel>>().Subject;
