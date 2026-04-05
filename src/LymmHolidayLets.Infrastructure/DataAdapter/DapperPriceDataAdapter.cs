@@ -7,34 +7,26 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperPriceDataAdapter : SqlQueryBase, IDapperPriceDataAdapter
+    public sealed class DapperPriceDataAdapter(DbSession session) : SqlQueryBase(session), IDapperPriceDataAdapter
     {
-        public DapperPriceDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public PriceAggregate GetPriceDetail(byte propertyId, DateOnly checkIn, DateOnly checkOut)
         {
             const string procedure = "Calendar_Price_GetByPropertyID_Date";
 
             try
             {
-                PriceAggregate priceDetail;
-
                 using var sqlConnection = Session.Connection;
-                using (var result = sqlConnection.QueryMultiple(procedure, new
-                {
-                    propertyId,
-                    checkIn,
-                    checkOut
-                }, Session.Transaction,
-                commandType: CommandType.StoredProcedure))
-                {
-                    decimal? totalNightlyPrice = result.ReadSingleOrDefault<decimal?>();
-                    IEnumerable<AdditionalProduct> additionalProduct = result.Read<AdditionalProduct>();
-                    IEnumerable<PropertyNightCoupon> nightCoupon = result.Read<PropertyNightCoupon>();
-                    priceDetail = new PriceAggregate(totalNightlyPrice, additionalProduct, nightCoupon);
-                }
+                using var result = sqlConnection.QueryMultiple(procedure, new
+                    {
+                        propertyId,
+                        checkIn,
+                        checkOut
+                    }, Session.Transaction,
+                    commandType: CommandType.StoredProcedure);
+                var totalNightlyPrice = result.ReadSingleOrDefault<decimal?>();
+                var additionalProduct = result.Read<AdditionalProduct>();
+                var nightCoupon = result.Read<PropertyNightCoupon>();
+                var priceDetail = new PriceAggregate(totalNightlyPrice, additionalProduct, nightCoupon);
 
                 return priceDetail;
             }

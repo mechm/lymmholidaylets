@@ -25,6 +25,8 @@ BEGIN
 
 	
 	DECLARE @BookingID INT
+	DECLARE @CheckInDate  DATE = CAST(@CheckIn  AS DATE)
+	DECLARE @CheckOutDate DATE = CAST(@CheckOut AS DATE)
 
     IF NOT EXISTS (SELECT 1 FROM [dbo].[Booking] WHERE [PropertyID] = @PropertyID AND [CheckIn] = @CheckIn AND [CheckOut] = @CheckOut)
 	BEGIN
@@ -65,15 +67,13 @@ BEGIN
                 @Total,
                 @Created)
 
-        SET @BookingID = (SELECT TOP 1 [ID]
-						    FROM [dbo].[Booking]
-						    WHERE @@ROWCOUNT > 0 AND [ID] = scope_identity())
+        SET @BookingID = SCOPE_IDENTITY()
 
 	    UPDATE [dbo].[Calendar]
         SET [Available] = 0,
 		    [Booked] = 1,
 		    [BookingID] = @BookingID
-        WHERE [Date] >= CAST(@CheckIn AS DATE) AND [Date] < CAST(@CheckOut AS DATE)
+        WHERE [Date] >= @CheckInDate AND [Date] < @CheckOutDate
 	    AND [PropertyID] = @PropertyID
 
         COMMIT TRANSACTION;	

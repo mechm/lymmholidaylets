@@ -2,8 +2,7 @@ using FluentAssertions;
 using LymmHolidayLets.Api.Models.Email;
 using LymmHolidayLets.Api.Services;
 using LymmHolidayLets.Application.Interface.Command;
-using LymmHolidayLets.Domain.Interface;
-using Microsoft.Extensions.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -13,18 +12,12 @@ namespace LymmHolidayLets.UnitTests.Api.Services;
 public class EmailEnquiryServiceTests
 {
     private readonly Mock<IEmailEnquiryCommand> _emailEnquiryCommand = new();
-    private readonly Mock<IEmailService> _emailService = new();
-    private readonly Mock<IEmailTemplateBuilder> _emailTemplateBuilder = new();
-    // Use a real empty configuration — Mock<IConfiguration>.GetSection() returns null
-    // which causes ConfigurationBinder.Get<T> to throw ArgumentNullException.
-    private readonly IConfiguration _config = new ConfigurationBuilder().Build();
+    private readonly Mock<IPublishEndpoint> _publishEndpoint = new();
     private readonly Mock<ILogger<EmailEnquiryService>> _logger = new();
 
     private EmailEnquiryService CreateSut() => new(
         _emailEnquiryCommand.Object,
-        _emailService.Object,
-        _emailTemplateBuilder.Object,
-        _config,
+        _publishEndpoint.Object,
         _logger.Object);
 
     private static EmailEnquiryRequest ValidRequest() => new()
@@ -49,22 +42,27 @@ public class EmailEnquiryServiceTests
     }
 
     [Fact]
-    public async Task ProcessEnquiryAsync_ValidRequest_ReturnsTrue()
+    public async Task ProcessEnquiryAsync_ValidRequest_PublishesEvent()
     {
-        var result = await CreateSut().ProcessEnquiryAsync(ValidRequest());
+        await CreateSut().ProcessEnquiryAsync(ValidRequest());
 
-        result.Should().BeTrue();
+        _publishEndpoint.Verify(
+            p => p.Publish(
+                It.Is<Contracts.EmailEnquirySubmittedEvent>(e =>
+                    e.Name == "Jane Smith" && e.EmailAddress == "jane@example.com"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task ProcessEnquiryAsync_WhenCommandThrows_ReturnsFalse()
+    public async Task ProcessEnquiryAsync_WhenCommandThrows_PropagatesException()
     {
         _emailEnquiryCommand
             .Setup(c => c.Create(It.IsAny<LymmHolidayLets.Application.Model.Command.EmailEnquiry>()))
             .Throws(new Exception("DB error"));
 
-        var result = await CreateSut().ProcessEnquiryAsync(ValidRequest());
+        var act = () => CreateSut().ProcessEnquiryAsync(ValidRequest());
 
-        result.Should().BeFalse();
+        await act.Should().ThrowAsync<Exception>().WithMessage("DB error");
     }
 }

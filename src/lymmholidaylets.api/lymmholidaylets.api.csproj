@@ -32,7 +32,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\LymmHolidayLets.Application\LymmHolidayLets.Application.csproj" />
+    <ProjectReference Include="..\LymmHolidayLets.Contracts\LymmHolidayLets.Contracts.csproj" />
     <ProjectReference Include="..\LymmHolidayLets.Domain\LymmHolidayLets.Domain.csproj" />
     <ProjectReference Include="..\LymmHolidayLets.Infrastructure\LymmHolidayLets.Infrastructure.csproj" />
   </ItemGroup>

@@ -29,7 +29,6 @@ namespace LymmHolidayLets.Api.Controllers
         /// <response code="200">Enquiry successfully processed and email sent.</response>
         /// <response code="400">Validation failed or security check (reCaptcha) failed.</response>
         /// <response code="429">Too many submissions. Maximum 5 per minute per client.</response>
-        /// <response code="500">Internal server error during email processing.</response>
         [HttpPost]
         [EnableRateLimiting("ContactForm")]
         [RequestSizeLimit(100_000)] // Limit request size to ~100KB
@@ -55,12 +54,17 @@ namespace LymmHolidayLets.Api.Controllers
                 return BadRequest(ApiResponse<object>.FailureResult("Security verification failed. Please try again."));
             }
 
-            // Process Enquiry
-            var success = await emailEnquiryService.ProcessEnquiryAsync(request, cancellationToken);
-            if (!success)
+            try
             {
-                logger.LogError("Email enquiry processing failed {@LogPayload}", logPayload);
-                return StatusCode(StatusCodes.Status500InternalServerError, 
+                await emailEnquiryService.ProcessEnquiryAsync(request, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // Log once with full request context + exception detail.
+                // Returning 500 here rather than re-throwing avoids a second
+                // log entry from GlobalExceptionHandler for this known failure mode.
+                logger.LogError(ex, "Email enquiry processing failed {@LogPayload}", logPayload);
+                return StatusCode(StatusCodes.Status500InternalServerError,
                     ApiResponse<object>.FailureResult("Failed to process your enquiry. Please try again later."));
             }
 

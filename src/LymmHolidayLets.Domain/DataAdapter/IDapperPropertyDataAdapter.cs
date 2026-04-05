@@ -7,6 +7,7 @@ namespace LymmHolidayLets.Domain.DataAdapter
     {
         PropertyBooking GetPropertyBookingById(byte propertyId);
         PropertyDetailAggregate? GetPropertyDetailById(byte propertyId);
+        Task<PropertyDetailAggregate?> GetPropertyDetailByIdAsync(byte propertyId);
         PropertyCheckInCheckOutTime? GetPropertyCheckInCheckOutTime(byte propertyId);
     }
 }

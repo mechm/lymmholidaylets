@@ -72,7 +72,7 @@ public class BookingWorkflowTests(ApiFactory factory) : IClassFixture<ApiFactory
             .ReturnsAsync(true);
         factory.EmailEnquiryService
             .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .Returns(Task.CompletedTask);
 
         var response = await _client.PostAsJsonAsync("/api/v1/email", new EmailEnquiryRequest
         {

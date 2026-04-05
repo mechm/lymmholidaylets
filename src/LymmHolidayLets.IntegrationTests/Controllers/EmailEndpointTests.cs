@@ -29,7 +29,7 @@ public class EmailEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
             .ReturnsAsync(true);
         factory.EmailEnquiryService
             .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .Returns(Task.CompletedTask);
 
         var response = await _client.PostAsJsonAsync("/api/v1/email", ValidRequest());
 
@@ -48,6 +48,23 @@ public class EmailEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var response = await _client.PostAsJsonAsync("/api/v1/email", ValidRequest());
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Post_Email_WhenServiceThrows_Returns500()
+    {
+        factory.RecaptchaValidationService
+            .Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+        factory.EmailEnquiryService
+            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB error"));
+
+        var response = await _client.PostAsJsonAsync("/api/v1/email", ValidRequest());
+
+        response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+        var body = await response.Content.ReadFromJsonAsync<ApiResponse<object>>();
+        body!.Success.Should().BeFalse();
     }
 
     [Fact]

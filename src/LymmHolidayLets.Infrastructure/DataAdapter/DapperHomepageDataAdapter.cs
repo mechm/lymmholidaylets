@@ -7,28 +7,20 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperHomepageDataAdapter : SqlQueryBase, IDapperHomepageDataAdapter
+    public sealed class DapperHomepageDataAdapter(DbSession session) : SqlQueryBase(session), IDapperHomepageDataAdapter
     {
-        public DapperHomepageDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public HomepageAggregate GetHomePageDetail()
         {
             const string procedure = "Homepage_GetAll";
 
             try
             {
-                HomepageAggregate homepageAggregate;
-
                 using var sqlConnection = Session.Connection;
-                using (var result = sqlConnection.QueryMultiple(procedure, null, Session.Transaction,
-                  commandType: CommandType.StoredProcedure))
-                {
-                    IEnumerable<Review> review = result.Read<Review>();
-                    IEnumerable<Slideshow> slide = result.Read<Slideshow>();
-                    homepageAggregate = new HomepageAggregate(review, slide);
-                }
+                using var result = sqlConnection.QueryMultiple(procedure, null, Session.Transaction,
+                    commandType: CommandType.StoredProcedure);
+                var review = result.Read<Review>();
+                var slide = result.Read<Slideshow>();
+                var homepageAggregate = new HomepageAggregate(review, slide);
                 return homepageAggregate;
             }
             catch (System.Exception ex)
@@ -45,7 +37,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             try
             {
                 using var sqlConnection = Session.Connection;
-                using var result = await sqlConnection.QueryMultipleAsync(procedure, null, Session.Transaction,
+                await using var result = await sqlConnection.QueryMultipleAsync(procedure, null, Session.Transaction,
                   commandType: CommandType.StoredProcedure);
 
                 var review = await result.ReadAsync<Review>();

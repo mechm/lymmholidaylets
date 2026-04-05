@@ -24,13 +24,13 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 						available
 					}, Session.Transaction, 
 					commandType: CommandType.StoredProcedure);
-				Property? property = result.ReadSingleOrDefault<Property>();
+				var property = result.ReadSingleOrDefault<Property>();
                 if (property == null) 
                 {
 	                return null;
                 }
 
-                decimal? totalNightlyPrice = result.ReadSingleOrDefault<decimal?>();
+                var totalNightlyPrice = result.ReadSingleOrDefault<decimal?>();
 
                 // When no nightly price exists the dates are unavailable — the remaining
                 // result sets (additional products, coupons, previous checkout) are only

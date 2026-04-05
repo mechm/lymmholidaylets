@@ -7,7 +7,11 @@
     <Project Path="src/LymmHolidayLets.Application/LymmHolidayLets.Application.csproj" />
   </Folder>
   <Folder Name="/Applications/">
-    <Project Path="src/LymmHolidayLets.Applications/CalendarImporter/CalendarImporter.csproj" />
+    <Project Path="src/LymmHolidayLets.Applications/CalendarImporter/LymmHolidayLets.CalendarImporter.csproj" />
+    <Project Path="src/LymmHolidayLets.EmailWorker/LymmHolidayLets.EmailWorker.csproj" />
+  </Folder>
+  <Folder Name="/Contracts/">
+    <Project Path="src/LymmHolidayLets.Contracts/LymmHolidayLets.Contracts.csproj" />
   </Folder>
   <Folder Name="/db/">
     <File Path="db/deploy-dacpac.sh" />

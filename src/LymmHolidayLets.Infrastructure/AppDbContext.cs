@@ -5,11 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LymmHolidayLets.Infrastructure
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options)
-            : base(options) { }
-
         public DbSet<CalendarEF> Calendar { get; set; }
         public DbSet<PropertyEF> Property { get; set; }
         public DbSet<PageEF> Page { get; set; }

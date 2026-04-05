@@ -12,7 +12,6 @@ using LymmHolidayLets.Api.Validators;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Query;
 using LymmHolidayLets.Domain.DataAdapter;
-using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.Repository;
 using LymmHolidayLets.Domain.Repository.EF;
 using LymmHolidayLets.Infrastructure;
@@ -24,34 +23,35 @@ using LymmHolidayLets.Infrastructure.Repository.EF;
 using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Command;
 using LymmHolidayLets.Application.Interface.Service;
-using LymmHolidayLets.Domain.Dto.Email;
-using LymmHolidayLets.Infrastructure.Emailer;
-using SendGrid;
+using LymmHolidayLets.Domain.Interface;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using LymmHolidayLets.Application.Service;
+using MassTransit;
 using Microsoft.OpenApi;
 
-
-// Bootstrap logger for startup errors before host is built
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .CreateBootstrapLogger();
-
-Log.Information("Starting LymmHolidayLets.Api");
+    .CreateLogger();
 
 try
 {
 
+Log.Information("Starting LymmHolidayLets.Api");
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog from app settings (replaces default ILogger<T> provider)
+// Configure application settings for DI
+builder.Services.Configure<LymmHolidayLets.Api.Services.AppSettings>(
+    builder.Configuration);
+
+// Wire Serilog as the ILogger<T> provider for the entire app.
+// Configuration (sinks, enrichers, minimum levels) comes from appsettings.json.
 builder.Host.UseSerilog((context, services, configuration) =>
     configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext());
-
 
 builder.Services.AddControllers();
 builder.Services.AddApiVersioning(options =>
@@ -86,7 +86,6 @@ builder.Services.AddOpenApi(options =>
         return Task.CompletedTask;
     });
 });
-
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -180,12 +179,8 @@ builder.Services.AddTransient<IPageRepositoryEF, PageRepositoryEF>();
 
 
 // Infrastructure -- Utilities
-builder.Services.AddSingleton<ISendGridClient>(new SendGridClient(builder.Configuration["SendGrid:ApiKey"]));
-builder.Services.AddTransient<IEmailService, SendGridEmailService>();
-//builder.Services.AddTransient<IFileUploader, FileUploader>();
-
-//builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
-//builder.Services.AddTransient<IViewRenderService, ViewRenderService>();
+// IEmailService, IEmailTemplateBuilder and IEmailGeneratorService are registered in the
+// EmailWorker project only — the API publishes events rather than sending email directly.
 builder.Services.AddTransient<IEmailEnquiryCommand, EmailEnquiryCommand>();
 builder.Services.AddTransient<IBookingCommand, BookingCommand>();
 builder.Services.AddTransient<IWebhookEventCommand, WebhookEventCommand>();
@@ -205,14 +200,29 @@ builder.Services.AddTransient<LymmHolidayLets.Api.Services.ICalService, LymmHoli
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IHomepageService, LymmHolidayLets.Api.Services.HomepageService>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IEmailEnquiryService, LymmHolidayLets.Api.Services.EmailEnquiryService>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IRecaptchaValidationService, LymmHolidayLets.Api.Services.RecaptchaValidationService>();
-builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
-builder.Services.AddTransient<IEmailGeneratorService, EmailGeneratorService>();
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISocialShareLinkGenerator, LymmHolidayLets.Api.Services.SocialShareLinkGenerator>();
 builder.Services.AddTransient<IStripeWebhookProcessor, StripeWebhookProcessor>();
 builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessionService>();
 
-builder.Services.Configure<SmtpConfig>(builder.Configuration.GetSection("SmtpConfig"));
+// MassTransit — API publishes events only; consumers live in the EmailWorker
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMQ:Host"] ?? "localhost", "/", h =>
+        {
+            h.Username(builder.Configuration["RabbitMQ:Username"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMQ:Password"] ?? "guest");
+        });
+    });
+});
+
 builder.Services.Configure<LymmHolidayLets.Application.Model.Service.CheckoutOptions>(
     builder.Configuration.GetSection("Checkout"));
+builder.Services.Configure<LymmHolidayLets.Application.Model.Service.TwilioOptions>(
+    builder.Configuration.GetSection("Twilio"));
+builder.Services.Configure<LymmHolidayLets.Application.Model.Service.EmailOptions>(
+    builder.Configuration.GetSection("Email"));
 
 // register EF Core with SQL logging (development)
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -241,6 +251,16 @@ builder.Services.AddHealthChecks()
     .AddCheck("Self", () => HealthCheckResult.Healthy());
 
 var app = builder.Build();
+
+// Initialise the Twilio client once at startup using the bound configuration.
+// Calling TwilioClient.Init here (rather than inside TextMessageService) means:
+//   • credentials are validated eagerly — the app refuses to start if they are missing
+//   • the global static Twilio client is only initialised once, not on every SMS send
+var twilioAccountSid = builder.Configuration["Twilio:AccountSid"]
+    ?? throw new InvalidOperationException("Twilio:AccountSid is not configured.");
+var twilioAuthToken = builder.Configuration["Twilio:AuthToken"]
+    ?? throw new InvalidOperationException("Twilio:AuthToken is not configured.");
+Twilio.TwilioClient.Init(twilioAccountSid, twilioAuthToken);
 
 // Configure the HTTP request pipeline.
 // http://localhost:5026/scalar/v1

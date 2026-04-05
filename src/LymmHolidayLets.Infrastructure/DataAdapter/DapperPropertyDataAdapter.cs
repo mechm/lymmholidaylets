@@ -63,6 +63,36 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             }
         }
 
+        public async Task<PropertyDetailAggregate?> GetPropertyDetailByIdAsync(byte propertyId)
+        {
+            const string procedure = "Property_Detail_GetByID";
+
+            try
+            {
+                using var sqlConnection = Session.Connection;
+                await using var result = await sqlConnection.QueryMultipleAsync(procedure,
+                    new { propertyId },
+                    Session.Transaction,
+                    commandType: CommandType.StoredProcedure);
+
+                var propertyBooking = await result.ReadSingleOrDefaultAsync<PropertyBooking>();
+
+                if (propertyBooking is null)
+                    return null;
+
+                var datesBooked = await result.ReadAsync<DateOnly>();
+                var faqs        = await result.ReadAsync<FAQ>();
+                var reviews     = await result.ReadAsync<Review>();
+
+                return new PropertyDetailAggregate(propertyBooking, datesBooked, faqs, reviews);
+            }
+            catch (System.Exception ex)
+            {
+                throw new DataAccessException(
+                    $"An error occurred finding property details with the procedure {procedure}", ex);
+            }
+        }
+
         public PropertyCheckInCheckOutTime? GetPropertyCheckInCheckOutTime(byte propertyId)
         {
             const string procedure = "Property_CheckInCheckOutTime";

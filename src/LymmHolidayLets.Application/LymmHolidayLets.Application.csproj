@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ical.Net" Version="5.2.1" />
+    <PackageReference Include="MassTransit" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.5" />
@@ -17,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LymmHolidayLets.Application.Model\LymmHolidayLets.Application.Model.csproj" />
+    <ProjectReference Include="..\LymmHolidayLets.Contracts\LymmHolidayLets.Contracts.csproj" />
     <ProjectReference Include="..\LymmHolidayLets.Domain\LymmHolidayLets.Domain.csproj" />
   </ItemGroup>
 

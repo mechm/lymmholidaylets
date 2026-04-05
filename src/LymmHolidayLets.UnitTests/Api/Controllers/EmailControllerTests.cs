@@ -48,17 +48,30 @@ public class EmailControllerTests
     }
 
     [Fact]
-    public async Task Submit_WhenProcessingFails_Returns500()
+    public async Task Submit_WhenProcessingThrows_Returns500AndLogsWithContext()
     {
         _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+            .ThrowsAsync(new Exception("DB error"));
 
         var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
 
+        // Returns 500 with the standard failure response shape
         var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
         statusResult.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+        var body = statusResult.Value.Should().BeOfType<ApiResponse<object>>().Subject;
+        body.Success.Should().BeFalse();
+
+        // Logs the failure with request context so the caller is identifiable in logs
+        _logger.Verify(
+            l => l.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Email enquiry processing failed")),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [Fact]
@@ -67,7 +80,7 @@ public class EmailControllerTests
         _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
         _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+            .Returns(Task.CompletedTask);
 
         var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
 

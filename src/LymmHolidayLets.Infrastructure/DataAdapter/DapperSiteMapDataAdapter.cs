@@ -6,12 +6,8 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperSiteMapDataAdapter : SqlQueryBase, IDapperSiteMapDataAdapter
+    public sealed class DapperSiteMapDataAdapter(DbSession session) : SqlQueryBase(session), IDapperSiteMapDataAdapter
     {
-        public DapperSiteMapDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public bool SiteMapItemExists(string url)
         {
             const string procedure = "SiteMap_Url_Exists";
@@ -19,7 +15,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             try
             {
                 using var sqlConnection = Session.Connection;
-                bool siteMapExists = sqlConnection.ExecuteScalar<bool>(procedure, new
+                var siteMapExists = sqlConnection.ExecuteScalar<bool>(procedure, new
                 {
                     url
                 },
@@ -40,7 +36,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             try
             {
                 using var sqlConnection = Session.Connection;
-                bool siteMapExists = sqlConnection.ExecuteScalar<bool>(procedure, new
+                var siteMapExists = sqlConnection.ExecuteScalar<bool>(procedure, new
                 {
                     url,
                     siteMapId

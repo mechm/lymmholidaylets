@@ -1,4 +1,4 @@
-﻿﻿using LymmHolidayLets.Application.Model.Service;
+﻿using LymmHolidayLets.Application.Model.Service;
 
 namespace LymmHolidayLets.Application.Interface.Service
 {

@@ -6,12 +6,8 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperCalendarDataAdapter : SqlQueryBase, IDapperCalendarDataAdapter
+    public sealed class DapperCalendarDataAdapter(DbSession session) : SqlQueryBase(session), IDapperCalendarDataAdapter
     {
-        public DapperCalendarDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public bool GetPropertyAvailableForDate(byte propertyId, DateOnly date)
         {
             const string procedure = "Available_GetByPropertyID";
@@ -42,7 +38,7 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
                 using var sqlConnection = Session.Connection;
                 sqlConnection.Open();
 
-                IEnumerable<Domain.ReadModel.Calendar.Calendar> availability = sqlConnection.Query<Domain.ReadModel.Calendar.Calendar>(procedure,
+                var availability = sqlConnection.Query<Domain.ReadModel.Calendar.Calendar>(procedure,
                     new {
                         propertyID = propertyId,
                         checkIn,

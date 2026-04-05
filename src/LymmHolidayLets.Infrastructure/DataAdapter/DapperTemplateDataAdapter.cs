@@ -7,12 +7,8 @@ using System.Data;
 
 namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperTemplateDataAdapter : SqlQueryBase, IDapperTemplateDataAdapter
+    public sealed class DapperTemplateDataAdapter(DbSession session) : SqlQueryBase(session), IDapperTemplateDataAdapter
     {
-        public DapperTemplateDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public IEnumerable<Template> GetAllTemplateSummary()
         {
             try
@@ -32,14 +28,12 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                bool templateExists;
-
                 using var connection = Session.Connection;
-                templateExists = connection.ExecuteScalar<bool>(procedure, new
-                {
-                    description
-                },
-                commandType: CommandType.StoredProcedure);              
+                var templateExists = connection.ExecuteScalar<bool>(procedure, new
+                    {
+                        description
+                    },
+                    commandType: CommandType.StoredProcedure);              
 
                 return templateExists;
             }
@@ -55,21 +49,19 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
 
             try
             {
-                bool templateExists;
-
                 using var connection = Session.Connection;
-                templateExists = connection.ExecuteScalar<bool>(procedure, new
-                {
-                    description,
-                    templateId
-                },
-                commandType: CommandType.StoredProcedure);               
+                var templateExists = connection.ExecuteScalar<bool>(procedure, new
+                    {
+                        description,
+                        templateId
+                    },
+                    commandType: CommandType.StoredProcedure);               
 
                 return templateExists;
             }
             catch (System.Exception ex)
             {
-                throw new DataAccessException($"An error occured finding whether a template item exists exluding current template item with the procedure {procedure}", ex);
+                throw new DataAccessException($"An error occured finding whether a template item exists excluding current template item with the procedure {procedure}", ex);
             }
         }
     }

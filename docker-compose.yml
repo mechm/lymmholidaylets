@@ -30,8 +30,13 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__LymmHolidayLets: "Server=mssql,1433;Database=LymmHolidayLets;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;Encrypt=False;"
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
     depends_on:
       mssql:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"] # Or the correct health endpoint
@@ -39,6 +44,51 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s # Give the API a grace period to start
+    restart: unless-stopped
+
+  lymmholidaylets-emailworker:
+    build:
+      context: .
+      dockerfile: src/LymmHolidayLets.EmailWorker/Dockerfile
+    environment:
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+      SendGrid__ApiKey: ""
+      Email__CompanyName: ""
+      Email__CompanyEmail: ""
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  lymmholidaylets-calendarimporter:
+    build:
+      context: .
+      dockerfile: src/LymmHolidayLets.Applications/CalendarImporter/Dockerfile
+    container_name: calendar_importer
+    environment:
+      ConnectionStrings__LymmHolidayLets: "Server=mssql,1433;Database=LymmHolidayLets;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;Encrypt=False;"
+      CalendarSync__IntervalMinutes: "30"
+      Logging__LogLevel__Default: "Information"
+      Logging__LogLevel__LymmHolidayLets.CalendarImporter: "Information"
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI — http://localhost:15672 (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 
   web:

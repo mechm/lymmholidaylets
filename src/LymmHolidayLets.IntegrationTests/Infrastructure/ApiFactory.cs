@@ -1,7 +1,7 @@
-using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Api.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,6 +60,10 @@ public class ApiFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IStripeWebhookProcessor>();
             services.AddSingleton(StripeWebhookProcessor.Object);
+
+            // Replace RabbitMQ transport with in-memory so no broker is required
+            services.RemoveMassTransitHostedService();
+            services.AddMassTransitTestHarness();
         });
     }
 }

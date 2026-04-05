@@ -1,6 +1,7 @@
 using FluentAssertions;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Service;
+using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ public class StripeWebhookProcessorTests
     private readonly Mock<IConfiguration> _config = new();
     private readonly Mock<ILogger<StripeWebhookProcessor>> _logger = new();
     private readonly Mock<LymmHolidayLets.Application.Interface.Query.IPropertyQuery> _propertyQuery = new();
-    private readonly Mock<IEmailGeneratorService> _emailGenerator = new();
+    private readonly Mock<IPublishEndpoint> _publishEndpoint = new();
     private readonly Mock<IManageCheckoutSessionService> _sessionService = new();
     private readonly Mock<IStripeService> _stripeService = new();
     private readonly Mock<ITextMessageService> _textMessageService = new();
@@ -28,7 +29,7 @@ public class StripeWebhookProcessorTests
         _logger.Object,
         _cache,
         _propertyQuery.Object,
-        _emailGenerator.Object,
+        _publishEndpoint.Object,
         _sessionService.Object,
         _stripeService.Object,
         _textMessageService.Object,

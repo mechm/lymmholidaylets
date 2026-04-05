@@ -1,18 +1,15 @@
+using System.Data;
 using Dapper;
+using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Model.UrlRedirect.ValueType;
-using LymmHolidayLets.Infrastructure;
 using LymmHolidayLets.Infrastructure.Exception;
 using LymmHolidayLets.Infrastructure.Repository;
-using System.Data;
 
-namespace LymmHolidayLets.Domain.DataAdapter
+namespace LymmHolidayLets.Infrastructure.DataAdapter
 {
-    public sealed class DapperUrlRedirectDataAdapter : SqlQueryBase, IDapperUrlRedirectDataAdapter
+    public sealed class DapperUrlRedirectDataAdapter(DbSession session)
+        : SqlQueryBase(session), IDapperUrlRedirectDataAdapter
     {
-        public DapperUrlRedirectDataAdapter(DbSession session) : base(session)
-        {
-        }
-
         public IEnumerable<UrlRedirect> GetAll()
         {
             const string procedure = "UrlRedirect_GetAll";

@@ -1,42 +1,91 @@
 ﻿using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Model.Service;
 using LymmHolidayLets.Domain.Dto.Email;
 using LymmHolidayLets.Domain.Interface;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace LymmHolidayLets.Application.Service
 {
-	public sealed class EmailGeneratorService(IConfiguration config, IEmailTemplateBuilder emailTemplateBuilder, IEmailService emailService) : IEmailGeneratorService
+    /// <summary>
+    /// Generates and dispatches booking confirmation emails to both the company inbox
+    /// and the customer, using HTML templates built by <see cref="IEmailTemplateBuilder"/>.
+    /// </summary>
+    public sealed class EmailGeneratorService(
+        IOptions<EmailOptions> emailOptions,
+        IEmailTemplateBuilder emailTemplateBuilder,
+        IEmailService emailService,
+        ILogger<EmailGeneratorService> logger) : IEmailGeneratorService
     {
-        private readonly IDictionary<string, string?>? _ccEmails = config.GetSection("Keys:CCEmail")
-              .AsEnumerable()
-              .Where(x => !string.IsNullOrWhiteSpace(x.Value))
-              .ToDictionary(x => x.Key.Replace("Keys:CCEmail:", ""), x => x.Value);
-
-        public async Task EmailBookingConfirmationToCompany(BookingConfirmationForCompany bookingConfirmationForCompany)
+        /// <summary>
+        /// Sends a booking confirmation email to the company inbox (with optional CC recipients).
+        /// The subject includes the property name and dates so each booking is identifiable
+        /// at a glance in the inbox without opening the email.
+        /// </summary>
+        public async Task EmailBookingConfirmationToCompany(BookingConfirmationForCompany model)
         {
-            var html = await emailTemplateBuilder.BuildHtmlBookingEmailToCompany(bookingConfirmationForCompany);
+            var options = emailOptions.Value;
+
+            var html = await emailTemplateBuilder.BuildHtmlBookingEmailToCompany(model);
+
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                logger.LogError(
+                    "Booking confirmation HTML template was empty for PropertyName={PropertyName}, Guest={GuestName}. Email not sent.",
+                    model.PropertyName, model.Name);
+                return;
+            }
+
+            // Include property and dates in the subject so each booking is identifiable
+            // in the inbox without opening the email.
+            var subject = $"New Booking — {model.PropertyName} " +
+                          $"({model.CheckIn:dd MMM yyyy} – {model.CheckOut:dd MMM yyyy})";
+
+            // Map CcEmails dictionary to the nullable string-value format expected by EmailMessage.
+            var ccEmails = options.CcEmails
+                .ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
 
             await emailService.SendAsync(
                 new EmailMessage
                 {
-                    ToName = "Lymm Holiday Lets Booking Confirmation",
-                    CcEmailAddress = _ccEmails,
-                    ToEmailAddress = config["Keys:CompanyEmail"],
-                    Subject = "Lymm Holiday Lets Booking Confirmation"
+                    ToName         = options.CompanyName,
+                    ToEmailAddress = options.CompanyEmail,
+                    CcEmailAddress = ccEmails,
+                    Subject        = subject
                 }, html);
+
+            logger.LogInformation(
+                "Booking confirmation sent to company for PropertyName={PropertyName}, CheckIn={CheckIn}, CheckOut={CheckOut}, Guest={GuestName}",
+                model.PropertyName, model.CheckIn, model.CheckOut, model.Name);
         }
 
-        public async Task EmailBookingConfirmationToCustomer(BookingConfirmationForCustomer bookingConfirmationForCustomer)
+        /// <summary>
+        /// Sends a booking confirmation email to the customer using their name and email address
+        /// supplied in the booking payload.
+        /// </summary>
+        public async Task EmailBookingConfirmationToCustomer(BookingConfirmationForCustomer model)
         {
-            var html = await emailTemplateBuilder.BuildHtmlBookingEmailToCustomer(bookingConfirmationForCustomer);
+            var html = await emailTemplateBuilder.BuildHtmlBookingEmailToCustomer(model);
+
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                logger.LogError(
+                    "Booking confirmation HTML template was empty for Guest={GuestName}. Email not sent.",
+                    model.Name);
+                return;
+            }
 
             await emailService.SendAsync(
                 new EmailMessage
                 {
-                    ToName = bookingConfirmationForCustomer.Name,
-                    ToEmailAddress = bookingConfirmationForCustomer.Email,
-                    Subject = $"Reservation confirmed for {bookingConfirmationForCustomer.PropertyName}"
+                    ToName         = model.Name,
+                    ToEmailAddress = model.Email,
+                    Subject        = $"Reservation confirmed for {model.PropertyName}"
                 }, html);
+
+            logger.LogInformation(
+                "Booking confirmation sent to customer Email={CustomerEmail}, PropertyName={PropertyName}",
+                model.Email, model.PropertyName);
         }
     }
 }

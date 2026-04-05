@@ -1,16 +1,22 @@
 ﻿using LymmHolidayLets.Application.Interface.Service;
-using Microsoft.Extensions.Configuration;
+using LymmHolidayLets.Application.Model.Service;
 using Microsoft.Extensions.Logging;
-using Twilio;
+using Microsoft.Extensions.Options;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 
 namespace LymmHolidayLets.Application.Service
 {
-    public sealed class TextMessageService(IConfiguration config, ILogger<TextMessageService> logger) : ITextMessageService
+    /// <summary>
+    /// Sends SMS messages via Twilio to one or more recipient numbers.
+    /// The Twilio client is initialised once at application startup via
+    /// <c>TwilioClient.Init</c> in <c>Program.cs</c> — this service assumes
+    /// it is already initialised and does not call <c>Init</c> itself.
+    /// </summary>
+    public sealed class TextMessageService(
+        IOptions<TwilioOptions> options,
+        ILogger<TextMessageService> logger) : ITextMessageService
     {
-        private const string DefaultFromNumber = "+447897031197";
-
         public async Task SendText(string messageBody, string[] multiNumbers)
         {
             if (string.IsNullOrWhiteSpace(messageBody))
@@ -25,18 +31,7 @@ namespace LymmHolidayLets.Application.Service
                 return;
             }
 
-            var accountSid = config["Twilio:AccountSid"];
-            var authToken = config["Twilio:AuthToken"];
-            var fromNumber = config["Twilio:FromNumber"] ?? DefaultFromNumber;
-
-            if (string.IsNullOrEmpty(accountSid) || string.IsNullOrEmpty(authToken))
-            {
-                logger.LogError("TextMessageService|SendText|Twilio configuration is missing (AccountSid or AuthToken)");
-                return;
-            }
-
-            // Ideally TwilioClient.Init would be called once at startup in Program.cs
-            TwilioClient.Init(accountSid, authToken);
+            var fromNumber = options.Value.FromNumber;
 
             var sendTasks = multiNumbers
                 .Where(n => !string.IsNullOrWhiteSpace(n))
@@ -44,22 +39,24 @@ namespace LymmHolidayLets.Application.Service
                 {
                     try
                     {
-                        var options = new CreateMessageOptions(new PhoneNumber(number))
+                        var messageOptions = new CreateMessageOptions(new PhoneNumber(number))
                         {
                             From = new PhoneNumber(fromNumber),
                             Body = messageBody
                         };
 
-                        var result = await MessageResource.CreateAsync(options);
+                        var result = await MessageResource.CreateAsync(messageOptions);
 
                         if (result.ErrorCode.HasValue)
                         {
-                            logger.LogError("Twilio Error for {Number}: {ErrorMessage} (Code: {ErrorCode})", number, result.ErrorMessage, result.ErrorCode);
+                            logger.LogError(
+                                "Twilio error for {Number}: {ErrorMessage} (Code: {ErrorCode})",
+                                number, result.ErrorMessage, result.ErrorCode);
                         }
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "TextMessageService|SendText|Exception for {Number}", number);
+                        logger.LogError(ex, "TextMessageService|SendText|Exception sending to {Number}", number);
                     }
                 });
 

@@ -4,19 +4,34 @@ using FluentAssertions;
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Domain.ReadModel.Review;
 using LymmHolidayLets.IntegrationTests.Infrastructure;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
 namespace LymmHolidayLets.IntegrationTests.Controllers;
 
-public class ReviewEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
+public class ReviewEndpointTests : IClassFixture<ApiFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly ApiFactory _factory;
+    private readonly HttpClient _client;
+
+    public ReviewEndpointTests(ApiFactory factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+
+        // Clear the in-memory cache and reset the mock before every test so
+        // cached data from a prior test never leaks into the next one.
+        var cache = factory.Services.GetRequiredService<IMemoryCache>();
+        cache.Remove("reviews");
+        factory.ReviewQuery.Reset();
+    }
 
     [Fact]
     public async Task Get_ReviewInit_Returns200WithReviews()
     {
-        factory.ReviewQuery
+        _factory.ReviewQuery
             .Setup(q => q.GetAllApprovedReviewsAsync())
             .ReturnsAsync(new List<ReviewSummary>
             {
@@ -41,9 +56,9 @@ public class ReviewEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Get_ReviewInit_WhenNoReviews_Returns200WithEmptyList()
     {
-        factory.ReviewQuery
+        _factory.ReviewQuery
             .Setup(q => q.GetAllApprovedReviewsAsync())
-            .ReturnsAsync((IReadOnlyList<ReviewSummary>)null);
+            .ReturnsAsync(new List<ReviewSummary>());
 
         var response = await _client.GetAsync("/api/v1/review/init");
 

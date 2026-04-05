@@ -1,12 +1,14 @@
 using Stripe;
 using Stripe.Checkout;
+using StripeEvent = Stripe.Event;
 using System.Globalization;
 using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Interface.Service;
-using LymmHolidayLets.Domain.Dto.Email;
+using LymmHolidayLets.Contracts;
 using LymmHolidayLets.Domain.Model.WebhookEvent.Enum;
 using LymmHolidayLets.Domain.ReadModel.Property;
+using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -18,7 +20,7 @@ namespace LymmHolidayLets.Application.Service
         ILogger<StripeWebhookProcessor> logger,
         IMemoryCache cache,
         IPropertyQuery propertyQuery,
-        IEmailGeneratorService emailGeneratorService,
+        IPublishEndpoint publishEndpoint,
         IManageCheckoutSessionService manageCheckoutSessionService,
         IStripeService stripeService,
         ITextMessageService textMessageService,
@@ -27,7 +29,7 @@ namespace LymmHolidayLets.Application.Service
     {
         public async Task<bool> ProcessEventAsync(string json, string? signature)
         {
-            Event? stripeEvent = null;
+            StripeEvent? stripeEvent = null;
 
             try
             {
@@ -78,7 +80,7 @@ namespace LymmHolidayLets.Application.Service
             }
         }
 
-        private async Task HandleCheckoutSessionCompleted(Event stripeEvent)
+        private async Task HandleCheckoutSessionCompleted(StripeEvent stripeEvent)
         {
             if (stripeEvent.Data.Object is not Session { PaymentStatus: "paid" } session) return;
 
@@ -163,20 +165,17 @@ namespace LymmHolidayLets.Application.Service
 
                 var textTask = textMessageService.SendText(message, multiNumbers);
 
-                var companyEmailTask = emailGeneratorService.EmailBookingConfirmationToCompany(
-                        new BookingConfirmationForCompany(propertyName, checkIn, checkout, noAdult, noChildren, noInfant,
-                            session.CustomerDetails.Name, session.CustomerDetails.Email,
-                            session.CustomerDetails.Phone, session.CustomerDetails.Address.PostalCode,
-                            session.CustomerDetails.Address.Country, session.AmountTotal));
+                var emailTask = publishEndpoint.Publish(new BookingConfirmedEvent(
+                    propertyName, checkIn, checkout,
+                    noAdult, noChildren, noInfant,
+                    session.CustomerDetails.Name,
+                    session.CustomerDetails.Email,
+                    session.CustomerDetails.Phone,
+                    session.CustomerDetails.Address.PostalCode,
+                    session.CustomerDetails.Address.Country,
+                    session.AmountTotal));
 
-                var customerEmailTask = emailGeneratorService.EmailBookingConfirmationToCustomer(
-                    new BookingConfirmationForCustomer(propertyName, checkIn, checkout, noAdult, noChildren, noInfant,
-                        session.CustomerDetails.Name, session.CustomerDetails.Email,
-                        session.CustomerDetails.Phone, session.CustomerDetails.Address.PostalCode,
-                        session.CustomerDetails.Address.Country, session.AmountTotal
-                    ));
-
-                await Task.WhenAll(textTask, companyEmailTask, customerEmailTask);
+                await Task.WhenAll(textTask, emailTask);
             }
             catch (Exception ex)
             {

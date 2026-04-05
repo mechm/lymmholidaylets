@@ -8,9 +8,7 @@ public class Result
 
     protected Result(bool isSuccess, string? error)
     {
-        if (isSuccess && error != null)
-            throw new InvalidOperationException();
-        if (!isSuccess && error == null)
+        if (isSuccess && error != null || !isSuccess && error == null)
             throw new InvalidOperationException();
 
         IsSuccess = isSuccess;
