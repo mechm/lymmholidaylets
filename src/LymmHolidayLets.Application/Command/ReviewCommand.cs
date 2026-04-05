@@ -1,10 +1,13 @@
 using LymmHolidayLets.Application.Interface.Command;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Command;
 using LymmHolidayLets.Domain.Repository;
 
 namespace LymmHolidayLets.Application.Command
 {
-    public sealed class ReviewCommand(IReviewRepository reviewRepository) : IReviewCommand
+    public sealed class ReviewCommand(
+        IReviewRepository reviewRepository,
+        IPropertyCacheInvalidator cacheInvalidator) : IReviewCommand
     {
         public void Create(Review review)
         {
@@ -22,6 +25,8 @@ namespace LymmHolidayLets.Application.Command
                     review.LinkToView, review.ShowOnHomepage,
                     review.DateTimeAdded, review.DateTimeApproved,
                     review.Approved));
+
+            cacheInvalidator.Invalidate(review.PropertyID);
         }
 
         public void Create(ref Review review)
@@ -39,6 +44,8 @@ namespace LymmHolidayLets.Application.Command
             reviewRepository.Create(reviewToSave);
 
             review.RegistrationCode = reviewToSave.RegistrationCode;
+
+            cacheInvalidator.Invalidate(review.PropertyID);
         }
 
         public void Update(Review review)
@@ -68,11 +75,17 @@ namespace LymmHolidayLets.Application.Command
                     review.LinkToView, review.ShowOnHomepage,
                     review.DateTimeAdded, review.DateTimeApproved,
                     review.Approved));
+
+            cacheInvalidator.Invalidate(review.PropertyID);
         }
 
         public void Delete(int id)
         {
+            var review = reviewRepository.GetById(id);
             reviewRepository.Delete(id);
+
+            if (review is not null)
+                cacheInvalidator.Invalidate(review.PropertyID);
         }
     }
 }

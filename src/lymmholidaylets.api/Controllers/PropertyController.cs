@@ -19,12 +19,16 @@ namespace LymmHolidayLets.Api.Controllers
         IMemoryCache cache,
         ILogger<PropertyController> logger,
         IPropertyQuery propertyQuery,
-        ISocialShareLinkGenerator socialShareLinkGenerator) : ControllerBase
+        ISocialShareLinkGenerator socialShareLinkGenerator,
+        ISeoMetaGenerator seoMetaGenerator,
+        ISchemaOrgGenerator schemaOrgGenerator,
+        IImageUrlResolver imageUrlResolver) : ControllerBase
     {
         /// <summary>
         /// Gets full detail for a property including booking capacity, booked dates,
         /// FAQs, aggregated guest reviews, host information, map coordinates, and social sharing links.
-        /// Results are cached for 10 minutes; the cache entry is evictable under memory pressure.
+        /// Results are cached for 1 hour; the cache entry is evicted immediately when a review or FAQ
+        /// is created, updated, or deleted via the respective commands.
         /// </summary>
         /// <param name="id">The numeric property identifier (e.g. <c>1</c>).</param>
         /// <returns>
@@ -53,7 +57,7 @@ namespace LymmHolidayLets.Api.Controllers
                     cache.Set(cacheKey, detail, new MemoryCacheEntryOptions
                     {
                         Priority = CacheItemPriority.Normal,
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
                     });
                 }
             }
@@ -64,20 +68,74 @@ namespace LymmHolidayLets.Api.Controllers
                 return NotFound();
             }
 
-            // Generate social sharing links from current HTTP context
-            var shareLinks = socialShareLinkGenerator.GenerateLinks(id, detail.DisplayAddress);
+            if (detail.LastModified.HasValue)
+                Response.GetTypedHeaders().LastModified = detail.LastModified.Value;
+
+            // Generate social sharing links (use slug for SEO-friendly URL when available)
+            var shareLinks = socialShareLinkGenerator.GenerateLinks(id, detail.DisplayAddress, detail.Slug);
 
             var response = new PropertyDetailResponse
             {
-                PropertyDetail = detail,
-                PropertyUrl = shareLinks.PropertyUrl,
-                FacebookShareLink = shareLinks.FacebookShareLink,
-                TwitterShareLink = shareLinks.TwitterShareLink,
-                LinkedInShareLink = shareLinks.LinkedInShareLink,
-                EmailShareLink = shareLinks.EmailShareLink,
-                Reviews = detail.ReviewAggregate?.Reviews
+                PropertyId              = detail.PropertyId,
+                DisplayAddress          = detail.DisplayAddress,
+                Description             = detail.Description,
+                Slug                    = detail.Slug,
+                MinimumNumberOfAdult    = detail.MinimumNumberOfAdult,
+                MaximumNumberOfGuests   = detail.MaximumNumberOfGuests,
+                MaximumNumberOfAdult    = detail.MaximumNumberOfAdult,
+                MaximumNumberOfChildren = detail.MaximumNumberOfChildren,
+                MaximumNumberOfInfants  = detail.MaximumNumberOfInfants,
+                NumberOfBedrooms        = detail.NumberOfBedrooms,
+                NumberOfBathrooms       = detail.NumberOfBathrooms,
+                NumberOfReceptionRooms  = detail.NumberOfReceptionRooms,
+                NumberOfKitchens        = detail.NumberOfKitchens,
+                NumberOfCarSpaces       = detail.NumberOfCarSpaces,
+                CheckInTime             = detail.CheckInTime,
+                CheckOutTime            = detail.CheckOutTime,
+                MinimumStayNights       = detail.MinimumStayNights,
+                MaximumStayNights       = detail.MaximumStayNights,
+                DatesBooked             = detail.DatesBooked,
+                Faqs                    = detail.Faqs,
+                RatingSummary           = detail.RatingSummary is not null
+                    ? PropertyRatingSummaryResponse.FromResult(detail.RatingSummary)
+                    : null,
+                Host                    = detail.Host is not null
+                    ? new PropertyHostResult
+                    {
+                        Name               = detail.Host.Name,
+                        NumberOfProperties = detail.Host.NumberOfProperties,
+                        YearsExperience    = detail.Host.YearsExperience,
+                        JobTitle           = detail.Host.JobTitle,
+                        ProfileBio         = detail.Host.ProfileBio,
+                        ImagePath          = imageUrlResolver.Resolve(detail.Host.ImagePath)
+                    }
+                    : null,
+                Map                     = detail.Map,
+                Amenities               = detail.Amenities,
+                Images                  = detail.Images
+                    .Select(i => new PropertyImageResult
+                    {
+                        ImagePath     = imageUrlResolver.Resolve(i.ImagePath) ?? i.ImagePath,
+                        AltText       = i.AltText,
+                        SequenceOrder = i.SequenceOrder
+                    })
+                    .ToList(),
+                Bedrooms                = detail.Bedrooms,
+                Reviews                 = detail.Reviews
                     .Select(ReviewResponse.FromApplicationModel)
-                    .ToList()
+                    .ToList(),
+                ShareLinks = new PropertyShareLinksResponse
+                {
+                    Facebook = shareLinks.FacebookShareLink,
+                    Twitter  = shareLinks.TwitterShareLink,
+                    LinkedIn = shareLinks.LinkedInShareLink,
+                    Email    = shareLinks.EmailShareLink
+                },
+                Seo                     = seoMetaGenerator.Generate(detail, shareLinks.PropertyUrl),
+                SchemaOrg               = schemaOrgGenerator.Generate(detail, shareLinks.PropertyUrl),
+                LastModified            = detail.LastModified,
+                VideoHtml               = detail.VideoHtml,
+                Disclaimer              = detail.Disclaimer
             };
 
             logger.LogDebug("Property detail served for PropertyId={PropertyId}", id);

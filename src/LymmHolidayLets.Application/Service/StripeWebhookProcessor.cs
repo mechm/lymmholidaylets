@@ -23,7 +23,6 @@ namespace LymmHolidayLets.Application.Service
         IPublishEndpoint publishEndpoint,
         IManageCheckoutSessionService manageCheckoutSessionService,
         IStripeService stripeService,
-        ITextMessageService textMessageService,
         IBookingCommand bookingCommand,
         IWebhookEventCommand webhookEventCommand) : IStripeWebhookProcessor
     {
@@ -118,9 +117,9 @@ namespace LymmHolidayLets.Application.Service
             UpdateBooking(session, stripeEvent.Id, propertyId, checkInUtc, checkoutUtc, noAdult, noChildren, noInfant);
 
             cache.Remove($"ical-availability-{propertyId}");
-            //cache.Remove($"property-detail-{propertyId}");
+            cache.Remove($"property-detail-{propertyId}");
 
-            // Handle notifications
+            // Publish notification event - NotificationWorker will handle email + SMS
             await SendNotifications(session, propertyName, checkIn, checkout, noAdult, noChildren, noInfant);
 
             webhookEventCommand.MarkAsProcessed(stripeEvent.Id);
@@ -157,15 +156,10 @@ namespace LymmHolidayLets.Application.Service
         {
             try
             {
-                string[] multiNumbers = config["Keys:Telephone"]?.Split("|") ?? [];
-                decimal? amount = session.AmountTotal / 100M;
-                string price = amount % 1 > 0 ? $"{amount:C2}" : $"{amount:C0}";
-                string message = $"{session.CustomerDetails.Name} booked {propertyName} {checkIn:dd/MM/yyyy} to {checkout:dd/MM/yyyy} for {price}, " +
-                                 $"telephone: {session.CustomerDetails.Phone}, email: {session.CustomerDetails.Email}";
+                string[] smsRecipients = config["Keys:Telephone"]?.Split("|") ?? [];
 
-                var textTask = textMessageService.SendText(message, multiNumbers);
-
-                var emailTask = publishEndpoint.Publish(new BookingConfirmedEvent(
+                // Publish single event for all notifications - NotificationWorker handles the rest
+                await publishEndpoint.Publish(new BookingNotificationRequested(
                     propertyName, checkIn, checkout,
                     noAdult, noChildren, noInfant,
                     session.CustomerDetails.Name,
@@ -173,13 +167,12 @@ namespace LymmHolidayLets.Application.Service
                     session.CustomerDetails.Phone,
                     session.CustomerDetails.Address.PostalCode,
                     session.CustomerDetails.Address.Country,
-                    session.AmountTotal));
-
-                await Task.WhenAll(textTask, emailTask);
+                    session.AmountTotal,
+                    smsRecipients));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error sending booking notifications");
+                logger.LogError(ex, "Error publishing booking notification event");
             }
         }
     }

@@ -14,6 +14,7 @@
     [YearBuilt]               SMALLINT       NULL,
     [DisplayAddress]          VARCHAR (500)  NULL,
     [Description]             VARCHAR (MAX)  NULL,
+    [MetaDescription]         VARCHAR (160)  NULL,
     [DefaultNightlyPrice]     DECIMAL (5, 2) NOT NULL,
     [DefaultMinimumStay]      TINYINT        NOT NULL,
     [DefaultMaximumStay]      SMALLINT       NULL,

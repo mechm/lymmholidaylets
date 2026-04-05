@@ -24,10 +24,22 @@ BEGIN
 		P.[MaximumNumberOfChildren], 
         P.[MaximumNumberOfInfants],
         P.[DisplayAddress],
-        P.[Description] AS PageDescription,
+        P.[Description],
+        P.[MetaDescription],
+        P.[FriendlyName] AS Slug,
+        -- Room counts
+        ISNULL(P.[Bedroom], 0) AS NumberOfBedrooms,
+        ISNULL(P.[Bathroom], 0) AS NumberOfBathrooms,
+        ISNULL(P.[ReceptionRoom], 0) AS NumberOfReceptionRooms,
+        ISNULL(P.[Kitchen], 0) AS NumberOfKitchens,
+        ISNULL(P.[CarSpace], 0) AS NumberOfCarSpaces,
+        P.[CheckInTimeAfter],
+        P.[CheckOutTimeBefore],
+        P.[DefaultMinimumStay] AS MinimumStayNights,
+        P.[DefaultMaximumStay] AS MaximumStayNights,
+        P.[Updated] AS LastModified,
         -- Host information
         S.[Name] AS HostName,
-        '' AS HostLocation,
         -- OPTIMIZED: Use OUTER APPLY instead of correlated subquery to avoid repeated table scans
         ISNULL(PC.PropCount, 0) AS NumberOfProperties,
         S.[YearsExperience] AS HostYearsExperience,
@@ -44,7 +56,9 @@ BEGIN
         ISNULL(G.[StreetViewLongitude], 0) AS StreetViewLongitude,
         ISNULL(G.[Pitch], 0) AS Pitch,
         ISNULL(G.[Yaw], 0) AS Yaw,
-        ISNULL(G.[Zoom], 0) AS Zoom
+        ISNULL(G.[Zoom], 0) AS Zoom,
+        P.[VideoHtml],
+        P.[Disclaimer]
     FROM [dbo].[Property] P
     LEFT JOIN [dbo].[Staff] S ON P.[StaffId] = S.[ID]
     LEFT JOIN [dbo].[GeoLocation] G ON P.[GeoLocationId] = G.[ID]
@@ -96,5 +110,37 @@ BEGIN
 	WHERE [PropertyID] = @PropertyID 
 	  AND [Approved] = 1
 	ORDER BY [DateTimeAdded] DESC;
+
+	-- Amenities/features
+	SELECT 
+		FT.[Description] AS AmenityName
+	FROM [dbo].[PropertyFeatureType] PFT
+	INNER JOIN [dbo].[FeatureType] FT ON PFT.[FeatureTypeId] = FT.[ID]
+	WHERE PFT.[PropertyId] = @PropertyID 
+	  AND PFT.[ShowOnSite] = 1
+	ORDER BY FT.[Description];
+
+	-- Property images
+	SELECT 
+		[ImagePath],
+		[AltText],
+		[SequenceOrder]
+	FROM [dbo].[PropertyImage]
+	WHERE [PropertyId] = @PropertyID 
+	  AND [ShowOnSite] = 1
+	ORDER BY [SequenceOrder];
+
+	-- Bedroom configuration
+	SELECT 
+		PB.[BedroomNumber],
+		PB.[BedroomName],
+		BT.[Description] AS BedType,
+		BT.[IconPath] AS BedTypeIcon,
+		PB.[NumberOfBeds]
+	FROM [dbo].[PropertyBedroom] PB
+	INNER JOIN [dbo].[BedType] BT ON PB.[BedTypeId] = BT.[ID]
+	WHERE PB.[PropertyId] = @PropertyID 
+	  AND PB.[ShowOnSite] = 1
+	ORDER BY PB.[SequenceOrder];
 
 END

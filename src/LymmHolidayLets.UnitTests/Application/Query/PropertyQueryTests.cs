@@ -37,14 +37,18 @@ public class PropertyQueryTests
             {
                 ID                      = 1,
                 DisplayAddress          = "123 Test Street",
-                PageDescription         = "A lovely test property",
+                Description         = "A lovely test property",
                 MinimumNumberOfAdult    = 2,
                 MaximumNumberOfGuests   = 8,
                 MaximumNumberOfAdult    = 6,
                 MaximumNumberOfChildren = 2,
                 MaximumNumberOfInfants  = 1,
+                NumberOfBedrooms        = 3,
+                NumberOfBathrooms       = 2.5,
+                NumberOfReceptionRooms  = 1,
+                NumberOfKitchens        = 1,
+                NumberOfCarSpaces       = 2,
                 HostName                = "Test Host",
-                HostLocation            = "Test Location",
                 NumberOfProperties      = 5,
                 HostYearsExperience     = 10,
                 HostJobTitle            = "Host Manager",
@@ -59,7 +63,12 @@ public class PropertyQueryTests
                 StreetViewLongitude     = -0.1279,
                 Pitch                   = 5,
                 Yaw                     = 90,
-                Zoom                    = 1.5
+                Zoom                    = 1.5,
+                CheckInTimeAfter        = new TimeOnly(15, 0),
+                CheckOutTimeBefore      = new TimeOnly(10, 0),
+                MinimumStayNights       = 2,
+                MaximumStayNights       = 14,
+                Updated                 = new DateTime(2026, 3, 1)
             },
             [new DateOnly(2026, 8, 15), new DateOnly(2026, 8, 16)],
             [new FAQ { Question = "Check-in time?", Answer = "After 3 PM" }],
@@ -70,6 +79,39 @@ public class PropertyQueryTests
                     Description = "Great property!",
                     Rating      = 5,
                     ReviewType  = "Google"
+                }
+            ],
+            ["Wi-Fi", "Parking", "Kitchen"],
+            [
+                new PropertyImage 
+                { 
+                    ImagePath = "/images/property-1.jpg", 
+                    AltText = "Main property view",
+                    SequenceOrder = 1 
+                },
+                new PropertyImage 
+                { 
+                    ImagePath = "/images/property-1-interior.jpg", 
+                    AltText = "Interior view",
+                    SequenceOrder = 2 
+                }
+            ],
+            [
+                new PropertyBedroom 
+                { 
+                    BedroomNumber = 1, 
+                    BedroomName = "Master Bedroom", 
+                    BedType = "King Bed", 
+                    BedTypeIcon = "/images/bed-icons/king.svg",
+                    NumberOfBeds = 1 
+                },
+                new PropertyBedroom 
+                { 
+                    BedroomNumber = 2, 
+                    BedroomName = "Bedroom 2", 
+                    BedType = "Double Bed",
+                    BedTypeIcon = "/images/bed-icons/double.svg",
+                    NumberOfBeds = 1 
                 }
             ]
         );
@@ -83,13 +125,29 @@ public class PropertyQueryTests
         result.Should().NotBeNull();
         result!.PropertyId.Should().Be(1);
         result.DisplayAddress.Should().Be("123 Test Street");
-        result.PageDescription.Should().Be("A lovely test property");
+        result.Description.Should().Be("A lovely test property");
         result.MinimumNumberOfAdult.Should().Be(2);
         result.MaximumNumberOfGuests.Should().Be(8);
         result.DatesBooked.Should().HaveCount(2);
-        result.FaQs.Should().HaveCount(1);
-        result.ReviewAggregate.Should().NotBeNull();
-        result.ReviewAggregate!.Reviews.Should().HaveCount(1);
+        result.Faqs.Should().HaveCount(1);
+        result.RatingSummary.Should().NotBeNull();
+        result.Reviews.Should().HaveCount(1);
+        result.Amenities.Should().HaveCount(3);
+        result.Amenities.Should().Contain(new[] { "Wi-Fi", "Parking", "Kitchen" });
+        result.NumberOfBedrooms.Should().Be(3);
+        result.NumberOfBathrooms.Should().Be(2.5);
+        result.NumberOfReceptionRooms.Should().Be(1);
+        result.NumberOfKitchens.Should().Be(1);
+        result.NumberOfCarSpaces.Should().Be(2);
+        result.Images.Should().HaveCount(2);
+        result.Images[0].ImagePath.Should().Be("/images/property-1.jpg");
+        result.Images[0].AltText.Should().Be("Main property view");
+        result.Images[1].ImagePath.Should().Be("/images/property-1-interior.jpg");
+        result.CheckInTime.Should().Be(new TimeOnly(15, 0));
+        result.CheckOutTime.Should().Be(new TimeOnly(10, 0));
+        result.MinimumStayNights.Should().Be(2);
+        result.MaximumStayNights.Should().Be(14);
+        result.LastModified.Should().Be(new DateTimeOffset(2026, 3, 1, 0, 0, 0, TimeSpan.Zero));
     }
 
     [Fact]
@@ -105,7 +163,6 @@ public class PropertyQueryTests
                 MaximumNumberOfChildren = 0,
                 MaximumNumberOfInfants  = 0,
                 HostName                = "Jane Smith",
-                HostLocation            = "Manchester",
                 NumberOfProperties      = 3,
                 HostYearsExperience     = 7,
                 HostJobTitle            = "Property Owner",
@@ -124,6 +181,9 @@ public class PropertyQueryTests
             },
             [],
             [],
+            [],
+            [],
+            [],
             []
         );
 
@@ -136,7 +196,6 @@ public class PropertyQueryTests
         result.Should().NotBeNull();
         result!.Host.Should().NotBeNull();
         result.Host!.Name.Should().Be("Jane Smith");
-        result.Host.Location.Should().Be("Manchester");
         result.Host.NumberOfProperties.Should().Be(3);
         result.Host.YearsExperience.Should().Be(7);
         result.Host.JobTitle.Should().Be("Property Owner");
@@ -171,6 +230,9 @@ public class PropertyQueryTests
             },
             [],
             [],
+            [],
+            [],
+            [],
             []
         );
 
@@ -182,8 +244,7 @@ public class PropertyQueryTests
 
         result.Should().NotBeNull();
         result!.Map.Should().NotBeNull();
-        result.Map!.ShowMap.Should().BeTrue();
-        result.Map.ShowStreetView.Should().BeTrue();
+        result.Map!.ShowStreetView.Should().BeTrue();
         result.Map.Latitude.Should().Be(53.3811);
         result.Map.Longitude.Should().Be(-2.4730);
         result.Map.MapZoom.Should().Be(15);
@@ -221,6 +282,9 @@ public class PropertyQueryTests
             },
             [],
             [],
+            [],
+            [],
+            [],
             []
         );
 
@@ -231,9 +295,8 @@ public class PropertyQueryTests
         var result = await CreateSut().GetPropertyDetailByIdAsync(1);
 
         result.Should().NotBeNull();
-        result!.ReviewAggregate.Should().BeNull();
+        result!.RatingSummary.Should().BeNull();
     }
-
     [Fact]
     public async Task GetPropertyDetailByIdAsync_WithReview_MapsReviewData()
     {
@@ -243,14 +306,13 @@ public class PropertyQueryTests
             {
                 ID                      = 1,
                 DisplayAddress          = "123 Test Street",
-                PageDescription         = "Test",
+                Description         = "Test",
                 MinimumNumberOfAdult    = 1,
                 MaximumNumberOfGuests   = 4,
                 MaximumNumberOfAdult    = 2,
                 MaximumNumberOfChildren = 1,
                 MaximumNumberOfInfants  = 1,
                 HostName                = "Test Host",
-                HostLocation            = "",
                 NumberOfProperties      = 1,
                 HostYearsExperience     = 5,
                 HostJobTitle            = "Host",
@@ -281,7 +343,10 @@ public class PropertyQueryTests
                     ReviewType    = "Google",
                     LinkToView    = "http://example.com"
                 }
-            ]
+            ],
+            [],
+            [],
+            []
         );
 
         _propertyDataAdapter
@@ -291,10 +356,10 @@ public class PropertyQueryTests
         var result = await CreateSut().GetPropertyDetailByIdAsync(1);
 
         result.Should().NotBeNull();
-        result!.ReviewAggregate.Should().NotBeNull();
-        result.ReviewAggregate!.Reviews.Should().HaveCount(1);
+        result!.RatingSummary.Should().NotBeNull();
+        result.Reviews.Should().HaveCount(1);
         
-        var review = result.ReviewAggregate.Reviews.First();
+        var review = result.Reviews.First();
         review.DateTimeAdded.Should().Be(reviewDate);
         review.Name.Should().Be("John Doe");
     }
@@ -307,14 +372,13 @@ public class PropertyQueryTests
             {
                 ID                      = 1,
                 DisplayAddress          = "123 Test Street",
-                PageDescription         = "Test",
+                Description         = "Test",
                 MinimumNumberOfAdult    = 1,
                 MaximumNumberOfGuests   = 4,
                 MaximumNumberOfAdult    = 2,
                 MaximumNumberOfChildren = 1,
                 MaximumNumberOfInfants  = 1,
                 HostName                = "Test Host",
-                HostLocation            = "",
                 NumberOfProperties      = 1,
                 HostYearsExperience     = 5,
                 HostJobTitle            = "Host",
@@ -342,7 +406,10 @@ public class PropertyQueryTests
                     DateTimeAdded = null,
                     ReviewType    = "TripAdvisor"
                 }
-            ]
+            ],
+            [],
+            [],
+            []
         );
 
         _propertyDataAdapter
@@ -352,10 +419,10 @@ public class PropertyQueryTests
         var result = await CreateSut().GetPropertyDetailByIdAsync(1);
 
         result.Should().NotBeNull();
-        result!.ReviewAggregate.Should().NotBeNull();
-        result.ReviewAggregate!.Reviews.Should().HaveCount(1);
+        result!.RatingSummary.Should().NotBeNull();
+        result.Reviews.Should().HaveCount(1);
         
-        var review = result.ReviewAggregate.Reviews.First();
+        var review = result.Reviews.First();
         review.DateTimeAdded.Should().BeNull();
     }
 }

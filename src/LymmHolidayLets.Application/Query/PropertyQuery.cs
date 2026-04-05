@@ -43,38 +43,40 @@ namespace LymmHolidayLets.Application.Query
 
             var reviews = aggregate.Review.ToList();
 
-            PropertyReviewAggregateResult? reviewAggregate = reviews.Count > 0
-                ? new PropertyReviewAggregateResult
+            PropertyRatingSummaryResult? ratingSummary = reviews.Count > 0
+                ? new PropertyRatingSummaryResult
                 {
-                    OverallRating        = reviews.Average(r => r.Rating),
-                    OverallAccuracy      = NullableAverage(reviews, r => r.Accuracy),
-                    OverallCleanliness   = NullableAverage(reviews, r => r.Cleanliness),
-                    OverallCommunication = NullableAverage(reviews, r => r.Communication),
-                    OverallCheckIn       = NullableAverage(reviews, r => r.Checkin),
-                    OverallValue         = NullableAverage(reviews, r => r.Value),
-                    OverallLocation      = NullableAverage(reviews, r => r.Location),
-                    OverallFacilities    = NullableAverage(reviews, r => r.Facilities),
-                    OverallComfort       = NullableAverage(reviews, r => r.Comfort),
-                    Reviews = reviews.Select(r => new PropertyReviewResult
-                    {
-                        Name          = r.Name,
-                        Company       = r.Company,
-                        Position      = r.Position,
-                        Description   = r.Description,
-                        Rating        = r.Rating,
-                        DateTimeAdded = r.DateTimeAdded,
-                        ReviewType    = r.ReviewType,
-                        LinkToView    = r.LinkToView
-                    }).ToList()
+                    Rating        = reviews.Average(r => r.Rating),
+                    Accuracy      = NullableAverage(reviews, r => r.Accuracy),
+                    Cleanliness   = NullableAverage(reviews, r => r.Cleanliness),
+                    Communication = NullableAverage(reviews, r => r.Communication),
+                    CheckInExperience = NullableAverage(reviews, r => r.Checkin),
+                    Value         = NullableAverage(reviews, r => r.Value),
+                    Location      = NullableAverage(reviews, r => r.Location),
+                    Facilities    = NullableAverage(reviews, r => r.Facilities),
+                    Comfort       = NullableAverage(reviews, r => r.Comfort),
+                    TotalReviews  = reviews.Count
                 }
                 : null;
+
+            var reviewResults = reviews.Take(10).Select(r => new PropertyReviewResult
+            {
+                Name          = r.Name,
+                Company       = r.Company,
+                Position      = r.Position,
+                Description   = r.Description,
+                Rating        = r.Rating,
+                DateTimeAdded = r.DateTimeAdded,
+                ReviewType    = r.ReviewType,
+                LinkToView    = r.LinkToView
+            }).ToList();
 
             // Map host information
             PropertyHostResult? host = !string.IsNullOrWhiteSpace(aggregate.PropertyBooking.HostName)
                 ? new PropertyHostResult
                 {
                     Name               = aggregate.PropertyBooking.HostName,
-                    Location           = aggregate.PropertyBooking.HostLocation,
+
                     NumberOfProperties = aggregate.PropertyBooking.NumberOfProperties,
                     YearsExperience    = aggregate.PropertyBooking.HostYearsExperience,
                     JobTitle           = aggregate.PropertyBooking.HostJobTitle,
@@ -84,39 +86,72 @@ namespace LymmHolidayLets.Application.Query
                 : null;
 
             // Map map information
-            PropertyMapResult? map = new PropertyMapResult
-            {
-                ShowMap              = aggregate.PropertyBooking.ShowMap,
-                ShowStreetView       = aggregate.PropertyBooking.ShowStreetView,
-                Latitude             = aggregate.PropertyBooking.Latitude,
-                Longitude            = aggregate.PropertyBooking.Longitude,
-                MapZoom              = aggregate.PropertyBooking.MapZoom,
-                StreetViewLatitude   = aggregate.PropertyBooking.StreetViewLatitude,
-                StreetViewLongitude  = aggregate.PropertyBooking.StreetViewLongitude,
-                Pitch                = aggregate.PropertyBooking.Pitch,
-                Yaw                  = aggregate.PropertyBooking.Yaw,
-                Zoom                 = aggregate.PropertyBooking.Zoom
-            };
+            PropertyMapResult? map = aggregate.PropertyBooking.ShowMap
+                ? new PropertyMapResult
+                {
+                    ShowStreetView       = aggregate.PropertyBooking.ShowStreetView,
+                    Latitude             = aggregate.PropertyBooking.Latitude,
+                    Longitude            = aggregate.PropertyBooking.Longitude,
+                    MapZoom              = aggregate.PropertyBooking.MapZoom,
+                    StreetViewLatitude   = aggregate.PropertyBooking.StreetViewLatitude,
+                    StreetViewLongitude  = aggregate.PropertyBooking.StreetViewLongitude,
+                    Pitch                = aggregate.PropertyBooking.Pitch,
+                    Yaw                  = aggregate.PropertyBooking.Yaw,
+                    Zoom                 = aggregate.PropertyBooking.Zoom
+                }
+                : null;
 
             return new PropertyDetailResult
             {
                 PropertyId              = aggregate.PropertyBooking.ID,
                 DisplayAddress          = aggregate.PropertyBooking.DisplayAddress,
-                PageDescription         = aggregate.PropertyBooking.PageDescription,
+                Description             = aggregate.PropertyBooking.Description,
+                MetaDescription         = aggregate.PropertyBooking.MetaDescription,
+                Slug                    = aggregate.PropertyBooking.Slug,
                 MinimumNumberOfAdult    = aggregate.PropertyBooking.MinimumNumberOfAdult,
                 MaximumNumberOfGuests   = aggregate.PropertyBooking.MaximumNumberOfGuests,
                 MaximumNumberOfAdult    = aggregate.PropertyBooking.MaximumNumberOfAdult,
                 MaximumNumberOfChildren = aggregate.PropertyBooking.MaximumNumberOfChildren,
                 MaximumNumberOfInfants  = aggregate.PropertyBooking.MaximumNumberOfInfants,
+                NumberOfBedrooms        = aggregate.PropertyBooking.NumberOfBedrooms,
+                NumberOfBathrooms       = aggregate.PropertyBooking.NumberOfBathrooms,
+                NumberOfReceptionRooms  = aggregate.PropertyBooking.NumberOfReceptionRooms,
+                NumberOfKitchens        = aggregate.PropertyBooking.NumberOfKitchens,
+                NumberOfCarSpaces       = aggregate.PropertyBooking.NumberOfCarSpaces,
+                CheckInTime             = aggregate.PropertyBooking.CheckInTimeAfter,
+                CheckOutTime            = aggregate.PropertyBooking.CheckOutTimeBefore,
+                MinimumStayNights       = aggregate.PropertyBooking.MinimumStayNights,
+                MaximumStayNights       = aggregate.PropertyBooking.MaximumStayNights,
                 DatesBooked             = aggregate.DatesBooked.ToList(),
-                FaQs                    = aggregate.FAQs.Select(f => new PropertyFaqResult
+                Faqs                    = aggregate.FAQs.Select(f => new PropertyFaqResult
                                           {
                                               Question = f.Question,
                                               Answer   = f.Answer
                                           }).ToList(),
-                ReviewAggregate         = reviewAggregate,
+                RatingSummary           = ratingSummary,
+                Reviews                 = reviewResults,
                 Host                    = host,
-                Map                     = map
+                Map                     = map,
+                Amenities               = aggregate.Amenities.ToList(),
+                Images                  = aggregate.Images.Select(i => new PropertyImageResult
+                                          {
+                                              ImagePath     = i.ImagePath,
+                                              AltText       = i.AltText,
+                                              SequenceOrder = i.SequenceOrder
+                                          }).ToList(),
+                Bedrooms                = aggregate.Bedrooms.Select(b => new PropertyBedroomResult
+                                          {
+                                              BedroomNumber = b.BedroomNumber,
+                                              BedroomName   = b.BedroomName,
+                                              BedType       = b.BedType,
+                                              BedTypeIcon   = b.BedTypeIcon,
+                                              NumberOfBeds  = b.NumberOfBeds
+                                          }).ToList(),
+                LastModified            = aggregate.PropertyBooking.Updated.HasValue
+                    ? new DateTimeOffset(aggregate.PropertyBooking.Updated.Value, TimeSpan.Zero)
+                    : null,
+                VideoHtml               = aggregate.PropertyBooking.VideoHtml,
+                Disclaimer              = aggregate.PropertyBooking.Disclaimer,
             };
         }
 

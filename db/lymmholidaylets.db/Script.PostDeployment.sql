@@ -842,3 +842,128 @@ BEGIN
     WHERE [ExternalId] = @ExternalId;
 END
 GO
+-- =============================================
+-- Seed PropertyImage data
+-- =============================================
+SET IDENTITY_INSERT [dbo].[PropertyImage] ON;
+GO
+
+MERGE INTO [dbo].[PropertyImage] AS [Target]
+USING (VALUES
+  -- Property 1 images
+  (1, 1, N'/images/properties/property-1-main.jpg', N'Main view of the property exterior', 1, 1, GETDATE(), 1),
+  (2, 1, N'/images/properties/property-1-living.jpg', N'Spacious living room with modern furniture', 2, 1, GETDATE(), 1),
+  (3, 1, N'/images/properties/property-1-kitchen.jpg', N'Fully equipped modern kitchen', 3, 1, GETDATE(), 1),
+  (4, 1, N'/images/properties/property-1-bedroom.jpg', N'Comfortable master bedroom', 4, 1, GETDATE(), 1),
+  (5, 1, N'/images/properties/property-1-bathroom.jpg', N'Clean modern bathroom', 5, 1, GETDATE(), 1),
+  -- Property 2 images (if exists)
+  (6, 2, N'/images/properties/property-2-main.jpg', N'Property 2 main exterior view', 1, 1, GETDATE(), 1),
+  (7, 2, N'/images/properties/property-2-interior.jpg', N'Property 2 interior', 2, 1, GETDATE(), 1)
+) AS [Source] ([ID], [PropertyId], [ImagePath], [AltText], [SequenceOrder], [ShowOnSite], [Created], [Optimised])
+ON ([Target].[ID] = [Source].[ID])
+WHEN MATCHED AND (
+    NULLIF([Source].[PropertyId], [Target].[PropertyId]) IS NOT NULL OR 
+    NULLIF([Target].[PropertyId], [Source].[PropertyId]) IS NOT NULL OR
+    NULLIF([Source].[ImagePath], [Target].[ImagePath]) IS NOT NULL OR 
+    NULLIF([Target].[ImagePath], [Source].[ImagePath]) IS NOT NULL OR
+    NULLIF([Source].[AltText], [Target].[AltText]) IS NOT NULL OR 
+    NULLIF([Target].[AltText], [Source].[AltText]) IS NOT NULL OR
+    NULLIF([Source].[SequenceOrder], [Target].[SequenceOrder]) IS NOT NULL OR 
+    NULLIF([Target].[SequenceOrder], [Source].[SequenceOrder]) IS NOT NULL OR
+    NULLIF([Source].[ShowOnSite], [Target].[ShowOnSite]) IS NOT NULL OR 
+    NULLIF([Target].[ShowOnSite], [Source].[ShowOnSite]) IS NOT NULL OR
+    NULLIF([Source].[Optimised], [Target].[Optimised]) IS NOT NULL OR 
+    NULLIF([Target].[Optimised], [Source].[Optimised]) IS NOT NULL
+) THEN UPDATE SET
+  [PropertyId] = [Source].[PropertyId],
+  [ImagePath] = [Source].[ImagePath],
+  [AltText] = [Source].[AltText],
+  [SequenceOrder] = [Source].[SequenceOrder],
+  [ShowOnSite] = [Source].[ShowOnSite],
+  [Optimised] = [Source].[Optimised]
+WHEN NOT MATCHED BY TARGET THEN
+ INSERT([ID], [PropertyId], [ImagePath], [AltText], [SequenceOrder], [ShowOnSite], [Created], [Optimised])
+ VALUES([Source].[ID], [Source].[PropertyId], [Source].[ImagePath], [Source].[AltText], [Source].[SequenceOrder], [Source].[ShowOnSite], [Source].[Created], [Source].[Optimised]);
+
+SET IDENTITY_INSERT [dbo].[PropertyImage] OFF;
+GO
+
+-- =============================================
+-- Seed BedType lookup data
+-- =============================================
+SET IDENTITY_INSERT [dbo].[BedType] ON;
+GO
+
+MERGE INTO [dbo].[BedType] AS [Target]
+USING (VALUES
+  (1, N'Single Bed', N'/images/bed-icons/single.svg'),
+  (2, N'Double Bed', N'/images/bed-icons/double.svg'),
+  (3, N'King Bed', N'/images/bed-icons/king.svg'),
+  (4, N'Queen Bed', N'/images/bed-icons/queen.svg'),
+  (5, N'Sofa Bed', N'/images/bed-icons/sofa.svg'),
+  (6, N'Bunk Bed', N'/images/bed-icons/bunk.svg')
+) AS [Source] ([ID], [Description], [IconPath])
+ON ([Target].[ID] = [Source].[ID])
+WHEN MATCHED AND (
+    NULLIF([Source].[Description], [Target].[Description]) IS NOT NULL OR 
+    NULLIF([Target].[Description], [Source].[Description]) IS NOT NULL OR
+    NULLIF([Source].[IconPath], [Target].[IconPath]) IS NOT NULL OR 
+    NULLIF([Target].[IconPath], [Source].[IconPath]) IS NOT NULL
+) THEN UPDATE SET
+  [Description] = [Source].[Description],
+  [IconPath] = [Source].[IconPath]
+WHEN NOT MATCHED BY TARGET THEN
+ INSERT([ID], [Description], [IconPath])
+ VALUES([Source].[ID], [Source].[Description], [Source].[IconPath])
+WHEN NOT MATCHED BY SOURCE THEN DELETE;
+
+SET IDENTITY_INSERT [dbo].[BedType] OFF;
+GO
+
+-- =============================================
+-- Seed PropertyBedroom data
+-- =============================================
+SET IDENTITY_INSERT [dbo].[PropertyBedroom] ON;
+GO
+
+MERGE INTO [dbo].[PropertyBedroom] AS [Target]
+USING (VALUES
+  -- Property 1 bedrooms (3 bedrooms)
+  (1, 1, 1, N'Master Bedroom', 3, 1, 1, 1, GETDATE(), NULL),  -- King bed
+  (2, 1, 2, N'Bedroom 2', 2, 1, 2, 1, GETDATE(), NULL),        -- Double bed
+  (3, 1, 3, N'Bedroom 3', 1, 2, 3, 1, GETDATE(), NULL),        -- 2 Single beds
+  -- Property 2 bedrooms (2 bedrooms)
+  (4, 2, 1, N'Main Bedroom', 2, 1, 1, 1, GETDATE(), NULL),     -- Double bed
+  (5, 2, 2, N'Second Bedroom', 6, 1, 2, 1, GETDATE(), NULL)    -- Bunk bed
+) AS [Source] ([ID], [PropertyId], [BedroomNumber], [BedroomName], [BedTypeId], [NumberOfBeds], [SequenceOrder], [ShowOnSite], [Created], [Updated])
+ON ([Target].[ID] = [Source].[ID])
+WHEN MATCHED AND (
+    NULLIF([Source].[PropertyId], [Target].[PropertyId]) IS NOT NULL OR 
+    NULLIF([Target].[PropertyId], [Source].[PropertyId]) IS NOT NULL OR
+    NULLIF([Source].[BedroomNumber], [Target].[BedroomNumber]) IS NOT NULL OR 
+    NULLIF([Target].[BedroomNumber], [Source].[BedroomNumber]) IS NOT NULL OR
+    NULLIF([Source].[BedroomName], [Target].[BedroomName]) IS NOT NULL OR 
+    NULLIF([Target].[BedroomName], [Source].[BedroomName]) IS NOT NULL OR
+    NULLIF([Source].[BedTypeId], [Target].[BedTypeId]) IS NOT NULL OR 
+    NULLIF([Target].[BedTypeId], [Source].[BedTypeId]) IS NOT NULL OR
+    NULLIF([Source].[NumberOfBeds], [Target].[NumberOfBeds]) IS NOT NULL OR 
+    NULLIF([Target].[NumberOfBeds], [Source].[NumberOfBeds]) IS NOT NULL OR
+    NULLIF([Source].[SequenceOrder], [Target].[SequenceOrder]) IS NOT NULL OR 
+    NULLIF([Target].[SequenceOrder], [Source].[SequenceOrder]) IS NOT NULL OR
+    NULLIF([Source].[ShowOnSite], [Target].[ShowOnSite]) IS NOT NULL OR 
+    NULLIF([Target].[ShowOnSite], [Source].[ShowOnSite]) IS NOT NULL
+) THEN UPDATE SET
+  [PropertyId] = [Source].[PropertyId],
+  [BedroomNumber] = [Source].[BedroomNumber],
+  [BedroomName] = [Source].[BedroomName],
+  [BedTypeId] = [Source].[BedTypeId],
+  [NumberOfBeds] = [Source].[NumberOfBeds],
+  [SequenceOrder] = [Source].[SequenceOrder],
+  [ShowOnSite] = [Source].[ShowOnSite],
+  [Updated] = GETDATE()
+WHEN NOT MATCHED BY TARGET THEN
+ INSERT([ID], [PropertyId], [BedroomNumber], [BedroomName], [BedTypeId], [NumberOfBeds], [SequenceOrder], [ShowOnSite], [Created], [Updated])
+ VALUES([Source].[ID], [Source].[PropertyId], [Source].[BedroomNumber], [Source].[BedroomName], [Source].[BedTypeId], [Source].[NumberOfBeds], [Source].[SequenceOrder], [Source].[ShowOnSite], [Source].[Created], [Source].[Updated]);
+
+SET IDENTITY_INSERT [dbo].[PropertyBedroom] OFF;
+GO

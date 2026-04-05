@@ -24,7 +24,7 @@ public class ReviewResponseTests
 
         result.DateToDisplay.Should().Be("3 days ago");
         result.Name.Should().Be("John Doe");
-        result.DateTimeAdded.Should().Be(reviewDate);
+        result.DateAdded.Should().Be(DateOnly.FromDateTime(reviewDate));
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class ReviewResponseTests
         var result = ReviewResponse.FromApplicationModel(applicationModel);
 
         result.DateToDisplay.Should().BeEmpty();
-        result.DateTimeAdded.Should().BeNull();
+        result.DateAdded.Should().BeNull();
     }
 
     [Fact]

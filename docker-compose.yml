@@ -46,10 +46,10 @@ services:
       start_period: 20s # Give the API a grace period to start
     restart: unless-stopped
 
-  lymmholidaylets-emailworker:
+  lymmholidaylets-notificationworker:
     build:
       context: .
-      dockerfile: src/LymmHolidayLets.EmailWorker/Dockerfile
+      dockerfile: src/LymmHolidayLets.NotificationWorker/Dockerfile
     environment:
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__Username: "guest"
@@ -65,13 +65,25 @@ services:
   lymmholidaylets-calendarimporter:
     build:
       context: .
-      dockerfile: src/LymmHolidayLets.Applications/CalendarImporter/Dockerfile
+      dockerfile: src/LymmHolidayLets.CalendarImporter/Dockerfile
     container_name: calendar_importer
     environment:
       ConnectionStrings__LymmHolidayLets: "Server=mssql,1433;Database=LymmHolidayLets;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;Encrypt=False;"
       CalendarSync__IntervalMinutes: "30"
       Logging__LogLevel__Default: "Information"
       Logging__LogLevel__LymmHolidayLets.CalendarImporter: "Information"
+    depends_on:
+      mssql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  lymmholidaylets-calendarmaintenance:
+    build:
+      context: .
+      dockerfile: src/LymmHolidayLets.CalendarMaintenanceWorker/Dockerfile
+    container_name: calendar_maintenance
+    environment:
+      ConnectionStrings__LymmHolidayLets: "Server=mssql,1433;Database=LymmHolidayLets;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;Encrypt=False;"
     depends_on:
       mssql:
         condition: service_healthy

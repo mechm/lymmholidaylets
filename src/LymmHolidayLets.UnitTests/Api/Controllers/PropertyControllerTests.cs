@@ -19,44 +19,72 @@ public class PropertyControllerTests
     private readonly Mock<IPropertyQuery> _propertyQuery = new();
     private readonly Mock<ILogger<PropertyController>> _logger = new();
     private readonly Mock<ISocialShareLinkGenerator> _socialShareLinkGenerator = new();
+    private readonly Mock<ISeoMetaGenerator> _seoMetaGenerator = new();
+    private readonly Mock<ISchemaOrgGenerator> _schemaOrgGenerator = new();
+    private readonly Mock<IImageUrlResolver> _imageUrlResolver = new();
     private readonly MemoryCache _cache = new(new MemoryCacheOptions());
 
     private PropertyController CreateSut() =>
-        new(_cache, _logger.Object, _propertyQuery.Object, _socialShareLinkGenerator.Object);
+        new(_cache, _logger.Object, _propertyQuery.Object, _socialShareLinkGenerator.Object,
+            _seoMetaGenerator.Object, _schemaOrgGenerator.Object, _imageUrlResolver.Object);
+
+    public PropertyControllerTests()
+    {
+        _seoMetaGenerator
+            .Setup(s => s.Generate(It.IsAny<PropertyDetailResult>(), It.IsAny<string>()))
+            .Returns(new PropertySeoResult
+            {
+                MetaTitle       = "Test Property | Lymm Holiday Lets",
+                MetaDescription = "Test description",
+                CanonicalUrl    = "https://example.com/property/1",
+                OgTitle         = "Test Property | Lymm Holiday Lets",
+                OgDescription   = "Test description"
+            });
+
+        _schemaOrgGenerator
+            .Setup(s => s.Generate(It.IsAny<PropertyDetailResult>(), It.IsAny<string>()))
+            .Returns(new Dictionary<string, object> { ["@type"] = "LodgingBusiness" });
+
+        // Return absolute URL for any path; pass through already-absolute paths unchanged
+        _imageUrlResolver
+            .Setup(r => r.Resolve(It.IsAny<string?>()))
+            .Returns<string?>(p => string.IsNullOrWhiteSpace(p) ? null
+                : p.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? p
+                : $"https://www.lymmholidaylets.co.uk{p}");
+    }
 
     private static PropertyDetailResult PropertyDetail(byte id = 1) => new()
     {
         PropertyId              = id,
         DisplayAddress          = "Lymm Holiday Cottage",
-        PageDescription         = "A beautiful cottage in Lymm",
+        Description         = "A beautiful cottage in Lymm",
         MinimumNumberOfAdult    = 1,
         MaximumNumberOfGuests   = 6,
         MaximumNumberOfAdult    = 4,
         MaximumNumberOfChildren = 2,
         MaximumNumberOfInfants  = 2,
         DatesBooked = [new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 2)],
-        FaQs =
+        Faqs =
         [
             new PropertyFaqResult { Question = "Is parking available?", Answer = "Yes, free on-site parking." }
         ],
-        ReviewAggregate = new PropertyReviewAggregateResult
+        RatingSummary = new PropertyRatingSummaryResult
         {
-            OverallRating = 4.8,
-            Reviews =
-            [
-                new PropertyReviewResult
-                {
-                    Name        = "Jane Smith",
-                    Description = "Wonderful stay.",
-                    Rating      = 5,
-                    ReviewType  = "Airbnb"
-                }
-            ]
+            Rating = 4.8
         },
+        Reviews =
+        [
+            new PropertyReviewResult
+            {
+                Name        = "Jane Smith",
+                Description = "Wonderful stay.",
+                Rating      = 5,
+                ReviewType  = "Airbnb"
+            }
+        ],
         Host = new PropertyHostResult
         {
             Name               = "John Doe",
-            Location           = "Lymm, UK",
             NumberOfProperties = 3,
             YearsExperience    = 5,
             JobTitle           = "Property Manager",
@@ -65,7 +93,6 @@ public class PropertyControllerTests
         },
         Map = new PropertyMapResult
         {
-            ShowMap              = true,
             ShowStreetView       = true,
             Latitude             = 53.3811,
             Longitude            = -2.4730,
@@ -98,7 +125,7 @@ public class PropertyControllerTests
             .ReturnsAsync(PropertyDetail());
         
         _socialShareLinkGenerator
-            .Setup(g => g.GenerateLinks(1, "Lymm Holiday Cottage"))
+            .Setup(g => g.GenerateLinks(1, "Lymm Holiday Cottage", null))
             .Returns(new SocialShareLinks
             {
                 PropertyUrl = "https://example.com/property/1",
@@ -113,11 +140,11 @@ public class PropertyControllerTests
         var ok   = result.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<PropertyDetailResponse>>().Subject;
         body.Success.Should().BeTrue();
-        body.Data!.PropertyDetail.MaximumNumberOfGuests.Should().Be(6);
-        body.Data.PropertyDetail.FaQs.Should().HaveCount(1);
-        body.Data.PropertyDetail.ReviewAggregate.Should().NotBeNull();
-        body.Data.PropertyDetail.ReviewAggregate!.OverallRating.Should().Be(4.8);
-        body.Data.PropertyUrl.Should().Be("https://example.com/property/1");
+        body.Data!.MaximumNumberOfGuests.Should().Be(6);
+        body.Data.Faqs.Should().HaveCount(1);
+        body.Data.RatingSummary.Should().NotBeNull();
+        body.Data.RatingSummary!.Rating.Should().Be(4.8);
+        body.Data.Seo.CanonicalUrl.Should().Be("https://example.com/property/1");
     }
 
     [Fact]
@@ -127,15 +154,15 @@ public class PropertyControllerTests
         {
             PropertyId              = 1,
             DisplayAddress          = "Test Address",
-            PageDescription         = "Test Description",
+            Description         = "Test Description",
             MinimumNumberOfAdult    = 1,
             MaximumNumberOfGuests   = 6,
             MaximumNumberOfAdult    = 4,
             MaximumNumberOfChildren = 2,
             MaximumNumberOfInfants  = 2,
             DatesBooked     = [],
-            FaQs            = [],
-            ReviewAggregate = null
+            Faqs            = [],
+            RatingSummary   = null
         };
         _propertyQuery
             .Setup(q => q.GetPropertyDetailByIdAsync(1))
@@ -156,7 +183,7 @@ public class PropertyControllerTests
 
         var ok   = result.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<PropertyDetailResponse>>().Subject;
-        body.Data!.PropertyDetail.ReviewAggregate.Should().BeNull();
+        body.Data!.RatingSummary.Should().BeNull();
     }
 
     [Fact]
@@ -167,7 +194,7 @@ public class PropertyControllerTests
             .ReturnsAsync(PropertyDetail());
         
         _socialShareLinkGenerator
-            .Setup(g => g.GenerateLinks(1, "Lymm Holiday Cottage"))
+            .Setup(g => g.GenerateLinks(1, "Lymm Holiday Cottage", null))
             .Returns(new SocialShareLinks
             {
                 PropertyUrl = "https://example.com/property/1",
@@ -183,26 +210,25 @@ public class PropertyControllerTests
         var body = ok.Value.Should().BeOfType<ApiResponse<PropertyDetailResponse>>().Subject;
         
         // Verify host information
-        body.Data!.PropertyDetail.Host.Should().NotBeNull();
-        body.Data.PropertyDetail.Host!.Name.Should().Be("John Doe");
-        body.Data.PropertyDetail.Host.YearsExperience.Should().Be(5);
-        body.Data.PropertyDetail.Host.NumberOfProperties.Should().Be(3);
+        body.Data!.Host.Should().NotBeNull();
+        body.Data.Host!.Name.Should().Be("John Doe");
+        body.Data.Host.YearsExperience.Should().Be(5);
+        body.Data.Host.NumberOfProperties.Should().Be(3);
         
         // Verify map information
-        body.Data.PropertyDetail.Map.Should().NotBeNull();
-        body.Data.PropertyDetail.Map!.ShowMap.Should().BeTrue();
-        body.Data.PropertyDetail.Map.Latitude.Should().Be(53.3811);
-        body.Data.PropertyDetail.Map.Longitude.Should().Be(-2.4730);
+        body.Data.Map.Should().NotBeNull();
+        body.Data.Map!.Latitude.Should().Be(53.3811);
+        body.Data.Map.Longitude.Should().Be(-2.4730);
         
         // Verify basic property info
-        body.Data.PropertyDetail.PropertyId.Should().Be(1);
-        body.Data.PropertyDetail.DisplayAddress.Should().Be("Lymm Holiday Cottage");
-        body.Data.PropertyDetail.PageDescription.Should().Be("A beautiful cottage in Lymm");
+        body.Data.PropertyId.Should().Be(1);
+        body.Data.DisplayAddress.Should().Be("Lymm Holiday Cottage");
+        body.Data.Description.Should().Be("A beautiful cottage in Lymm");
         
         // Verify social sharing links
-        body.Data.PropertyUrl.Should().Be("https://example.com/property/1");
-        body.Data.FacebookShareLink.Should().NotBeEmpty();
-        body.Data.TwitterShareLink.Should().NotBeEmpty();
+        body.Data.Seo.CanonicalUrl.Should().Be("https://example.com/property/1");
+        body.Data.ShareLinks.Facebook.Should().NotBeEmpty();
+        body.Data.ShareLinks.Twitter.Should().NotBeEmpty();
     }
 
     [Fact]

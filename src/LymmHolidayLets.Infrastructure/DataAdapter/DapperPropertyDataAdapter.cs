@@ -52,8 +52,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
                 IEnumerable<DateOnly> datesBooked = result.Read<DateOnly>();
                 IEnumerable<FAQ> faqs = result.Read<FAQ>();
                 IEnumerable<Review> review = result.Read<Review>();
+                IEnumerable<string> amenities = result.Read<string>();
+                IEnumerable<PropertyImage> images = result.Read<PropertyImage>();
+                IEnumerable<PropertyBedroom> bedrooms = result.Read<PropertyBedroom>();
                 
-                var propertyDetailAggregate = new PropertyDetailAggregate(propertyBooking, datesBooked, faqs, review);
+                var propertyDetailAggregate = new PropertyDetailAggregate(propertyBooking, datesBooked, faqs, review, amenities, images, bedrooms);
                 return propertyDetailAggregate;
             }
             catch (System.Exception ex)
@@ -83,8 +86,11 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
                 var datesBooked = await result.ReadAsync<DateOnly>();
                 var faqs        = await result.ReadAsync<FAQ>();
                 var reviews     = await result.ReadAsync<Review>();
+                var amenities   = await result.ReadAsync<string>();
+                var images      = await result.ReadAsync<PropertyImage>();
+                var bedrooms    = await result.ReadAsync<PropertyBedroom>();
 
-                return new PropertyDetailAggregate(propertyBooking, datesBooked, faqs, reviews);
+                return new PropertyDetailAggregate(propertyBooking, datesBooked, faqs, reviews, amenities, images, bedrooms);
             }
             catch (System.Exception ex)
             {

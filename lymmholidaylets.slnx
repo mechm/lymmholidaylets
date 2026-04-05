@@ -7,8 +7,9 @@
     <Project Path="src/LymmHolidayLets.Application/LymmHolidayLets.Application.csproj" />
   </Folder>
   <Folder Name="/Applications/">
-    <Project Path="src/LymmHolidayLets.Applications/CalendarImporter/LymmHolidayLets.CalendarImporter.csproj" />
-    <Project Path="src/LymmHolidayLets.EmailWorker/LymmHolidayLets.EmailWorker.csproj" />
+    <Project Path="src/LymmHolidayLets.CalendarImporter/LymmHolidayLets.CalendarImporter.csproj" />
+    <Project Path="src/LymmHolidayLets.CalendarMaintenanceWorker/LymmHolidayLets.CalendarMaintenanceWorker.csproj" />
+    <Project Path="src/LymmHolidayLets.NotificationWorker/LymmHolidayLets.NotificationWorker.csproj" />
   </Folder>
   <Folder Name="/Contracts/">
     <Project Path="src/LymmHolidayLets.Contracts/LymmHolidayLets.Contracts.csproj" />

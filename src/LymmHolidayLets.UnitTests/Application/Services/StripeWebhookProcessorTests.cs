@@ -19,7 +19,6 @@ public class StripeWebhookProcessorTests
     private readonly Mock<IPublishEndpoint> _publishEndpoint = new();
     private readonly Mock<IManageCheckoutSessionService> _sessionService = new();
     private readonly Mock<IStripeService> _stripeService = new();
-    private readonly Mock<ITextMessageService> _textMessageService = new();
     private readonly Mock<LymmHolidayLets.Application.Interface.Command.IBookingCommand> _bookingCommand = new();
     private readonly Mock<LymmHolidayLets.Application.Interface.Command.IWebhookEventCommand> _webhookEventCommand = new();
     private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
@@ -32,7 +31,6 @@ public class StripeWebhookProcessorTests
         _publishEndpoint.Object,
         _sessionService.Object,
         _stripeService.Object,
-        _textMessageService.Object,
         _bookingCommand.Object,
         _webhookEventCommand.Object);
 

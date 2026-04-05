@@ -185,6 +185,8 @@ builder.Services.AddTransient<IEmailEnquiryCommand, EmailEnquiryCommand>();
 builder.Services.AddTransient<IBookingCommand, BookingCommand>();
 builder.Services.AddTransient<IWebhookEventCommand, WebhookEventCommand>();
 builder.Services.AddTransient<ICheckoutCommand, CheckoutCommand>();
+builder.Services.AddTransient<IReviewCommand, ReviewCommand>();
+builder.Services.AddTransient<IFAQCommand, FAQCommand>();
 
 
 
@@ -192,7 +194,6 @@ builder.Services.AddTransient<ICheckoutCommand, CheckoutCommand>();
 // Add our new services
 builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<ICalGenerator, CalGenerator>();
-builder.Services.AddTransient<ITextMessageService, TextMessageService>();
 builder.Services.AddTransient<ICalculateService, CalculateService>();
 builder.Services.AddTransient<ICheckoutService, CheckoutService>();
 
@@ -201,6 +202,10 @@ builder.Services.AddTransient<LymmHolidayLets.Api.Services.IHomepageService, Lym
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IEmailEnquiryService, LymmHolidayLets.Api.Services.EmailEnquiryService>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IRecaptchaValidationService, LymmHolidayLets.Api.Services.RecaptchaValidationService>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISocialShareLinkGenerator, LymmHolidayLets.Api.Services.SocialShareLinkGenerator>();
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.IImageUrlResolver, LymmHolidayLets.Api.Services.ImageUrlResolver>();
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISeoMetaGenerator, LymmHolidayLets.Api.Services.SeoMetaGenerator>();
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISchemaOrgGenerator, LymmHolidayLets.Api.Services.SchemaOrgGenerator>();
+builder.Services.AddSingleton<LymmHolidayLets.Application.Interface.Service.IPropertyCacheInvalidator, LymmHolidayLets.Api.Services.PropertyCacheInvalidator>();
 builder.Services.AddTransient<IStripeWebhookProcessor, StripeWebhookProcessor>();
 builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessionService>();
 
@@ -219,8 +224,6 @@ builder.Services.AddMassTransit(x =>
 
 builder.Services.Configure<LymmHolidayLets.Application.Model.Service.CheckoutOptions>(
     builder.Configuration.GetSection("Checkout"));
-builder.Services.Configure<LymmHolidayLets.Application.Model.Service.TwilioOptions>(
-    builder.Configuration.GetSection("Twilio"));
 builder.Services.Configure<LymmHolidayLets.Application.Model.Service.EmailOptions>(
     builder.Configuration.GetSection("Email"));
 
@@ -251,16 +254,6 @@ builder.Services.AddHealthChecks()
     .AddCheck("Self", () => HealthCheckResult.Healthy());
 
 var app = builder.Build();
-
-// Initialise the Twilio client once at startup using the bound configuration.
-// Calling TwilioClient.Init here (rather than inside TextMessageService) means:
-//   • credentials are validated eagerly — the app refuses to start if they are missing
-//   • the global static Twilio client is only initialised once, not on every SMS send
-var twilioAccountSid = builder.Configuration["Twilio:AccountSid"]
-    ?? throw new InvalidOperationException("Twilio:AccountSid is not configured.");
-var twilioAuthToken = builder.Configuration["Twilio:AuthToken"]
-    ?? throw new InvalidOperationException("Twilio:AuthToken is not configured.");
-Twilio.TwilioClient.Init(twilioAccountSid, twilioAuthToken);
 
 // Configure the HTTP request pipeline.
 // http://localhost:5026/scalar/v1

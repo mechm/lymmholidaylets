@@ -1,0 +1,8 @@
+CREATE TABLE [dbo].[BedType] (
+    [ID] TINYINT IDENTITY(1,1) NOT NULL,
+    [Description] VARCHAR(50) NOT NULL,
+    [IconPath] VARCHAR(255) NULL,
+    [Created] DATETIME2(0) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_BedType] PRIMARY KEY CLUSTERED ([ID] ASC),
+    CONSTRAINT [UQ_BedType_Description] UNIQUE NONCLUSTERED ([Description] ASC)
+);
