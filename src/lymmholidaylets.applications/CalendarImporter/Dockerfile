@@ -1,0 +1,22 @@
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# Copy csproj files and restore dependencies
+COPY ["src/LymmHolidayLets.Applications/CalendarImporter/LymmHolidayLets.CalendarImporter.csproj", "src/LymmHolidayLets.Applications/CalendarImporter/"]
+RUN dotnet restore "src/LymmHolidayLets.Applications/CalendarImporter/LymmHolidayLets.CalendarImporter.csproj"
+
+# Copy everything else and build
+COPY . .
+WORKDIR "/src/src/LymmHolidayLets.Applications/CalendarImporter"
+RUN dotnet build "LymmHolidayLets.CalendarImporter.csproj" -c Release -o /app/build
+
+# Publish stage
+FROM build AS publish
+RUN dotnet publish "LymmHolidayLets.CalendarImporter.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "LymmHolidayLets.CalendarImporter.dll"]
