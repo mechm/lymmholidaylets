@@ -139,3 +139,9 @@ Version.cpp
 
 # Personal TODOs
 TODO.local.md
+
+# JetBrains IDE files
+.idea/
+
+# Build/test output docs
+docs/build-reports/
