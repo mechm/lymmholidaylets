@@ -145,3 +145,4 @@ TODO.local.md
 
 # Build/test output docs
 docs/build-reports/
+docs/database/*.txt
