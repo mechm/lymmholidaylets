@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>lymmholidaylets-notificationworker</UserSecretsId>
+    <AssemblyName>LymmHolidayLets.NotificationWorker</AssemblyName>
+    <RootNamespace>LymmHolidayLets.NotificationWorker</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.4.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageReference Include="SendGrid" Version="9.29.3" />
+    <PackageReference Include="Twilio" Version="7.13.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LymmHolidayLets.Contracts\LymmHolidayLets.Contracts.csproj" />
+    <ProjectReference Include="..\LymmHolidayLets.Application\LymmHolidayLets.Application.csproj" />
+    <ProjectReference Include="..\LymmHolidayLets.Application.Model\LymmHolidayLets.Application.Model.csproj" />
+    <ProjectReference Include="..\LymmHolidayLets.Infrastructure\LymmHolidayLets.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
