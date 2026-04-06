@@ -99,6 +99,26 @@ namespace LymmHolidayLets.Infrastructure.DataAdapter
             }
         }
 
+        public async Task<DateTime?> GetCalendarLastModifiedAsync(byte propertyId)
+        {
+            const string procedure = "Property_GetCalendarLastModified";
+
+            try
+            {
+                using var sqlConnection = Session.Connection;
+                return await sqlConnection.QueryFirstOrDefaultAsync<DateTime?>(
+                    procedure,
+                    new { PropertyID = propertyId },
+                    Session.Transaction,
+                    commandType: CommandType.StoredProcedure);
+            }
+            catch (System.Exception ex)
+            {
+                throw new DataAccessException(
+                    $"An error occurred retrieving CalendarLastModified for property {propertyId}", ex);
+            }
+        }
+
         public PropertyCheckInCheckOutTime? GetPropertyCheckInCheckOutTime(byte propertyId)
         {
             const string procedure = "Property_CheckInCheckOutTime";

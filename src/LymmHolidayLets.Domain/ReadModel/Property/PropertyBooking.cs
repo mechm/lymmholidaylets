@@ -22,6 +22,7 @@
         
         // Host information
         public required string HostName { get; init; }
+        public string? HostLocation { get; init; }
 
         public byte NumberOfProperties { get; init; }
         public byte HostYearsExperience { get; init; }
@@ -46,6 +47,7 @@
         public byte MinimumStayNights { get; init; }
         public short? MaximumStayNights { get; init; }
         public DateTime? Updated { get; init; }
+        public DateTime? CalendarLastModified { get; init; }
         public string? VideoHtml { get; init; }
         public string? Disclaimer { get; init; }
     }

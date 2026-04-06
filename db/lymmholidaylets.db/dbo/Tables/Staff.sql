@@ -4,6 +4,7 @@
     [YearsExperience] TINYINT        NOT NULL,
     [JobTitle]        VARCHAR (256)  NOT NULL,
     [ProfileBio]      VARCHAR (3000) NULL,
+    [Location]        VARCHAR (256)  NULL,
     [LinkedInLink]    VARCHAR (256)  NULL,
     [ImagePath]       VARCHAR (256)  NOT NULL,
     [Visible]         BIT            NOT NULL,

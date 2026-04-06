@@ -46,7 +46,7 @@ public sealed class PropertyDetailResponse
     public IReadOnlyList<DateOnly> DatesBooked { get; init; } = [];
     public IReadOnlyList<PropertyFaqResult> Faqs { get; init; } = [];
     public PropertyRatingSummaryResponse? RatingSummary { get; init; }
-    public PropertyHostResult? Host { get; init; }
+    public PropertyHostResponse? Host { get; init; }
     public PropertyMapResult? Map { get; init; }
     public IReadOnlyList<string> Amenities { get; init; } = [];
     public IReadOnlyList<PropertyImageResult> Images { get; init; } = [];
@@ -208,4 +208,18 @@ public sealed class PropertyShareLinksResponse
     public required string Twitter { get; init; }
     public required string LinkedIn { get; init; }
     public required string Email { get; init; }
+}
+
+public sealed class PropertyHostResponse
+{
+    public required string Name { get; init; }
+    public required string JobTitle { get; init; }
+    public byte NumberOfProperties { get; init; }
+    public byte YearsExperience { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ProfileBio { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Location { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ImagePath { get; init; }
 }

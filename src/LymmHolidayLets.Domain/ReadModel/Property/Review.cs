@@ -18,5 +18,6 @@
         public DateTime? DateTimeAdded { get; set; }
         public required string ReviewType { get; set; }
         public string? LinkToView { get; set; }
+        public int TotalReviewCount { get; set; }
     }
 }

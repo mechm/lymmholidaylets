@@ -180,6 +180,7 @@
     <Build Include="dbo\Stored Procedures\Staff_Delete.sql" />
     <Build Include="dbo\Stored Procedures\Property_CheckInCheckOutTime.sql" />
     <Build Include="dbo\Stored Procedures\Calendar_Update_Property_Date.sql" />
+    <Build Include="dbo\Stored Procedures\Property_GetCalendarLastModified.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LymmHolidayLets.Db.publish.xml" />

@@ -37,6 +37,7 @@
     [ShowOnSite]              BIT            NULL,
     [Created]                 DATETIME2 (0)  NOT NULL,
     [Updated]                 DATETIME2 (0)  NULL,
+    [CalendarLastModified]    DATETIME2 (0)  NULL,
     CONSTRAINT [PK__Property__3214EC273A088C05] PRIMARY KEY CLUSTERED ([ID] ASC),
     CONSTRAINT [UQ_FriendlyName] UNIQUE NONCLUSTERED ([FriendlyName] ASC)
 );

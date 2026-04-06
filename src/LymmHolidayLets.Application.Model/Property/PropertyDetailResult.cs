@@ -67,6 +67,12 @@ namespace LymmHolidayLets.Application.Model.Property
         /// <summary>When this property record was last modified. Used for HTTP cache validation.</summary>
         public DateTimeOffset? LastModified { get; init; }
 
+        /// <summary>
+        /// When calendar availability was last changed by the iCal importer.
+        /// Used by the API cache layer to detect stale cached property detail.
+        /// </summary>
+        public DateTime? CalendarLastModified { get; init; }
+
         /// <summary>Embedded video HTML (e.g. YouTube iframe). Null when no video is set.</summary>
         public string? VideoHtml { get; init; }
 
@@ -103,6 +109,7 @@ namespace LymmHolidayLets.Application.Model.Property
         public byte YearsExperience { get; init; }
         public required string JobTitle { get; init; }
         public string? ProfileBio { get; init; }
+        public string? Location { get; init; }
         public string? ImagePath { get; init; }
     }
 

@@ -19,10 +19,7 @@ namespace LymmHolidayLets.Api.Controllers
         IMemoryCache cache,
         ILogger<PropertyController> logger,
         IPropertyQuery propertyQuery,
-        ISocialShareLinkGenerator socialShareLinkGenerator,
-        ISeoMetaGenerator seoMetaGenerator,
-        ISchemaOrgGenerator schemaOrgGenerator,
-        IImageUrlResolver imageUrlResolver) : ControllerBase
+        IPropertyDetailResponseBuilder responseBuilder) : ControllerBase
     {
         /// <summary>
         /// Gets full detail for a property including booking capacity, booked dates,
@@ -45,7 +42,21 @@ namespace LymmHolidayLets.Api.Controllers
         {
             var cacheKey = $"property-detail-{id}";
 
-            if (!cache.TryGetValue(cacheKey, out PropertyDetailResult? detail))
+            if (cache.TryGetValue(cacheKey, out PropertyDetailResult? detail))
+            {
+                // Cache hit — validate calendar availability hasn't changed since caching.
+                // Single indexed PK lookup; essentially free compared to a full detail fetch.
+                var currentCalendarTs = await propertyQuery.GetCalendarLastModifiedAsync(id);
+                if (currentCalendarTs != detail?.CalendarLastModified)
+                {
+                    logger.LogInformation(
+                        "Calendar availability changed for PropertyId={PropertyId}, evicting cache entry.", id);
+                    cache.Remove(cacheKey);
+                    detail = null;
+                }
+            }
+
+            if (detail is null)
             {
                 logger.LogInformation(
                     "Property detail cache miss for PropertyId={PropertyId}. Fetching from database.", id);
@@ -71,75 +82,8 @@ namespace LymmHolidayLets.Api.Controllers
             if (detail.LastModified.HasValue)
                 Response.GetTypedHeaders().LastModified = detail.LastModified.Value;
 
-            // Generate social sharing links (use slug for SEO-friendly URL when available)
-            var shareLinks = socialShareLinkGenerator.GenerateLinks(id, detail.DisplayAddress, detail.Slug);
-
-            var response = new PropertyDetailResponse
-            {
-                PropertyId              = detail.PropertyId,
-                DisplayAddress          = detail.DisplayAddress,
-                Description             = detail.Description,
-                Slug                    = detail.Slug,
-                MinimumNumberOfAdult    = detail.MinimumNumberOfAdult,
-                MaximumNumberOfGuests   = detail.MaximumNumberOfGuests,
-                MaximumNumberOfAdult    = detail.MaximumNumberOfAdult,
-                MaximumNumberOfChildren = detail.MaximumNumberOfChildren,
-                MaximumNumberOfInfants  = detail.MaximumNumberOfInfants,
-                NumberOfBedrooms        = detail.NumberOfBedrooms,
-                NumberOfBathrooms       = detail.NumberOfBathrooms,
-                NumberOfReceptionRooms  = detail.NumberOfReceptionRooms,
-                NumberOfKitchens        = detail.NumberOfKitchens,
-                NumberOfCarSpaces       = detail.NumberOfCarSpaces,
-                CheckInTime             = detail.CheckInTime,
-                CheckOutTime            = detail.CheckOutTime,
-                MinimumStayNights       = detail.MinimumStayNights,
-                MaximumStayNights       = detail.MaximumStayNights,
-                DatesBooked             = detail.DatesBooked,
-                Faqs                    = detail.Faqs,
-                RatingSummary           = detail.RatingSummary is not null
-                    ? PropertyRatingSummaryResponse.FromResult(detail.RatingSummary)
-                    : null,
-                Host                    = detail.Host is not null
-                    ? new PropertyHostResult
-                    {
-                        Name               = detail.Host.Name,
-                        NumberOfProperties = detail.Host.NumberOfProperties,
-                        YearsExperience    = detail.Host.YearsExperience,
-                        JobTitle           = detail.Host.JobTitle,
-                        ProfileBio         = detail.Host.ProfileBio,
-                        ImagePath          = imageUrlResolver.Resolve(detail.Host.ImagePath)
-                    }
-                    : null,
-                Map                     = detail.Map,
-                Amenities               = detail.Amenities,
-                Images                  = detail.Images
-                    .Select(i => new PropertyImageResult
-                    {
-                        ImagePath     = imageUrlResolver.Resolve(i.ImagePath) ?? i.ImagePath,
-                        AltText       = i.AltText,
-                        SequenceOrder = i.SequenceOrder
-                    })
-                    .ToList(),
-                Bedrooms                = detail.Bedrooms,
-                Reviews                 = detail.Reviews
-                    .Select(ReviewResponse.FromApplicationModel)
-                    .ToList(),
-                ShareLinks = new PropertyShareLinksResponse
-                {
-                    Facebook = shareLinks.FacebookShareLink,
-                    Twitter  = shareLinks.TwitterShareLink,
-                    LinkedIn = shareLinks.LinkedInShareLink,
-                    Email    = shareLinks.EmailShareLink
-                },
-                Seo                     = seoMetaGenerator.Generate(detail, shareLinks.PropertyUrl),
-                SchemaOrg               = schemaOrgGenerator.Generate(detail, shareLinks.PropertyUrl),
-                LastModified            = detail.LastModified,
-                VideoHtml               = detail.VideoHtml,
-                Disclaimer              = detail.Disclaimer
-            };
-
             logger.LogDebug("Property detail served for PropertyId={PropertyId}", id);
-            return Ok(ApiResponse<PropertyDetailResponse>.SuccessResult(response));
+            return Ok(ApiResponse<PropertyDetailResponse>.SuccessResult(responseBuilder.Build(detail)));
         }
     }
 }

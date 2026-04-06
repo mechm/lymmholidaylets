@@ -9,6 +9,7 @@ namespace LymmHolidayLets.Application.Interface.Query
         PropertyBooking GetPropertyBookingById(byte propertyId);
         PropertyDetailAggregate? GetPropertyDetailById(byte propertyId);
         Task<PropertyDetailResult?> GetPropertyDetailByIdAsync(byte propertyId);
+        Task<DateTime?> GetCalendarLastModifiedAsync(byte propertyId);
         PropertyCheckInCheckOutTime? GetPropertyCheckInCheckOutTime(byte propertyId);
 
         // EF-based surface for GraphQL

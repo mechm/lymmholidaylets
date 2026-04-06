@@ -27,6 +27,11 @@ namespace LymmHolidayLets.Application.Query
             return propertyDataAdapter.GetPropertyCheckInCheckOutTime(propertyId);
         }
 
+        public async Task<DateTime?> GetCalendarLastModifiedAsync(byte propertyId)
+        {
+            return await propertyDataAdapter.GetCalendarLastModifiedAsync(propertyId);
+        }
+
         // EF-based surface for GraphQL
 
         public IQueryable<PropertyEF> GetPropertyByIdEf(byte id)
@@ -42,6 +47,7 @@ namespace LymmHolidayLets.Application.Query
                 return null;
 
             var reviews = aggregate.Review.ToList();
+            var totalReviewCount = reviews.FirstOrDefault()?.TotalReviewCount ?? 0;
 
             PropertyRatingSummaryResult? ratingSummary = reviews.Count > 0
                 ? new PropertyRatingSummaryResult
@@ -55,11 +61,11 @@ namespace LymmHolidayLets.Application.Query
                     Location      = NullableAverage(reviews, r => r.Location),
                     Facilities    = NullableAverage(reviews, r => r.Facilities),
                     Comfort       = NullableAverage(reviews, r => r.Comfort),
-                    TotalReviews  = reviews.Count
+                    TotalReviews  = totalReviewCount
                 }
                 : null;
 
-            var reviewResults = reviews.Take(10).Select(r => new PropertyReviewResult
+            var reviewResults = reviews.Select(r => new PropertyReviewResult
             {
                 Name          = r.Name,
                 Company       = r.Company,
@@ -81,6 +87,7 @@ namespace LymmHolidayLets.Application.Query
                     YearsExperience    = aggregate.PropertyBooking.HostYearsExperience,
                     JobTitle           = aggregate.PropertyBooking.HostJobTitle,
                     ProfileBio         = aggregate.PropertyBooking.HostProfileBio,
+                    Location           = aggregate.PropertyBooking.HostLocation,
                     ImagePath          = aggregate.PropertyBooking.HostImagePath
                 }
                 : null;
@@ -150,6 +157,7 @@ namespace LymmHolidayLets.Application.Query
                 LastModified            = aggregate.PropertyBooking.Updated.HasValue
                     ? new DateTimeOffset(aggregate.PropertyBooking.Updated.Value, TimeSpan.Zero)
                     : null,
+                CalendarLastModified    = aggregate.PropertyBooking.CalendarLastModified,
                 VideoHtml               = aggregate.PropertyBooking.VideoHtml,
                 Disclaimer              = aggregate.PropertyBooking.Disclaimer,
             };

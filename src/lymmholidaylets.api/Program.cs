@@ -205,6 +205,7 @@ builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISocialShareLinkGener
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IImageUrlResolver, LymmHolidayLets.Api.Services.ImageUrlResolver>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISeoMetaGenerator, LymmHolidayLets.Api.Services.SeoMetaGenerator>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISchemaOrgGenerator, LymmHolidayLets.Api.Services.SchemaOrgGenerator>();
+builder.Services.AddTransient<LymmHolidayLets.Api.Services.IPropertyDetailResponseBuilder, LymmHolidayLets.Api.Services.PropertyDetailResponseBuilder>();
 builder.Services.AddSingleton<LymmHolidayLets.Application.Interface.Service.IPropertyCacheInvalidator, LymmHolidayLets.Api.Services.PropertyCacheInvalidator>();
 builder.Services.AddTransient<IStripeWebhookProcessor, StripeWebhookProcessor>();
 builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessionService>();

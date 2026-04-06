@@ -40,6 +40,7 @@ BEGIN
         P.[Updated] AS LastModified,
         -- Host information
         S.[Name] AS HostName,
+        S.[Location] AS HostLocation,
         -- OPTIMIZED: Use OUTER APPLY instead of correlated subquery to avoid repeated table scans
         ISNULL(PC.PropCount, 0) AS NumberOfProperties,
         S.[YearsExperience] AS HostYearsExperience,
@@ -58,7 +59,8 @@ BEGIN
         ISNULL(G.[Yaw], 0) AS Yaw,
         ISNULL(G.[Zoom], 0) AS Zoom,
         P.[VideoHtml],
-        P.[Disclaimer]
+        P.[Disclaimer],
+        P.[CalendarLastModified]
     FROM [dbo].[Property] P
     LEFT JOIN [dbo].[Staff] S ON P.[StaffId] = S.[ID]
     LEFT JOIN [dbo].[GeoLocation] G ON P.[GeoLocationId] = G.[ID]
@@ -87,8 +89,8 @@ BEGIN
 	WHERE [PropertyID] = @PropertyID 
 	  AND [Visible] = 1;
 
- 	-- Reviews with review type
- 	SELECT 
+ 	-- Reviews with review type (top 10 most recent; TotalReviewCount carries the full approved count)
+ 	SELECT TOP 10
         [Company],
         R.[Description],
         [Name],
@@ -104,7 +106,8 @@ BEGIN
         [Value],
         RT.[Description] AS ReviewType,
         [LinkToView],
-        [DateTimeAdded]
+        [DateTimeAdded],
+        COUNT(*) OVER() AS TotalReviewCount
     FROM [dbo].[Review] R
 	INNER JOIN [dbo].[ReviewType] RT ON RT.ReviewTypeId = R.ReviewTypeId
 	WHERE [PropertyID] = @PropertyID 
