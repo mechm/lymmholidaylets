@@ -6,6 +6,7 @@ using LymmHolidayLets.Api.Models.Checkout;
 using LymmHolidayLets.Api.Models.Email;
 using LymmHolidayLets.Api.Models.Homepage;
 using LymmHolidayLets.Application.Model.Service;
+using LymmHolidayLets.Application.Model.Service;
 using LymmHolidayLets.IntegrationTests.Infrastructure;
 using Moq;
 using Xunit;
@@ -25,9 +26,9 @@ public class BookingWorkflowTests(ApiFactory factory) : IClassFixture<ApiFactory
     public async Task HomepageThenCheckout_HappyPath_BothReturn200()
     {
         // Arrange: homepage returns data
-        factory.HomepageService
-            .Setup(s => s.GetHomepageDataAsync())
-            .ReturnsAsync(new HomepageModel([], []));
+        factory.HomepageQueryService
+            .Setup(s => s.GetHomepageDataAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HomepageResult([], []));
 
         // Arrange: checkout returns a valid session
         factory.CheckoutService
@@ -67,12 +68,9 @@ public class BookingWorkflowTests(ApiFactory factory) : IClassFixture<ApiFactory
     [Fact]
     public async Task EnquirySubmission_HappyPath_Returns200()
     {
-        factory.RecaptchaValidationService
-            .Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-        factory.EmailEnquiryService
-            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        factory.EmailEnquiryProcessingService
+            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquirySubmission>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EmailEnquiryResponse.Success());
 
         var response = await _client.PostAsJsonAsync("/api/v1/email", new EmailEnquiryRequest
         {

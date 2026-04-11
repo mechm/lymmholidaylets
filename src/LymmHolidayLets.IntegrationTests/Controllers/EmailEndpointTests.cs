@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Email;
+using LymmHolidayLets.Application.Model.Service;
 using LymmHolidayLets.IntegrationTests.Infrastructure;
 using Moq;
 using Xunit;
@@ -24,12 +25,9 @@ public class EmailEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Post_Email_WhenSuccess_Returns200()
     {
-        factory.RecaptchaValidationService
-            .Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-        factory.EmailEnquiryService
-            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        factory.EmailEnquiryProcessingService
+            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquirySubmission>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EmailEnquiryResponse.Success());
 
         var response = await _client.PostAsJsonAsync("/api/v1/email", ValidRequest());
 
@@ -41,9 +39,9 @@ public class EmailEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Post_Email_WhenRecaptchaFails_Returns400()
     {
-        factory.RecaptchaValidationService
-            .Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        factory.EmailEnquiryProcessingService
+            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquirySubmission>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EmailEnquiryResponse.Failure("Security verification failed. Please try again."));
 
         var response = await _client.PostAsJsonAsync("/api/v1/email", ValidRequest());
 
@@ -53,11 +51,8 @@ public class EmailEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Post_Email_WhenServiceThrows_Returns500()
     {
-        factory.RecaptchaValidationService
-            .Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-        factory.EmailEnquiryService
-            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
+        factory.EmailEnquiryProcessingService
+            .Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquirySubmission>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB error"));
 
         var response = await _client.PostAsJsonAsync("/api/v1/email", ValidRequest());

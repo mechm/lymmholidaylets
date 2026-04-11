@@ -45,6 +45,9 @@ namespace LymmHolidayLets.Domain.Model.Checkout.Entity
 		}
 
 
+		public bool IsExpired(TimeSpan sessionTtl, DateTime? now = null) =>
+			(now ?? DateTime.UtcNow) - Created >= sessionTtl;
+
 		public int ID { get; init; }
 		public byte PropertyID { get; init; }
         public DateOnly CheckIn { get; init; }

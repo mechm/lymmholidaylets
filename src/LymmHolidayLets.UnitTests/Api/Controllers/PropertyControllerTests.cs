@@ -3,11 +3,10 @@ using LymmHolidayLets.Api.Controllers;
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Property;
 using LymmHolidayLets.Api.Services;
-using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Property;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -16,13 +15,12 @@ namespace LymmHolidayLets.UnitTests.Api.Controllers;
 
 public class PropertyControllerTests
 {
-    private readonly Mock<IPropertyQuery> _propertyQuery = new();
+    private readonly Mock<IPropertyDetailQueryService> _propertyDetailQueryService = new();
     private readonly Mock<ILogger<PropertyController>> _logger = new();
     private readonly Mock<IPropertyDetailResponseBuilder> _responseBuilder = new();
-    private readonly MemoryCache _cache = new(new MemoryCacheOptions());
 
     private PropertyController CreateSut() =>
-        new(_cache, _logger.Object, _propertyQuery.Object, _responseBuilder.Object);
+        new(_logger.Object, _propertyDetailQueryService.Object, _responseBuilder.Object);
 
     private static PropertyDetailResult SomeDetail(byte id = 1) => new()
     {
@@ -66,8 +64,8 @@ public class PropertyControllerTests
     [Fact]
     public async Task Detail_PropertyNotFound_ReturnsNotFound()
     {
-        _propertyQuery
-            .Setup(q => q.GetPropertyDetailByIdAsync(1))
+        _propertyDetailQueryService
+            .Setup(q => q.GetPropertyDetailAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync((PropertyDetailResult?)null);
 
         var result = await CreateSut().Detail(1);
@@ -81,7 +79,7 @@ public class PropertyControllerTests
         var detail   = SomeDetail();
         var response = SomeResponse();
 
-        _propertyQuery.Setup(q => q.GetPropertyDetailByIdAsync(1)).ReturnsAsync(detail);
+        _propertyDetailQueryService.Setup(q => q.GetPropertyDetailAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(detail);
         _responseBuilder.Setup(b => b.Build(detail)).Returns(response);
 
         var result = await CreateSut().Detail(1);
@@ -96,7 +94,7 @@ public class PropertyControllerTests
     public async Task Detail_PropertyFound_DelegatesToResponseBuilder()
     {
         var detail = SomeDetail();
-        _propertyQuery.Setup(q => q.GetPropertyDetailByIdAsync(1)).ReturnsAsync(detail);
+        _propertyDetailQueryService.Setup(q => q.GetPropertyDetailAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(detail);
         _responseBuilder.Setup(b => b.Build(It.IsAny<PropertyDetailResult>())).Returns(SomeResponse());
 
         await CreateSut().Detail(1);
@@ -104,86 +102,5 @@ public class PropertyControllerTests
         _responseBuilder.Verify(b => b.Build(detail), Times.Once);
     }
 
-    [Fact]
-    public async Task Detail_CachesResultOnSecondCall()
-    {
-        _propertyQuery.Setup(q => q.GetPropertyDetailByIdAsync(1)).ReturnsAsync(SomeDetail());
-        _propertyQuery.Setup(q => q.GetCalendarLastModifiedAsync(1)).ReturnsAsync((DateTime?)null);
-        _responseBuilder.Setup(b => b.Build(It.IsAny<PropertyDetailResult>())).Returns(SomeResponse());
-
-        var sut = CreateSut();
-        await sut.Detail(1);
-        await sut.Detail(1);
-
-        // DB must only be hit once — second call served from cache
-        _propertyQuery.Verify(q => q.GetPropertyDetailByIdAsync(1), Times.Once);
-    }
-
-    [Fact]
-    public async Task Detail_DoesNotCacheWhenPropertyNotFound()
-    {
-        _propertyQuery
-            .Setup(q => q.GetPropertyDetailByIdAsync(1))
-            .ReturnsAsync((PropertyDetailResult?)null);
-
-        var sut = CreateSut();
-        await sut.Detail(1);
-        await sut.Detail(1);
-
-        // Both calls must hit DB — null results must never be cached
-        _propertyQuery.Verify(q => q.GetPropertyDetailByIdAsync(1), Times.Exactly(2));
-    }
-
-    [Fact]
-    public async Task Detail_EvictsCacheAndRefetchesWhenCalendarTimestampChanges()
-    {
-        var cached    = SomeDetail();          // CalendarLastModified = null
-        var refreshed = SomeDetail();
-
-        _propertyQuery.SetupSequence(q => q.GetPropertyDetailByIdAsync(1))
-            .ReturnsAsync(cached)
-            .ReturnsAsync(refreshed);
-
-        // Second call: timestamp has changed (importer ran)
-        _propertyQuery.Setup(q => q.GetCalendarLastModifiedAsync(1))
-            .ReturnsAsync(new DateTime(2026, 4, 6, 10, 30, 0, DateTimeKind.Utc));
-
-        _responseBuilder.Setup(b => b.Build(It.IsAny<PropertyDetailResult>())).Returns(SomeResponse());
-
-        var sut = CreateSut();
-        await sut.Detail(1);   // populates cache (CalendarLastModified = null)
-        await sut.Detail(1);   // hit → timestamp mismatch → evict → re-fetch
-
-        // DB hit twice: initial load + re-fetch after eviction
-        _propertyQuery.Verify(q => q.GetPropertyDetailByIdAsync(1), Times.Exactly(2));
-    }
-
-    [Fact]
-    public async Task Detail_ServesFromCacheWhenCalendarTimestampUnchanged()
-    {
-        var ts     = new DateTime(2026, 4, 6, 9, 0, 0, DateTimeKind.Utc);
-        var detail = new PropertyDetailResult
-        {
-            PropertyId              = 1,
-            MinimumNumberOfAdult    = 1,
-            MaximumNumberOfGuests   = 4,
-            MaximumNumberOfAdult    = 4,
-            MaximumNumberOfChildren = 2,
-            MaximumNumberOfInfants  = 0,
-            CalendarLastModified    = ts
-        };
-
-        _propertyQuery.Setup(q => q.GetPropertyDetailByIdAsync(1)).ReturnsAsync(detail);
-        _propertyQuery.Setup(q => q.GetCalendarLastModifiedAsync(1)).ReturnsAsync(ts);
-        _responseBuilder.Setup(b => b.Build(It.IsAny<PropertyDetailResult>())).Returns(SomeResponse());
-
-        var sut = CreateSut();
-        await sut.Detail(1);
-        await sut.Detail(1);
-        await sut.Detail(1);
-
-        // DB only hit once — timestamps match on every cache hit
-        _propertyQuery.Verify(q => q.GetPropertyDetailByIdAsync(1), Times.Once);
-    }
 }
 

@@ -1,11 +1,10 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Property;
 using LymmHolidayLets.Api.Services;
-using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Property;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace LymmHolidayLets.Api.Controllers
 {
@@ -16,9 +15,8 @@ namespace LymmHolidayLets.Api.Controllers
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class PropertyController(
-        IMemoryCache cache,
         ILogger<PropertyController> logger,
-        IPropertyQuery propertyQuery,
+        IPropertyDetailQueryService propertyDetailQueryService,
         IPropertyDetailResponseBuilder responseBuilder) : ControllerBase
     {
         /// <summary>
@@ -40,38 +38,7 @@ namespace LymmHolidayLets.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Detail(byte id)
         {
-            var cacheKey = $"property-detail-{id}";
-
-            if (cache.TryGetValue(cacheKey, out PropertyDetailResult? detail))
-            {
-                // Cache hit — validate calendar availability hasn't changed since caching.
-                // Single indexed PK lookup; essentially free compared to a full detail fetch.
-                var currentCalendarTs = await propertyQuery.GetCalendarLastModifiedAsync(id);
-                if (currentCalendarTs != detail?.CalendarLastModified)
-                {
-                    logger.LogInformation(
-                        "Calendar availability changed for PropertyId={PropertyId}, evicting cache entry.", id);
-                    cache.Remove(cacheKey);
-                    detail = null;
-                }
-            }
-
-            if (detail is null)
-            {
-                logger.LogInformation(
-                    "Property detail cache miss for PropertyId={PropertyId}. Fetching from database.", id);
-
-                detail = await propertyQuery.GetPropertyDetailByIdAsync(id);
-
-                if (detail is not null)
-                {
-                    cache.Set(cacheKey, detail, new MemoryCacheEntryOptions
-                    {
-                        Priority = CacheItemPriority.Normal,
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
-                    });
-                }
-            }
+            var detail = await propertyDetailQueryService.GetPropertyDetailAsync(id);
 
             if (detail is null)
             {

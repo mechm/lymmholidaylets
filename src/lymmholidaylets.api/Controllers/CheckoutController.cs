@@ -10,15 +10,13 @@ namespace LymmHolidayLets.Api.Controllers
     /// <summary>
     /// Handles Stripe Checkout session creation for property bookings.
     /// Coordinates availability checks, pricing, discount calculation, and Stripe session initialisation.
-    /// Session metadata is cached at the API boundary so that the webhook handler can later
-    /// cross-reference and validate incoming Stripe events.
+    /// The application workflow also records the session metadata needed for later webhook processing.
     /// </summary>
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class CheckoutController(
         ICheckoutService checkoutService,
-        IManageCheckoutSessionService manageCheckoutSessionService,
         ILogger<CheckoutController> logger) : ControllerBase
     {
         /// <summary>
@@ -65,9 +63,6 @@ namespace LymmHolidayLets.Api.Controllers
                 logger.LogWarning("Checkout error for PropertyId={PropertyId}: {Error}", model.PropertyId, response.Error);
                 return BadRequest(ApiResponse<object>.FailureResult(response.Error!));
             }
-
-            // Session cache management belongs at the API boundary, not inside the application service.
-            manageCheckoutSessionService.AddUpdateSessionCache(response.Result!.SessionId, response.Result.CheckIn, response.Result.CheckOut);
 
             logger.LogInformation("Checkout session created for PropertyId={PropertyId}", model.PropertyId);
             return Ok(ApiResponse<CheckoutSessionResponse>.SuccessResult(new CheckoutSessionResponse(response.Result.SessionUrl)));

@@ -1,7 +1,8 @@
 using FluentAssertions;
 using LymmHolidayLets.Api.Controllers;
 using LymmHolidayLets.Api.Models;
-using LymmHolidayLets.Api.Services;
+using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Model.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -11,7 +12,7 @@ namespace LymmHolidayLets.UnitTests.Api.Controllers;
 
 public class CalendarControllerTests
 {
-    private readonly Mock<ICalService> _calService = new();
+    private readonly Mock<ICalendarFeedService> _calService = new();
     private readonly Mock<ILogger<CalendarController>> _logger = new();
 
     private CalendarController CreateSut() => new(_calService.Object, _logger.Object);
@@ -20,7 +21,7 @@ public class CalendarControllerTests
     public async Task ICal_WhenServiceReturnsNull_ReturnsBadRequest()
     {
         _calService.Setup(s => s.GetCalendarAsync(It.IsAny<byte>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((FileContentResult?)null);
+            .ReturnsAsync((CalendarFeedResult?)null);
 
         var result = await CreateSut().ICal(1, Guid.NewGuid(), CancellationToken.None);
 
@@ -30,10 +31,10 @@ public class CalendarControllerTests
     [Fact]
     public async Task ICal_WhenSuccess_ReturnsFileContentResult()
     {
-        var fileResult = new FileContentResult(
-            System.Text.Encoding.UTF8.GetBytes("BEGIN:VCALENDAR"),
-            "text/calendar; charset=utf-8")
+        var fileResult = new CalendarFeedResult
         {
+            FileContents = System.Text.Encoding.UTF8.GetBytes("BEGIN:VCALENDAR"),
+            ContentType = "text/calendar; charset=utf-8",
             FileDownloadName = "1.ics"
         };
 
@@ -42,6 +43,7 @@ public class CalendarControllerTests
 
         var result = await CreateSut().ICal(1, Guid.NewGuid(), CancellationToken.None);
 
-        result.Should().BeSameAs(fileResult);
+        var file = result.Should().BeOfType<FileContentResult>().Subject;
+        file.FileDownloadName.Should().Be("1.ics");
     }
 }

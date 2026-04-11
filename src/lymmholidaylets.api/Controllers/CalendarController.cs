@@ -1,5 +1,5 @@
 using LymmHolidayLets.Api.Models;
-using LymmHolidayLets.Api.Services;
+using LymmHolidayLets.Application.Interface.Service;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 
@@ -13,7 +13,7 @@ namespace LymmHolidayLets.Api.Controllers
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class CalendarController(
-        ICalService icalService,
+        ICalendarFeedService calendarFeedService,
         ILogger<CalendarController> logger) : ControllerBase
     {
         /// <summary>
@@ -48,7 +48,7 @@ namespace LymmHolidayLets.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ICal(byte propertyId, [FromQuery] Guid identifier, CancellationToken cancellationToken)
         {
-            var result = await icalService.GetCalendarAsync(propertyId, identifier, cancellationToken);
+            var result = await calendarFeedService.GetCalendarAsync(propertyId, identifier, cancellationToken);
 
             if (result is null)
             {
@@ -57,7 +57,10 @@ namespace LymmHolidayLets.Api.Controllers
             }
 
             logger.LogInformation("iCal served for PropertyId={PropertyId}", propertyId);
-            return result;
+            return new FileContentResult(result.FileContents, result.ContentType)
+            {
+                FileDownloadName = result.FileDownloadName
+            };
         }
     }
 }

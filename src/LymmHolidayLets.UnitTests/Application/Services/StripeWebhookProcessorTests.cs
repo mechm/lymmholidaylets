@@ -1,6 +1,7 @@
 using FluentAssertions;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Service;
+using LymmHolidayLets.Infrastructure.Services;
 using MassTransit;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,7 @@ public class StripeWebhookProcessorTests
     private readonly Mock<IStripeService> _stripeService = new();
     private readonly Mock<LymmHolidayLets.Application.Interface.Command.IBookingCommand> _bookingCommand = new();
     private readonly Mock<LymmHolidayLets.Application.Interface.Command.IWebhookEventCommand> _webhookEventCommand = new();
-    private readonly IMemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
+    private readonly ApplicationMemoryCache _cache = new(new MemoryCache(new MemoryCacheOptions()));
 
     private StripeWebhookProcessor CreateSut() => new(
         _config.Object,

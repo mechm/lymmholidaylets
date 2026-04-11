@@ -15,13 +15,12 @@ namespace LymmHolidayLets.UnitTests.Api.Controllers;
 public class CheckoutControllerTests
 {
     private readonly Mock<ICheckoutService> _checkoutService = new();
-    private readonly Mock<IManageCheckoutSessionService> _sessionService = new();
     private readonly Mock<ILogger<CheckoutController>> _logger = new();
     private readonly CheckoutController _sut;
 
     public CheckoutControllerTests()
     {
-        _sut = new CheckoutController(_checkoutService.Object, _sessionService.Object, _logger.Object)
+        _sut = new CheckoutController(_checkoutService.Object, _logger.Object)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
@@ -81,20 +80,5 @@ public class CheckoutControllerTests
         var body = ok.Value.Should().BeOfType<ApiResponse<CheckoutSessionResponse>>().Subject;
         body.Success.Should().BeTrue();
         body.Data!.Url.Should().Be("https://checkout.stripe.com/pay/cs_test_123");
-    }
-
-    [Fact]
-    public async Task Create_WhenSuccess_UpdatesSessionCache()
-    {
-        SetupCheckoutSuccess();
-
-        await _sut.Create(ValidForm(), CancellationToken.None);
-
-        _sessionService.Verify(
-            s => s.AddUpdateSessionCache(
-                "cs_test_123",
-                new DateOnly(2026, 6, 1),
-                new DateOnly(2026, 6, 8)),
-            Times.Once);
     }
 }

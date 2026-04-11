@@ -1,4 +1,3 @@
-using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Api.Services;
 using MassTransit;
@@ -17,14 +16,13 @@ namespace LymmHolidayLets.IntegrationTests.Infrastructure;
 /// </summary>
 public class ApiFactory : WebApplicationFactory<Program>
 {
-    public readonly Mock<IHomepageService> HomepageService = new();
-    public readonly Mock<IReviewQuery> ReviewQuery = new();
-    public readonly Mock<IPageQuery> PageQuery = new();
-    public readonly Mock<ICalService> CalService = new();
+    public readonly Mock<IHomepageQueryService> HomepageQueryService = new();
+    public readonly Mock<IReviewSummaryQueryService> ReviewSummaryQueryService = new();
+    public readonly Mock<IPageQueryService> PageQueryService = new();
+    public readonly Mock<ICalendarFeedService> CalendarFeedService = new();
     public readonly Mock<ICheckoutService> CheckoutService = new();
     public readonly Mock<IManageCheckoutSessionService> SessionService = new();
-    public readonly Mock<IEmailEnquiryService> EmailEnquiryService = new();
-    public readonly Mock<IRecaptchaValidationService> RecaptchaValidationService = new();
+    public readonly Mock<IEmailEnquiryProcessingService> EmailEnquiryProcessingService = new();
     public readonly Mock<IStripeWebhookProcessor> StripeWebhookProcessor = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -34,17 +32,17 @@ public class ApiFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             // Replace all application services with mocks so no DB or external calls are made
-            services.RemoveAll<IHomepageService>();
-            services.AddSingleton(HomepageService.Object);
+            services.RemoveAll<IHomepageQueryService>();
+            services.AddSingleton(HomepageQueryService.Object);
 
-            services.RemoveAll<IReviewQuery>();
-            services.AddSingleton(ReviewQuery.Object);
+            services.RemoveAll<IReviewSummaryQueryService>();
+            services.AddSingleton(ReviewSummaryQueryService.Object);
 
-            services.RemoveAll<IPageQuery>();
-            services.AddSingleton(PageQuery.Object);
+            services.RemoveAll<IPageQueryService>();
+            services.AddSingleton(PageQueryService.Object);
 
-            services.RemoveAll<ICalService>();
-            services.AddSingleton(CalService.Object);
+            services.RemoveAll<ICalendarFeedService>();
+            services.AddSingleton(CalendarFeedService.Object);
 
             services.RemoveAll<ICheckoutService>();
             services.AddSingleton(CheckoutService.Object);
@@ -52,11 +50,8 @@ public class ApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<IManageCheckoutSessionService>();
             services.AddSingleton(SessionService.Object);
 
-            services.RemoveAll<IEmailEnquiryService>();
-            services.AddSingleton(EmailEnquiryService.Object);
-
-            services.RemoveAll<IRecaptchaValidationService>();
-            services.AddSingleton(RecaptchaValidationService.Object);
+            services.RemoveAll<IEmailEnquiryProcessingService>();
+            services.AddSingleton(EmailEnquiryProcessingService.Object);
 
             services.RemoveAll<IStripeWebhookProcessor>();
             services.AddSingleton(StripeWebhookProcessor.Object);

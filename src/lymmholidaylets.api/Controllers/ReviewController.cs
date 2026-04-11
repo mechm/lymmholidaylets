@@ -1,8 +1,7 @@
-﻿using LymmHolidayLets.Application.Interface.Query;
+﻿using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Domain.ReadModel.Review;
 using LymmHolidayLets.Api.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
@@ -16,12 +15,9 @@ namespace LymmHolidayLets.Api.Controllers
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class ReviewController(
-        IMemoryCache cache,
         ILogger<ReviewController> logger,
-        IReviewQuery reviewQuery) : ControllerBase
+        IReviewSummaryQueryService reviewSummaryQueryService) : ControllerBase
     {
-        private const string ReviewsCacheKey = "reviews";
-
         /// <summary>
         /// Returns all approved customer reviews, ordered as stored in the database.
         /// Results are served from an in-memory cache (TTL: 10 minutes).
@@ -39,19 +35,7 @@ namespace LymmHolidayLets.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetApproved()
         {
-            var reviews = await cache.GetOrCreateAsync(ReviewsCacheKey, async entry =>
-            {
-                logger.LogInformation("Reviews cache miss. Fetching from database.");
-                entry.Priority = CacheItemPriority.Normal;
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
-                return await reviewQuery.GetAllApprovedReviewsAsync();
-            });
-
-            if (reviews is null)
-            {
-                logger.LogWarning("No reviews found.");
-                return Ok(ApiResponse<IEnumerable<ReviewSummary>>.SuccessResult([]));
-            }
+            var reviews = await reviewSummaryQueryService.GetApprovedReviewsAsync() ?? [];
 
             logger.LogDebug("Reviews served successfully.");
             return Ok(ApiResponse<IEnumerable<ReviewSummary>>.SuccessResult(reviews));

@@ -1,4 +1,6 @@
-﻿namespace LymmHolidayLets.Domain.ReadModel.Property
+﻿using LymmHolidayLets.Domain.Model.Review.ValueObject;
+
+namespace LymmHolidayLets.Domain.ReadModel.Property
 {
     public sealed class Review 
     { 
@@ -15,6 +17,16 @@
         public byte? Facilities  { get; set; }
         public byte? Comfort { get; set; }
         public byte? Value { get; set; }
+        public ReviewRatings Ratings => new(
+            Rating,
+            Accuracy,
+            Cleanliness,
+            Communication,
+            Checkin,
+            Location,
+            Facilities,
+            Comfort,
+            Value);
         public DateTime? DateTimeAdded { get; set; }
         public required string ReviewType { get; set; }
         public string? LinkToView { get; set; }

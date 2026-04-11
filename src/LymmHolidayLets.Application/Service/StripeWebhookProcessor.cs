@@ -9,7 +9,6 @@ using LymmHolidayLets.Contracts;
 using LymmHolidayLets.Domain.Model.WebhookEvent.Enum;
 using LymmHolidayLets.Domain.ReadModel.Property;
 using MassTransit;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +17,7 @@ namespace LymmHolidayLets.Application.Service
     public sealed class StripeWebhookProcessor(
         IConfiguration config,
         ILogger<StripeWebhookProcessor> logger,
-        IMemoryCache cache,
+        IApplicationCache cache,
         IPropertyQuery propertyQuery,
         IPublishEndpoint publishEndpoint,
         IManageCheckoutSessionService manageCheckoutSessionService,

@@ -196,17 +196,20 @@ builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<ICalGenerator, CalGenerator>();
 builder.Services.AddTransient<ICalculateService, CalculateService>();
 builder.Services.AddTransient<ICheckoutService, CheckoutService>();
-
-builder.Services.AddTransient<LymmHolidayLets.Api.Services.ICalService, LymmHolidayLets.Api.Services.CalService>();
-builder.Services.AddTransient<LymmHolidayLets.Api.Services.IHomepageService, LymmHolidayLets.Api.Services.HomepageService>();
-builder.Services.AddTransient<LymmHolidayLets.Api.Services.IEmailEnquiryService, LymmHolidayLets.Api.Services.EmailEnquiryService>();
-builder.Services.AddTransient<LymmHolidayLets.Api.Services.IRecaptchaValidationService, LymmHolidayLets.Api.Services.RecaptchaValidationService>();
+builder.Services.AddTransient<IHomepageQueryService, HomepageQueryService>();
+builder.Services.AddTransient<IPageQueryService, PageQueryService>();
+builder.Services.AddTransient<IPropertyDetailQueryService, PropertyDetailQueryService>();
+builder.Services.AddTransient<IReviewSummaryQueryService, ReviewSummaryQueryService>();
+builder.Services.AddTransient<IEmailEnquiryProcessingService, EmailEnquiryProcessingService>();
+builder.Services.AddTransient<ICalendarFeedService, CalendarFeedService>();
+builder.Services.AddTransient<IRecaptchaValidationService, LymmHolidayLets.Infrastructure.Services.RecaptchaValidationService>();
+builder.Services.AddSingleton<IApplicationCache, LymmHolidayLets.Infrastructure.Services.ApplicationMemoryCache>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISocialShareLinkGenerator, LymmHolidayLets.Api.Services.SocialShareLinkGenerator>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IImageUrlResolver, LymmHolidayLets.Api.Services.ImageUrlResolver>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISeoMetaGenerator, LymmHolidayLets.Api.Services.SeoMetaGenerator>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.ISchemaOrgGenerator, LymmHolidayLets.Api.Services.SchemaOrgGenerator>();
 builder.Services.AddTransient<LymmHolidayLets.Api.Services.IPropertyDetailResponseBuilder, LymmHolidayLets.Api.Services.PropertyDetailResponseBuilder>();
-builder.Services.AddSingleton<LymmHolidayLets.Application.Interface.Service.IPropertyCacheInvalidator, LymmHolidayLets.Api.Services.PropertyCacheInvalidator>();
+builder.Services.AddSingleton<IPropertyCacheInvalidator, LymmHolidayLets.Infrastructure.Services.PropertyCacheInvalidator>();
 builder.Services.AddTransient<IStripeWebhookProcessor, StripeWebhookProcessor>();
 builder.Services.AddTransient<IManageCheckoutSessionService, ManageCheckoutSessionService>();
 

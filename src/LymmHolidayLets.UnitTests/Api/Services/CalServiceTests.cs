@@ -1,30 +1,32 @@
 using System.Text;
-using LymmHolidayLets.Api.Services;
+using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Model.Service;
+using LymmHolidayLets.Application.Service;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.Domain.Model.ICal.Entity;
-using Microsoft.AspNetCore.Mvc;
+using LymmHolidayLets.Infrastructure.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace LymmHolidayLets.UnitTests.Api.Services;
+namespace LymmHolidayLets.UnitTests.Application.Services;
 
-public class CalServiceTests
+public class CalendarFeedServiceTests
 {
     private readonly Mock<ICalQuery> _icalQuery = new();
     private readonly Mock<ICalGenerator> _icalGenerator = new();
-    private readonly Mock<ILogger<CalService>> _logger = new();
+    private readonly Mock<ILogger<CalendarFeedService>> _logger = new();
 
-    private CalService CreateService(IMemoryCache cache)
-        => new CalService(cache, _icalQuery.Object, _icalGenerator.Object, _logger.Object);
+    private CalendarFeedService CreateService(IApplicationCache cache)
+        => new(cache, _icalQuery.Object, _icalGenerator.Object, _logger.Object);
 
-    private static MemoryCache CreateCache(IReadOnlyList<ICal>? icalList = null)
+    private static ApplicationMemoryCache CreateCache(IReadOnlyList<ICal>? icalList = null)
     {
-        var cache = new MemoryCache(new MemoryCacheOptions());
+        var cache = new ApplicationMemoryCache(new MemoryCache(new MemoryCacheOptions()));
         if (icalList != null)
-            cache.Set("ical-results", icalList);
+            cache.SetAbsolute("ical-results", icalList, TimeSpan.FromHours(24));
         return cache;
     }
 
@@ -95,8 +97,7 @@ public class CalServiceTests
 
         var result = await service.GetCalendarAsync(id, guid);
         Assert.NotNull(result);
-        Assert.IsType<FileContentResult>(result);
-        Assert.Equal("text/calendar; charset=utf-8", result.ContentType);
+        Assert.Equal("text/calendar; charset=utf-8", result!.ContentType);
         Assert.Equal($"{id}.ics", result.FileDownloadName);
         Assert.Equal(Encoding.UTF8.GetBytes(calendarString), result.FileContents);
     }
@@ -110,15 +111,13 @@ public class CalServiceTests
         var icalList = new List<ICal> { CreateICal(id, guid) };
         using var cache = CreateCache(icalList);
 
-        cache.Set($"ical-availability-{id}", calendarString);
+        cache.SetAbsolute($"ical-availability-{id}", calendarString, TimeSpan.FromHours(1));
 
         var service = CreateService(cache);
         var result = await service.GetCalendarAsync(id, guid);
 
         Assert.NotNull(result);
-        Assert.Equal("text/calendar; charset=utf-8", result.ContentType);
+        Assert.Equal("text/calendar; charset=utf-8", result!.ContentType);
         _icalGenerator.Verify(g => g.GenerateCalendarAsync(It.IsAny<byte>(), It.IsAny<CancellationToken>()), Times.Never);
     }
-    
-    
 }

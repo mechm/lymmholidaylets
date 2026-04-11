@@ -22,6 +22,7 @@ public class CheckoutServiceTests
     private readonly Mock<ICheckoutQuery> _checkoutQuery = new();
     private readonly Mock<IStripeService> _stripeService = new();
     private readonly Mock<ICalculateService> _calculateService = new();
+    private readonly Mock<IManageCheckoutSessionService> _sessionService = new();
 
     public CheckoutServiceTests()
     {
@@ -34,7 +35,8 @@ public class CheckoutServiceTests
         _checkoutCommand.Object,
         _checkoutQuery.Object,
         _stripeService.Object,
-        _calculateService.Object);
+        _calculateService.Object,
+        _sessionService.Object);
 
     [Fact]
     public async Task CheckoutAsync_WhenNoPropertyAvailable_ReturnsError()
@@ -128,6 +130,25 @@ public class CheckoutServiceTests
 
         _checkoutCommand.Verify(
             c => c.UpsertAsync(It.IsAny<LymmHolidayLets.Application.Model.Command.Checkout>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CheckoutAsync_WhenSuccess_UpdatesSessionCache()
+    {
+        SetupValidCheckoutAggregate();
+        SetupStripeSuccess();
+
+        await CreateSut().CheckoutAsync(
+            1,
+            new DateOnly(2026, 6, 1), new DateOnly(2026, 6, 8),
+            2, 0, 0);
+
+        _sessionService.Verify(
+            s => s.AddUpdateSessionCache(
+                "cs_test_123",
+                new DateOnly(2026, 6, 1),
+                new DateOnly(2026, 6, 8)),
             Times.Once);
     }
 

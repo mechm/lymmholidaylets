@@ -1,6 +1,7 @@
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Email;
-using LymmHolidayLets.Api.Services;
+using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Model.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Asp.Versioning;
@@ -16,8 +17,7 @@ namespace LymmHolidayLets.Api.Controllers
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class EmailController(
-        IEmailEnquiryService emailEnquiryService,
-        IRecaptchaValidationService recaptchaValidationService,
+        IEmailEnquiryProcessingService emailEnquiryProcessingService,
         ILogger<EmailController> logger) : ControllerBase
     {
         /// <summary>
@@ -38,37 +38,37 @@ namespace LymmHolidayLets.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Submit([FromBody] EmailEnquiryRequest request, CancellationToken cancellationToken)
         {
-            var logPayload = new
+            var submission = new EmailEnquirySubmission
             {
-                ClientIP = HttpContext.Connection.RemoteIpAddress?.ToString(),
-                RequestEmail = request.EmailAddress,
-                RequestName = request.Name
+                Name = request.Name,
+                Company = request.Company,
+                EmailAddress = request.EmailAddress,
+                TelephoneNo = request.TelephoneNo,
+                Subject = request.Subject,
+                Message = request.Message,
+                ReCaptchaToken = request.ReCaptchaToken,
+                ClientIp = HttpContext.Connection.RemoteIpAddress?.ToString()
             };
-
-            // ReCaptcha Verification — performed after model binding so we only
-            // hit the reCaptcha service when the request shape is already valid.
-            var recaptchaValid = await recaptchaValidationService.ValidateAsync(request.ReCaptchaToken, cancellationToken);
-            if (!recaptchaValid)
-            {
-                logger.LogWarning("ReCaptcha verification failed {@LogPayload}", logPayload);
-                return BadRequest(ApiResponse<object>.FailureResult("Security verification failed. Please try again."));
-            }
 
             try
             {
-                await emailEnquiryService.ProcessEnquiryAsync(request, cancellationToken);
+                var response = await emailEnquiryProcessingService.ProcessEnquiryAsync(submission, cancellationToken);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(ApiResponse<object>.FailureResult(response.ErrorMessage!));
+                }
             }
             catch (Exception ex)
             {
-                // Log once with full request context + exception detail.
-                // Returning 500 here rather than re-throwing avoids a second
-                // log entry from GlobalExceptionHandler for this known failure mode.
-                logger.LogError(ex, "Email enquiry processing failed {@LogPayload}", logPayload);
+                logger.LogError(ex,
+                    "Email enquiry processing failed for EmailAddress={EmailAddress} ClientIP={ClientIp}",
+                    request.EmailAddress,
+                    submission.ClientIp);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     ApiResponse<object>.FailureResult("Failed to process your enquiry. Please try again later."));
             }
 
-            logger.LogInformation("Email enquiry successfully processed {@LogPayload}", logPayload);
+            logger.LogInformation("Email enquiry successfully processed for EmailAddress={EmailAddress}", request.EmailAddress);
             return Ok(ApiResponse<object>.SuccessResult(null, "Thank you for sending us an enquiry. We aim to respond within 24 hours."));
         }
     }

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using LymmHolidayLets.Api.Models;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Domain.ReadModel.Page;
 using LymmHolidayLets.IntegrationTests.Infrastructure;
 using Moq;
@@ -19,8 +20,8 @@ public class PageEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Get_PageDetail_ValidAlias_Returns200()
     {
-        factory.PageQuery
-            .Setup(q => q.GetPageByAliasTitleAsync("about-us"))
+        factory.PageQueryService
+            .Setup(q => q.GetVisiblePageByAliasAsync("about-us", It.IsAny<CancellationToken>()))
             .ReturnsAsync(VisiblePage("about-us"));
 
         var response = await _client.GetAsync("/api/v1/page/detail/about-us");
@@ -34,8 +35,8 @@ public class PageEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Get_PageDetail_PageNotFound_Returns404()
     {
-        factory.PageQuery
-            .Setup(q => q.GetPageByAliasTitleAsync("non-existent"))
+        factory.PageQueryService
+            .Setup(q => q.GetVisiblePageByAliasAsync("non-existent", It.IsAny<CancellationToken>()))
             .ReturnsAsync((PageDetail?)null);
 
         var response = await _client.GetAsync("/api/v1/page/detail/non-existent");
@@ -46,9 +47,9 @@ public class PageEndpointTests(ApiFactory factory) : IClassFixture<ApiFactory>
     [Fact]
     public async Task Get_PageDetail_HiddenPage_Returns404()
     {
-        factory.PageQuery
-            .Setup(q => q.GetPageByAliasTitleAsync("hidden"))
-            .ReturnsAsync(new PageDetail("hidden", "Meta", "Title", "img.jpg", "Alt", "Content", "standard", visible: false));
+        factory.PageQueryService
+            .Setup(q => q.GetVisiblePageByAliasAsync("hidden", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((PageDetail?)null);
 
         var response = await _client.GetAsync("/api/v1/page/detail/hidden");
 

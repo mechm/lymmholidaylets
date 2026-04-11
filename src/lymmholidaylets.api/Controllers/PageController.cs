@@ -1,8 +1,7 @@
-using LymmHolidayLets.Application.Interface.Query;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Domain.ReadModel.Page;
 using LymmHolidayLets.Api.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Asp.Versioning;
 
 namespace LymmHolidayLets.Api.Controllers
@@ -16,9 +15,8 @@ namespace LymmHolidayLets.Api.Controllers
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class PageController(
-        IMemoryCache cache,
         ILogger<PageController> logger,
-        IPageQuery pageQuery) : ControllerBase
+        IPageQueryService pageQueryService) : ControllerBase
     {
         /// <summary>
         /// Gets the content and metadata for a CMS page identified by its alias title (URL slug).
@@ -52,35 +50,11 @@ namespace LymmHolidayLets.Api.Controllers
                 return BadRequest(ApiResponse<object>.FailureResult("Missing alias title (id)."));
             }
 
-            var cacheKey = $"page-detail-{alias}";
-
-            // Only cache pages that are found AND visible.
-            // Caching null or invisible pages would mean CMS changes (publishing/unhiding a page)
-            // would not take effect for up to 24 hours.
-            if (!cache.TryGetValue(cacheKey, out PageDetail? page))
-            {
-                logger.LogInformation("Page cache miss for AliasTitle={AliasTitle}. Fetching from database.", alias);
-                page = await pageQuery.GetPageByAliasTitleAsync(alias);
-
-                if (page is not null && page.Visible)
-                {
-                    cache.Set(cacheKey, page, new MemoryCacheEntryOptions
-                    {
-                        Priority = CacheItemPriority.Normal,
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
-                    });
-                }
-            }
+            var page = await pageQueryService.GetVisiblePageByAliasAsync(alias);
 
             if (page is null)
             {
                 logger.LogWarning("Page not found for AliasTitle={AliasTitle}", alias);
-                return NotFound();
-            }
-
-            if (!page.Visible)
-            {
-                logger.LogWarning("Page not visible for AliasTitle={AliasTitle}", alias);
                 return NotFound();
             }
 

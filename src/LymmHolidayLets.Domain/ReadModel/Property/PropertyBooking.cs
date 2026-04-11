@@ -1,4 +1,6 @@
-﻿namespace LymmHolidayLets.Domain.ReadModel.Property
+﻿using LymmHolidayLets.Domain.Model.Property.ValueObject;
+
+namespace LymmHolidayLets.Domain.ReadModel.Property
 {
     public sealed class PropertyBooking
     {
@@ -8,6 +10,12 @@
         public byte MaximumNumberOfAdult { get; init; }
         public byte MaximumNumberOfChildren { get; init; }
         public byte MaximumNumberOfInfants { get; init; }
+        public PropertyOccupancy Occupancy => new(
+            MinimumNumberOfAdult,
+            MaximumNumberOfGuests,
+            MaximumNumberOfAdult,
+            MaximumNumberOfChildren,
+            MaximumNumberOfInfants);
         public string? DisplayAddress { get; init; }
         public string? Description { get; init; }
         public string? MetaDescription { get; init; }

@@ -1,6 +1,6 @@
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Homepage;
-using LymmHolidayLets.Api.Services;
+using LymmHolidayLets.Application.Interface.Service;
 using Microsoft.AspNetCore.Mvc;
 using Asp.Versioning;
 
@@ -15,7 +15,7 @@ namespace LymmHolidayLets.Api.Controllers
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     public sealed class HomepageController(
-        IHomepageService homepageService,
+        IHomepageQueryService homepageQueryService,
         ILogger<HomepageController> logger) : ControllerBase
     {
         /// <summary>
@@ -32,11 +32,25 @@ namespace LymmHolidayLets.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Get()
         {
-            var homepage = await homepageService.GetHomepageDataAsync();
+            var homepage = await homepageQueryService.GetHomepageDataAsync();
 
             if (homepage is not null)
             {
-                return Ok(ApiResponse<HomepageModel>.SuccessResult(homepage));
+                return Ok(ApiResponse<HomepageModel>.SuccessResult(new HomepageModel(
+                    homepage.Reviews.Select(review => new ReviewModel(
+                        review.FriendlyName,
+                        review.Company,
+                        review.Description,
+                        review.Name,
+                        review.Position,
+                        review.DateTimeAdded)),
+                    homepage.Slides.Select(slide => new SlideshowModel(
+                        slide.ImagePath,
+                        slide.ImagePathAlt,
+                        slide.CaptionTitle,
+                        slide.Caption,
+                        slide.ShortMobileCaption,
+                        slide.Link)))));
             }
             
             logger.LogWarning("Failed to load homepage data");

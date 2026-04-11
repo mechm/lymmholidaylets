@@ -2,7 +2,8 @@ using FluentAssertions;
 using LymmHolidayLets.Api.Controllers;
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Homepage;
-using LymmHolidayLets.Api.Services;
+using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Model.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,19 +14,19 @@ namespace LymmHolidayLets.UnitTests.Api.Controllers;
 
 public class HomepageControllerTests
 {
-    private readonly Mock<IHomepageService> _homepageService = new();
+    private readonly Mock<IHomepageQueryService> _homepageQueryService = new();
     private readonly Mock<ILogger<HomepageController>> _logger = new();
     private readonly HomepageController _sut;
 
     public HomepageControllerTests()
     {
-        _sut = new HomepageController(_homepageService.Object, _logger.Object);
+        _sut = new HomepageController(_homepageQueryService.Object, _logger.Object);
     }
 
     [Fact]
     public async Task Get_WhenServiceReturnsNull_Returns500()
     {
-        _homepageService.Setup(s => s.GetHomepageDataAsync()).ReturnsAsync((HomepageModel?)null);
+        _homepageQueryService.Setup(s => s.GetHomepageDataAsync(It.IsAny<CancellationToken>())).ReturnsAsync((HomepageResult?)null);
 
         var result = await _sut.Get();
 
@@ -36,14 +37,14 @@ public class HomepageControllerTests
     [Fact]
     public async Task Get_WhenSuccess_ReturnsOkWithModel()
     {
-        var model = new HomepageModel([], []);
-        _homepageService.Setup(s => s.GetHomepageDataAsync()).ReturnsAsync(model);
+        var result = new HomepageResult([], []);
+        _homepageQueryService.Setup(s => s.GetHomepageDataAsync(It.IsAny<CancellationToken>())).ReturnsAsync(result);
 
-        var result = await _sut.Get();
+        var actionResult = await _sut.Get();
 
-        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var ok = actionResult.Should().BeOfType<OkObjectResult>().Subject;
         var body = ok.Value.Should().BeOfType<ApiResponse<HomepageModel>>().Subject;
         body.Success.Should().BeTrue();
-        body.Data.Should().BeSameAs(model);
+        body.Data.Should().NotBeNull();
     }
 }

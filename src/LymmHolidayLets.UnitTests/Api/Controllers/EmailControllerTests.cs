@@ -2,7 +2,8 @@ using FluentAssertions;
 using LymmHolidayLets.Api.Controllers;
 using LymmHolidayLets.Api.Models;
 using LymmHolidayLets.Api.Models.Email;
-using LymmHolidayLets.Api.Services;
+using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Model.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,14 +14,13 @@ namespace LymmHolidayLets.UnitTests.Api.Controllers;
 
 public class EmailControllerTests
 {
-    private readonly Mock<IEmailEnquiryService> _emailService = new();
-    private readonly Mock<IRecaptchaValidationService> _recaptcha = new();
+    private readonly Mock<IEmailEnquiryProcessingService> _emailService = new();
     private readonly Mock<ILogger<EmailController>> _logger = new();
     private readonly EmailController _sut;
 
     public EmailControllerTests()
     {
-        _sut = new EmailController(_emailService.Object, _recaptcha.Object, _logger.Object)
+        _sut = new EmailController(_emailService.Object, _logger.Object)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
@@ -37,8 +37,8 @@ public class EmailControllerTests
     [Fact]
     public async Task Submit_WhenRecaptchaFails_ReturnsBadRequest()
     {
-        _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
+        _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquirySubmission>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EmailEnquiryResponse.Failure("Security verification failed. Please try again."));
 
         var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
 
@@ -50,9 +50,7 @@ public class EmailControllerTests
     [Fact]
     public async Task Submit_WhenProcessingThrows_Returns500AndLogsWithContext()
     {
-        _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-        _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
+        _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquirySubmission>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("DB error"));
 
         var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
@@ -77,10 +75,8 @@ public class EmailControllerTests
     [Fact]
     public async Task Submit_WhenSuccess_ReturnsOk()
     {
-        _recaptcha.Setup(r => r.ValidateAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
-        _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquiryRequest>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
+        _emailService.Setup(s => s.ProcessEnquiryAsync(It.IsAny<EmailEnquirySubmission>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EmailEnquiryResponse.Success());
 
         var result = await _sut.Submit(ValidRequest(), CancellationToken.None);
 

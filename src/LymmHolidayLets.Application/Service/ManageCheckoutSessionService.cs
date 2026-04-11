@@ -1,9 +1,8 @@
 ﻿using LymmHolidayLets.Application.Interface.Service;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace LymmHolidayLets.Application.Service
 {
-    public sealed class ManageCheckoutSessionService(IMemoryCache cache) : IManageCheckoutSessionService
+    public sealed class ManageCheckoutSessionService(IApplicationCache cache) : IManageCheckoutSessionService
     {
         private const string SessionKey = "sessions";
 
@@ -53,9 +52,7 @@ namespace LymmHolidayLets.Application.Service
         {
             if (currentSessions != null)
             {
-                cache.Set(SessionKey, currentSessions, new MemoryCacheEntryOptions()
-                    .SetPriority(CacheItemPriority.NeverRemove)
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(60)));
+                cache.SetSliding(SessionKey, currentSessions, TimeSpan.FromMinutes(60));
             }
         }
     }

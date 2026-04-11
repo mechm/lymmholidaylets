@@ -22,7 +22,8 @@ namespace LymmHolidayLets.Application.Service
         ICheckoutCommand checkoutCommand,
         ICheckoutQuery checkoutQuery,
         IStripeService stripeService,
-        ICalculateService calculateService)
+        ICalculateService calculateService,
+        IManageCheckoutSessionService manageCheckoutSessionService)
         : ICheckoutService
     {
         /// <summary>
@@ -89,7 +90,10 @@ namespace LymmHolidayLets.Application.Service
                 // ── Step 4: Persist checkout record ────────────────────────────
                 await SafePersistAsync(propertyId, stay, session.Id, data, cancellationToken);
 
-                // ── Step 5: Return success ─────────────────────────────────────
+                // ── Step 5: Register session for webhook correlation ───────────
+                manageCheckoutSessionService.AddUpdateSessionCache(session.Id, stay.CheckIn, stay.CheckOut);
+
+                // ── Step 6: Return success ─────────────────────────────────────
                 logger.LogInformation(
                     "Checkout session created — PropertyId={PropertyId}, Stay={Stay}, OverallPrice={OverallPrice}",
                     propertyId, stay, data.OverallPrice);

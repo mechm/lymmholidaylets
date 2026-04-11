@@ -5,7 +5,7 @@ namespace LymmHolidayLets.Domain.Model.Calendar.Entity
 	public sealed class Calendar : IAggregateRoot
 	{
 		// create
-		public Calendar(byte propertyID, DateTime date, decimal? price, byte minimumStay, byte? maximumStay, bool available, bool booked, int? bookingID)
+		public Calendar(byte propertyID, DateTime date, decimal? price, byte minimumStay, short? maximumStay, bool available, bool booked, int? bookingID)
 		{
 			PropertyID = propertyID;
 			Date = date;
@@ -18,7 +18,7 @@ namespace LymmHolidayLets.Domain.Model.Calendar.Entity
 		}
 
 		// update
-		public Calendar(int id, byte propertyID, DateTime date, decimal? price, byte minimumStay, byte? maximumStay, bool available, bool booked, int? bookingID)
+		public Calendar(int id, byte propertyID, DateTime date, decimal? price, byte minimumStay, short? maximumStay, bool available, bool booked, int? bookingID)
 		{
 			ID = id;
 			PropertyID = propertyID;
@@ -32,6 +32,11 @@ namespace LymmHolidayLets.Domain.Model.Calendar.Entity
 		}
 
 		public Calendar() { }
+
+		public bool IsAvailable() => Available && !Booked;
+
+		public Calendar BlockForBooking(int bookingId) =>
+			new(ID, PropertyID, Date, Price, MinimumStay, MaximumStay, available: false, booked: true, bookingId);
 
 		public int ID { get; init; }
 		public byte PropertyID { get; init; }
