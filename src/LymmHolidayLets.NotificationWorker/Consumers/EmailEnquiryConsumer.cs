@@ -1,7 +1,7 @@
 using LymmHolidayLets.Application.Model.Service;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Contracts;
 using LymmHolidayLets.Domain.Dto.Email;
-using LymmHolidayLets.Domain.Interface;
 using MassTransit;
 using Microsoft.Extensions.Options;
 

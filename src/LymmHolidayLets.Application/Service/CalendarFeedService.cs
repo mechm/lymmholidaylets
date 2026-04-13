@@ -53,18 +53,19 @@ public sealed class CalendarFeedService(
             cache.SetAbsolute(cacheKey, calendar, NextMidnightUtc());
         }
 
-        if (string.IsNullOrEmpty(calendar))
+        if (!string.IsNullOrEmpty(calendar))
         {
-            logger.LogError("Generated calendar is empty for PropertyId={PropertyId}", propertyId);
-            return null;
+            return new CalendarFeedResult
+            {
+                FileContents = Encoding.UTF8.GetBytes(calendar),
+                ContentType = "text/calendar; charset=utf-8",
+                FileDownloadName = $"{propertyId}.ics"
+            };
         }
 
-        return new CalendarFeedResult
-        {
-            FileContents = Encoding.UTF8.GetBytes(calendar),
-            ContentType = "text/calendar; charset=utf-8",
-            FileDownloadName = $"{propertyId}.ics"
-        };
+        logger.LogError("Generated calendar is empty for PropertyId={PropertyId}", propertyId);
+        return null;
+
     }
 
     private async Task<IReadOnlyList<ICal>> GetCachedIcalResultsAsync(CancellationToken cancellationToken)

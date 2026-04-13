@@ -1,7 +1,6 @@
-﻿using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Service;
 using LymmHolidayLets.Domain.Dto.Email;
-using LymmHolidayLets.Domain.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -43,7 +42,7 @@ namespace LymmHolidayLets.Application.Service
 
             // Map CcEmails dictionary to the nullable string-value format expected by EmailMessage.
             var ccEmails = options.CcEmails
-                .ToDictionary(kvp => kvp.Key, kvp => (string?)kvp.Value);
+                .ToDictionary(kvp => kvp.Key, string? (kvp) => kvp.Value);
 
             await emailService.SendAsync(
                 new EmailMessage

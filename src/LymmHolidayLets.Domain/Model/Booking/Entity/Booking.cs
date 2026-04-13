@@ -28,6 +28,44 @@ namespace LymmHolidayLets.Domain.Model.Booking.Entity
             return new Booking(eventID, sessionID, propertyID, period, contact, noAdult, noChildren, noInfant, postalCode, country, total);
         }
 
+        public static Booking Reconstitute(
+            int id,
+            string eventID,
+            string sessionID,
+            byte propertyID,
+            DateTime checkIn,
+            DateTime checkOut,
+            byte? noAdult,
+            byte? noChildren,
+            byte? noInfant,
+            byte? noOfGuests,
+            string name,
+            string email,
+            string telephone,
+            string postalCode,
+            string country,
+            long? total,
+            DateTime created,
+            DateTime? updated)
+        {
+            return new Booking(
+                id,
+                eventID,
+                sessionID,
+                propertyID,
+                StayPeriod.Reconstitute(checkIn, checkOut),
+                new ContactInfo(name, email, telephone),
+                noAdult,
+                noChildren,
+                noInfant,
+                noOfGuests,
+                postalCode,
+                country,
+                total,
+                created,
+                updated);
+        }
+
         private Booking(string eventID, string sessionID, byte propertyID, StayPeriod period, ContactInfo contact,
                         byte? noAdult, byte? noChildren, byte? noInfant, string postalCode, string country, long? total)
         {
@@ -43,6 +81,40 @@ namespace LymmHolidayLets.Domain.Model.Booking.Entity
             Country = country;
             Total = total;
             Created = DateTime.UtcNow;
+        }
+
+        private Booking(
+            int id,
+            string eventID,
+            string sessionID,
+            byte propertyID,
+            StayPeriod period,
+            ContactInfo contact,
+            byte? noAdult,
+            byte? noChildren,
+            byte? noInfant,
+            byte? noOfGuests,
+            string postalCode,
+            string country,
+            long? total,
+            DateTime created,
+            DateTime? updated)
+        {
+            ID = id;
+            EventID = eventID;
+            SessionID = sessionID;
+            PropertyID = propertyID;
+            Period = period;
+            Contact = contact;
+            NoAdult = noAdult;
+            NoChildren = noChildren;
+            NoInfant = noInfant;
+            NoOfGuests = noOfGuests;
+            PostalCode = postalCode;
+            Country = country;
+            Total = total;
+            Created = created;
+            Updated = updated;
         }
 
         // Keep existing constructors for Dapper/Old code
@@ -70,7 +142,7 @@ namespace LymmHolidayLets.Domain.Model.Booking.Entity
             EventID = eventID;
             SessionID = sessionID;
             PropertyID = propertyID;
-            Period = new StayPeriod(checkIn, checkOut);
+            Period = StayPeriod.Reconstitute(checkIn, checkOut);
             Contact = new ContactInfo(name, email, telephone);
             NoAdult = noAdult;
             NoChildren = noChildren;
@@ -88,7 +160,7 @@ namespace LymmHolidayLets.Domain.Model.Booking.Entity
             EventID = eventID;
             SessionID = sessionID;
             PropertyID = propertyID;
-            Period = new StayPeriod(checkIn, checkOut);
+            Period = StayPeriod.Reconstitute(checkIn, checkOut);
             Contact = new ContactInfo(name, email, telephone);
             NoAdult = noAdult;
             NoChildren = noChildren;

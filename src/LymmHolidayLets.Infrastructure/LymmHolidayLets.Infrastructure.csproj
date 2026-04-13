@@ -14,6 +14,8 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
     <PackageReference Include="Polly" Version="8.6.5" />
     <PackageReference Include="SendGrid" Version="9.29.3" />
+    <PackageReference Include="Stripe.net" Version="49.2.0" />
+    <PackageReference Include="Twilio" Version="7.13.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,4 +23,9 @@
     <ProjectReference Include="..\LymmHolidayLets.Domain\LymmHolidayLets.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Emailer\Templates\BookingConfirmationCustomer.html" />
+    <EmbeddedResource Include="Emailer\Templates\BookingConfirmationCompany.html" />
+  </ItemGroup>
+ 
 </Project>

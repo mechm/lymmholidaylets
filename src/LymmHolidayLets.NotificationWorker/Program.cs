@@ -2,13 +2,12 @@ using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Service;
 using LymmHolidayLets.Application.Service;
 using LymmHolidayLets.Domain.Dto.Email;
-using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.NotificationWorker.Consumers;
 using LymmHolidayLets.Infrastructure.Emailer;
+using LymmHolidayLets.Infrastructure.Services;
 using MassTransit;
 using Serilog;
 using SendGrid;
-using Twilio;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -35,18 +34,9 @@ try
     builder.Services.AddTransient<IEmailGeneratorService, EmailGeneratorService>();
 
     // SMS infrastructure
-    builder.Services.Configure<LymmHolidayLets.NotificationWorker.Services.TwilioOptions>(
+    builder.Services.Configure<TwilioOptions>(
         options => config.GetSection("Twilio").Bind(options));
-    builder.Services.AddTransient<
-        LymmHolidayLets.NotificationWorker.Services.ITextMessageService, 
-        LymmHolidayLets.NotificationWorker.Services.TextMessageService>();
-    
-    // Initialize Twilio client
-    var twilioOptions = config.GetSection("Twilio").Get<LymmHolidayLets.NotificationWorker.Services.TwilioOptions>();
-    if (twilioOptions != null)
-    {
-        TwilioClient.Init(twilioOptions.AccountSid, twilioOptions.AuthToken);
-    }
+    builder.Services.AddTransient<ITextMessageService, TextMessageService>();
 
     // Configuration bindings
     builder.Services.Configure<SmtpConfig>(options => config.GetSection("SmtpConfig").Bind(options));
@@ -65,7 +55,7 @@ try
 
         // Split into two independent consumers so a failure sending one email
         // does not trigger a retry of the other, which would cause duplicate sends.
-        // RabbitMQ fans out each BookingConfirmedEvent to both queues independently.
+        // RabbitMQ fans out each BookingNotificationRequested event to both queues independently.
         x.AddConsumer<BookingConfirmedToCompanyConsumer>(c =>
             c.UseMessageRetry(r =>
                 r.Exponential(3, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5))));

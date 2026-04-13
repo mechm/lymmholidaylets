@@ -1,10 +1,9 @@
-using Stripe;
-using Stripe.Checkout;
-using StripeEvent = Stripe.Event;
 using System.Globalization;
 using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Model.Service;
+using DomainWebhookEvent = LymmHolidayLets.Domain.Model.WebhookEvent.Entity.WebhookEvent;
 using LymmHolidayLets.Contracts;
 using LymmHolidayLets.Domain.Model.WebhookEvent.Enum;
 using LymmHolidayLets.Domain.ReadModel.Property;
@@ -18,29 +17,36 @@ namespace LymmHolidayLets.Application.Service
         IConfiguration config,
         ILogger<StripeWebhookProcessor> logger,
         IApplicationCache cache,
+        IStripeWebhookEventParser stripeWebhookEventParser,
         IPropertyQuery propertyQuery,
         IPublishEndpoint publishEndpoint,
         IManageCheckoutSessionService manageCheckoutSessionService,
         IStripeService stripeService,
         IBookingCommand bookingCommand,
+        IWebhookEventQuery webhookEventQuery,
         IWebhookEventCommand webhookEventCommand) : IStripeWebhookProcessor
     {
         public async Task<bool> ProcessEventAsync(string json, string? signature)
         {
-            StripeEvent? stripeEvent = null;
+            DomainWebhookEvent? webhookEvent = null;
 
             try
             {
-                stripeEvent = EventUtility.ConstructEvent(json, signature, config["StripeSettings:CheckoutWebHookKey"]);
+                var stripeEvent = stripeWebhookEventParser.Parse(json, signature);
+                if (stripeEvent is null)
+                {
+                    logger.LogWarning("Stripe webhook payload could not be parsed.");
+                    return false;
+                }
 
                 // Idempotency check: Stripe may send the same event multiple times if it doesn't receive a 200 OK.
                 // We track event IDs in the database to ensures we don't process the same booking or payment twice.
-                var existingEvent = webhookEventCommand.GetByExternalId(stripeEvent.Id);
-                if (existingEvent != null)
+                webhookEvent = webhookEventQuery.GetByExternalId(stripeEvent.EventId);
+                if (webhookEvent != null)
                 {
                     // If the event is already processed or currently being handled, we return true (200 OK)
                     // so Stripe stops retrying, while avoiding duplicate side effects.
-                    if (existingEvent.State is (int)WebhookEventState.Processed or (int)WebhookEventState.Processing)
+                    if (webhookEvent.State is WebhookEventState.Processed or WebhookEventState.Processing)
                     {
                         return true; 
                     }
@@ -48,20 +54,23 @@ namespace LymmHolidayLets.Application.Service
                 else
                 {
                     // First time seeing this event, record it so subsequent retries are caught.
-                    webhookEventCommand.Create(stripeEvent.Id, json);
+                    webhookEvent = new DomainWebhookEvent(stripeEvent.EventId, json, WebhookEventState.Pending);
+                    webhookEventCommand.Create(webhookEvent);
                 }
 
-                webhookEventCommand.MarkAsProcessing(stripeEvent.Id);
+                webhookEvent.MarkAsProcessing();
+                webhookEventCommand.Save(webhookEvent);
 
-                switch (stripeEvent.Type)
+                switch (stripeEvent.EventType)
                 {
                     case "checkout.session.completed":
-                        await HandleCheckoutSessionCompleted(stripeEvent);
+                        await HandleCheckoutSessionCompleted(stripeEvent, webhookEvent);
                         break;
 
                     default:
-                        logger.LogWarning("Unhandled event type: {EventType}", stripeEvent.Type);
-                        webhookEventCommand.MarkAsProcessed(stripeEvent.Id);
+                        logger.LogWarning("Unhandled event type: {EventType}", stripeEvent.EventType);
+                        webhookEvent.MarkAsProcessed();
+                        webhookEventCommand.Save(webhookEvent);
                         break;
                 }
 
@@ -70,17 +79,24 @@ namespace LymmHolidayLets.Application.Service
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error in StripeWebhookProcessor");
-                if (stripeEvent != null)
+                if (webhookEvent == null)
                 {
-                    webhookEventCommand.MarkAsFailed(stripeEvent.Id, ex.Message);
+                    return false;
                 }
+                webhookEvent.MarkAsFailed(ex.Message);
+                webhookEventCommand.Save(webhookEvent);
                 return false;
             }
         }
 
-        private async Task HandleCheckoutSessionCompleted(StripeEvent stripeEvent)
+        private async Task HandleCheckoutSessionCompleted(ParsedStripeWebhookEvent stripeEvent, DomainWebhookEvent webhookEvent)
         {
-            if (stripeEvent.Data.Object is not Session { PaymentStatus: "paid" } session) return;
+            if (stripeEvent.CheckoutSession is not { PaymentStatus: "paid" } session)
+            {
+                webhookEvent.MarkAsProcessed();
+                webhookEventCommand.Save(webhookEvent);
+                return;
+            }
 
             if (!session.Metadata.TryGetValue("PropertyID", out var propertyIdStr) ||
                 !session.Metadata.TryGetValue("CheckInDate", out var checkInDateStr) ||
@@ -113,7 +129,7 @@ namespace LymmHolidayLets.Application.Service
 
             // Execute logical tasks
             await UpdateSessionsAsync(checkIn, checkout);
-            UpdateBooking(session, stripeEvent.Id, propertyId, checkInUtc, checkoutUtc, noAdult, noChildren, noInfant);
+            UpdateBooking(session, stripeEvent.EventId, propertyId, checkInUtc, checkoutUtc, noAdult, noChildren, noInfant);
 
             cache.Remove($"ical-availability-{propertyId}");
             cache.Remove($"property-detail-{propertyId}");
@@ -121,7 +137,8 @@ namespace LymmHolidayLets.Application.Service
             // Publish notification event - NotificationWorker will handle email + SMS
             await SendNotifications(session, propertyName, checkIn, checkout, noAdult, noChildren, noInfant);
 
-            webhookEventCommand.MarkAsProcessed(stripeEvent.Id);
+            webhookEvent.MarkAsProcessed();
+            webhookEventCommand.Save(webhookEvent);
         }
 
         private async Task UpdateSessionsAsync(DateOnly checkIn, DateOnly checkout)
@@ -141,17 +158,17 @@ namespace LymmHolidayLets.Application.Service
             manageCheckoutSessionService.UpdateSessionCache(currentSessions);
         }
 
-        private void UpdateBooking(Session session, string stripeEventId, byte propertyId, DateTime checkIn, DateTime checkout, byte? noAdult, byte? noChildren, byte? noInfant)
+        private void UpdateBooking(ParsedStripeCheckoutSession session, string stripeEventId, byte propertyId, DateTime checkIn, DateTime checkout, byte? noAdult, byte? noChildren, byte? noInfant)
         {
-            bookingCommand.Create(new Application.Model.Command.Booking(stripeEventId, session.Id,
+            bookingCommand.Create(new Application.Model.Command.Booking(stripeEventId, session.SessionId,
                 propertyId, checkIn,
                 checkout, noAdult, noChildren, noInfant,
                 session.CustomerDetails.Name, session.CustomerDetails.Email,
-                session.CustomerDetails.Phone, session.CustomerDetails.Address.PostalCode,
-                session.CustomerDetails.Address.Country, session.AmountTotal));
+                session.CustomerDetails.Phone, session.CustomerDetails.PostalCode,
+                session.CustomerDetails.Country, session.AmountTotal));
         }
 
-        private async Task SendNotifications(Session session, string propertyName, DateOnly checkIn, DateOnly checkout, byte? noAdult, byte? noChildren, byte? noInfant)
+        private async Task SendNotifications(ParsedStripeCheckoutSession session, string propertyName, DateOnly checkIn, DateOnly checkout, byte? noAdult, byte? noChildren, byte? noInfant)
         {
             try
             {
@@ -164,8 +181,8 @@ namespace LymmHolidayLets.Application.Service
                     session.CustomerDetails.Name,
                     session.CustomerDetails.Email,
                     session.CustomerDetails.Phone,
-                    session.CustomerDetails.Address.PostalCode,
-                    session.CustomerDetails.Address.Country,
+                    session.CustomerDetails.PostalCode,
+                    session.CustomerDetails.Country,
                     session.AmountTotal,
                     smsRecipients));
             }

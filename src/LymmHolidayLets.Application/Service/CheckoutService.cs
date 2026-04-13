@@ -1,10 +1,10 @@
-﻿using LymmHolidayLets.Application.Interface.Command;
+using LymmHolidayLets.Application.Interface.Command;
 using LymmHolidayLets.Application.Interface.Query;
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Exception;
 using LymmHolidayLets.Application.Model.Service;
-using LymmHolidayLets.Domain.ReadModel.Checkout;
 using LymmHolidayLets.Domain.Model.Common;
+using LymmHolidayLets.Domain.ReadModel.Checkout;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -22,7 +22,6 @@ namespace LymmHolidayLets.Application.Service
         ICheckoutCommand checkoutCommand,
         ICheckoutQuery checkoutQuery,
         IStripeService stripeService,
-        ICalculateService calculateService,
         IManageCheckoutSessionService manageCheckoutSessionService)
         : ICheckoutService
     {
@@ -164,15 +163,16 @@ namespace LymmHolidayLets.Application.Service
             CheckoutAggregate propertyCheckout, DateRange stay, CancellationToken cancellationToken)
         {
             // 1. Calculate discount
-            var (percentOff, _) = calculateService.CalculateApplicableDiscountPercentage(
-                propertyCheckout.PropertyNightCoupon, stay.CheckIn, stay.CheckOut);
+            var percentOff = PropertyNightCoupon.SelectApplicableDiscountPercentage(
+                propertyCheckout.PropertyNightCoupon,
+                stay.Nights);
 
             // 2. Prepare Stripe metadata
-            var productName        = $"{propertyCheckout.Property.FriendlyName} - {stay}";
+            var productName = $"{propertyCheckout.Property.FriendlyName} - {stay}";
             var productDescription = $"Price for {stay.Nights} {(stay.Nights == 1 ? "Night" : "Nights")}";
 
             // 3. Sync with Stripe — PreviousCheckout enables idempotent reuse of existing Stripe IDs
-            var (product, coupon) = await stripeService.CreateProductAndCouponAsync(
+            var stripeData = await stripeService.CreateProductAndCouponAsync(
                 propertyCheckout.PreviousCheckout,
                 productName,
                 productDescription,
@@ -186,10 +186,10 @@ namespace LymmHolidayLets.Application.Service
             var overallPrice       = propertyCheckout.TotalNightlyPrice.Value + additionalCharges;
 
             return (null, new CheckoutData(
-                product.Id,
-                product.DefaultPriceId,
-                coupon?.Id,
-                coupon?.PercentOff,
+                stripeData.Product.Id,
+                stripeData.Product.DefaultPriceId,
+                stripeData.Coupon?.Id,
+                stripeData.Coupon?.PercentOff,
                 additionalProducts,
                 propertyCheckout.Property.FriendlyName,
                 propertyCheckout.TotalNightlyPrice.Value,

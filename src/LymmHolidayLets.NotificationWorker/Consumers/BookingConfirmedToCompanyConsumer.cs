@@ -1,4 +1,4 @@
-﻿using LymmHolidayLets.Application.Interface.Service;
+using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Contracts;
 using LymmHolidayLets.Domain.Dto.Email;
 using MassTransit;
@@ -6,17 +6,17 @@ using MassTransit;
 namespace LymmHolidayLets.NotificationWorker.Consumers;
 
 /// <summary>
-/// Sends a booking confirmation email to the company when a booking is confirmed.
+/// Sends a booking confirmation email to the company when a booking notification is requested.
 /// Intentionally separate from <see cref="BookingConfirmedToCustomerConsumer"/> so that
 /// a failure in one does not cause the other to retry and produce a duplicate email.
-/// Each consumer binds its own queue to the BookingConfirmedEvent exchange; RabbitMQ
+/// Each consumer binds its own queue to the BookingNotificationRequested exchange; RabbitMQ
 /// delivers an independent copy of every event to each queue.
 /// </summary>
 public sealed class BookingConfirmedToCompanyConsumer(
     IEmailGeneratorService emailGeneratorService,
-    ILogger<BookingConfirmedToCompanyConsumer> logger) : IConsumer<BookingConfirmedEvent>
+    ILogger<BookingConfirmedToCompanyConsumer> logger) : IConsumer<BookingNotificationRequested>
 {
-    public async Task Consume(ConsumeContext<BookingConfirmedEvent> context)
+    public async Task Consume(ConsumeContext<BookingNotificationRequested> context)
     {
         var evt = context.Message;
 

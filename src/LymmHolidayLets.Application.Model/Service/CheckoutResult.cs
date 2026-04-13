@@ -7,7 +7,7 @@
     public sealed class CheckoutResult
     {
         public required string SessionId { get; init; }
-        public required string SessionUrl { get; init; }
+        public required string? SessionUrl { get; init; }
         public DateOnly CheckIn { get; init; }
         public DateOnly CheckOut { get; init; }
     }

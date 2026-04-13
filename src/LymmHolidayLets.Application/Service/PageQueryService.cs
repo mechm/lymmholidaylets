@@ -14,15 +14,17 @@ public sealed class PageQueryService(
     {
         var cacheKey = $"page-detail-{alias}";
 
-        if (!cache.TryGetValue(cacheKey, out PageDetail? page))
+        if (cache.TryGetValue(cacheKey, out PageDetail? page))
         {
-            logger.LogInformation("Page cache miss for AliasTitle={AliasTitle}. Fetching from database.", alias);
-            page = await pageQuery.GetPageByAliasTitleAsync(alias);
+            return page is { Visible: true } ? page : null;
+        }
 
-            if (page is not null && page.Visible)
-            {
-                cache.SetAbsolute(cacheKey, page, TimeSpan.FromHours(24));
-            }
+        logger.LogInformation("Page cache miss for AliasTitle={AliasTitle}. Fetching from database.", alias);
+        page = await pageQuery.GetPageByAliasTitleAsync(alias);
+
+        if (page is not null && page.Visible)
+        {
+            cache.SetAbsolute(cacheKey, page, TimeSpan.FromHours(24));
         }
 
         return page is { Visible: true } ? page : null;

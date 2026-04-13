@@ -3,9 +3,7 @@
     /// <summary>
     /// Configuration options for the Twilio SMS service.
     /// Bound from the <c>"Twilio"</c> section of <c>appsettings.json</c>.
-    /// <c>TwilioClient.Init</c> is called once at startup in <c>Program.cs</c> using
-    /// these values so the service itself never needs to touch credentials or reinitialise
-    /// the global Twilio client.
+    /// Used by the infrastructure SMS adapter when sending messages.
     /// </summary>
     public sealed class TwilioOptions
     {

@@ -29,10 +29,10 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                     return null;
                 }
 
-                return new Booking(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
-                                        result.NoAdult, result.NoChildren, result.NoInfant, result.NoOfGuests,
-                                        result.Name, result.Email, result.Telephone,
-                                        result.PostalCode, result.Country, result.Total, result.Created, result.Updated);
+                return Booking.Reconstitute(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
+                    result.NoAdult, result.NoChildren, result.NoInfant, result.NoOfGuests,
+                    result.Name, result.Email, result.Telephone,
+                    result.PostalCode, result.Country, result.Total, result.Created, result.Updated);
             }
             catch (System.Exception ex)
             {
@@ -50,10 +50,10 @@ namespace LymmHolidayLets.Infrastructure.Repository.Dapper
                 var results = connection.Query(procedure,
                     commandType: CommandType.StoredProcedure);
 
-                return results.Select(result => new Booking(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
-                                        result.NoAdult, result.NoChildren, result.NoInfant, result.NoOfGuests,
-                                        result.Name, result.Email, result.Telephone,
-                                        result.PostalCode, result.Country, result.Total, result.Created, result.Updated)).ToList();
+                return results.Select(result => (Booking)Booking.Reconstitute(result.ID, result.EventID, result.SessionID, result.PropertyID, result.CheckIn, result.CheckOut,
+                    result.NoAdult, result.NoChildren, result.NoInfant, result.NoOfGuests,
+                    result.Name, result.Email, result.Telephone,
+                    result.PostalCode, result.Country, result.Total, result.Created, result.Updated)).ToList();
             }
             catch (System.Exception ex)
             {

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 using LymmHolidayLets.Application.Model.Service;
-using LymmHolidayLets.Application.Service;
+using LymmHolidayLets.Infrastructure.Services;
 
 namespace LymmHolidayLets.UnitTests.Application.Services;
 
@@ -55,7 +55,7 @@ public class TextMessageServiceTests
     [Fact]
     public async Task SendText_ValidMessage_DoesNotThrow()
     {
-        // Twilio will throw with dummy credentials because TwilioClient.Init is not called here.
+        // Twilio will fail with dummy credentials.
         // The service must catch that exception and log it rather than letting it propagate.
         var sut = CreateSut();
         var exception = await Record.ExceptionAsync(() => sut.SendText("Hello", ["+1234567890"]));

@@ -1,5 +1,5 @@
-﻿using LymmHolidayLets.Domain.Dto.Email;
-using LymmHolidayLets.Domain.Interface;
+using LymmHolidayLets.Domain.Dto.Email;
+using LymmHolidayLets.Application.Interface.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;

@@ -8,8 +8,6 @@ using LymmHolidayLets.Domain.ReadModel.Checkout;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Stripe;
-using Stripe.Checkout;
 using Xunit;
 
 namespace LymmHolidayLets.UnitTests.Application.Services;
@@ -21,7 +19,6 @@ public class CheckoutServiceTests
     private readonly Mock<ICheckoutCommand> _checkoutCommand = new();
     private readonly Mock<ICheckoutQuery> _checkoutQuery = new();
     private readonly Mock<IStripeService> _stripeService = new();
-    private readonly Mock<ICalculateService> _calculateService = new();
     private readonly Mock<IManageCheckoutSessionService> _sessionService = new();
 
     public CheckoutServiceTests()
@@ -35,7 +32,6 @@ public class CheckoutServiceTests
         _checkoutCommand.Object,
         _checkoutQuery.Object,
         _stripeService.Object,
-        _calculateService.Object,
         _sessionService.Object);
 
     [Fact]
@@ -80,14 +76,17 @@ public class CheckoutServiceTests
             .Setup(s => s.CreateProductAndCouponAsync(
                 It.IsAny<Domain.ReadModel.Checkout.Checkout?>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<decimal>(), It.IsAny<decimal?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new Stripe.Product { Id = "prod_1", DefaultPriceId = "price_1" }, (Coupon?)null));
+            .ReturnsAsync(new StripeProductAndCouponResult
+            {
+                Product = new StripeProductResult { Id = "prod_1", DefaultPriceId = "price_1" }
+            });
         _stripeService
             .Setup(s => s.CreateSessionAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<IEnumerable<PropertyAdditionalProduct>>(),
                 It.IsAny<short>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
                 It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Session?)null);
+            .ReturnsAsync((StripeSessionResult?)null);
 
         var response = await CreateSut().CheckoutAsync(
             1,
@@ -162,10 +161,6 @@ public class CheckoutServiceTests
                 [],
                 [],
                 null)));
-        _calculateService
-            .Setup(c => c.CalculateApplicableDiscountPercentage(
-                It.IsAny<IEnumerable<PropertyNightCoupon>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>()))
-            .Returns((null, 7));
     }
 
     private void SetupStripeSuccess()
@@ -174,13 +169,16 @@ public class CheckoutServiceTests
             .Setup(s => s.CreateProductAndCouponAsync(
                 It.IsAny<Domain.ReadModel.Checkout.Checkout?>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<decimal>(), It.IsAny<decimal?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((new Stripe.Product { Id = "prod_1", DefaultPriceId = "price_1" }, (Coupon?)null));
+            .ReturnsAsync(new StripeProductAndCouponResult
+            {
+                Product = new StripeProductResult { Id = "prod_1", DefaultPriceId = "price_1" }
+            });
         _stripeService
             .Setup(s => s.CreateSessionAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
                 It.IsAny<string?>(), It.IsAny<IEnumerable<PropertyAdditionalProduct>>(),
                 It.IsAny<short>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(),
                 It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<short?>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Session { Id = "cs_test_123", Url = "https://checkout.stripe.com/pay/cs_test_123" });
+            .ReturnsAsync(new StripeSessionResult { Id = "cs_test_123", Url = "https://checkout.stripe.com/pay/cs_test_123" });
     }
 }

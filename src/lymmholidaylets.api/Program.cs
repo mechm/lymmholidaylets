@@ -136,6 +136,7 @@ builder.Services.AddTransient<IReviewQuery, ReviewQuery>();
 builder.Services.AddTransient<IPropertyQuery, PropertyQuery>();
 builder.Services.AddTransient<ISiteMapQuery, SiteMapQuery>();
 builder.Services.AddTransient<ICheckoutQuery, CheckoutQuery>();
+builder.Services.AddTransient<IWebhookEventQuery, WebhookEventQuery>();
 
 
 // Data access
@@ -192,9 +193,9 @@ builder.Services.AddTransient<IFAQCommand, FAQCommand>();
 
 
 // Add our new services
-builder.Services.AddTransient<IStripeService, StripeService>();
+builder.Services.AddTransient<IStripeService, LymmHolidayLets.Infrastructure.Services.StripeService>();
+builder.Services.AddTransient<IStripeWebhookEventParser, LymmHolidayLets.Infrastructure.Services.StripeWebhookEventParser>();
 builder.Services.AddTransient<ICalGenerator, CalGenerator>();
-builder.Services.AddTransient<ICalculateService, CalculateService>();
 builder.Services.AddTransient<ICheckoutService, CheckoutService>();
 builder.Services.AddTransient<IHomepageQueryService, HomepageQueryService>();
 builder.Services.AddTransient<IPageQueryService, PageQueryService>();

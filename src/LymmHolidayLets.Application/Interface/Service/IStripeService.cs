@@ -1,6 +1,5 @@
-﻿﻿using LymmHolidayLets.Domain.ReadModel.Checkout;
-using Stripe;
-using Stripe.Checkout;
+﻿﻿using LymmHolidayLets.Application.Model.Service;
+using LymmHolidayLets.Domain.ReadModel.Checkout;
 
 namespace LymmHolidayLets.Application.Interface.Service
 {
@@ -11,7 +10,7 @@ namespace LymmHolidayLets.Application.Interface.Service
         /// Accepts plain string IDs rather than Stripe SDK objects to keep callers
         /// decoupled from the Stripe SDK.
         /// </summary>
-        Task<Session?> CreateSessionAsync(
+        Task<StripeSessionResult?> CreateSessionAsync(
             string host,
             string propertyName,
             string productId,
@@ -26,9 +25,9 @@ namespace LymmHolidayLets.Application.Interface.Service
             short? numberOfInfants,
             CancellationToken cancellationToken = default);
 
-        Task<Session?> ExpireSessionAsync(string sessionId, CancellationToken cancellationToken = default);
+        Task<StripeSessionResult?> ExpireSessionAsync(string sessionId, CancellationToken cancellationToken = default);
 
-        Task<(Product product, Coupon? coupon)> CreateProductAndCouponAsync(
+        Task<StripeProductAndCouponResult> CreateProductAndCouponAsync(
             Checkout? previousCheckout,
             string productName,
             string productDescription,

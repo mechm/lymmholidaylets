@@ -1,7 +1,6 @@
 using LymmHolidayLets.Contracts;
-using LymmHolidayLets.NotificationWorker.Services;
+using LymmHolidayLets.Application.Interface.Service;
 using MassTransit;
-using Microsoft.Extensions.Configuration;
 
 namespace LymmHolidayLets.NotificationWorker.Consumers;
 
