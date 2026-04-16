@@ -1,6 +1,5 @@
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Contracts;
-using LymmHolidayLets.Domain.Dto.Email;
 using MassTransit;
 
 namespace LymmHolidayLets.NotificationWorker.Consumers;
@@ -13,6 +12,7 @@ namespace LymmHolidayLets.NotificationWorker.Consumers;
 /// delivers an independent copy of every event to each queue.
 /// </summary>
 public sealed class BookingConfirmedToCustomerConsumer(
+    ICustomerBookingConfirmationBuilder customerBookingConfirmationBuilder,
     IEmailGeneratorService emailGeneratorService,
     ILogger<BookingConfirmedToCustomerConsumer> logger) : IConsumer<BookingNotificationRequested>
 {
@@ -24,11 +24,7 @@ public sealed class BookingConfirmedToCustomerConsumer(
             "Sending customer booking confirmation for {PropertyName}, Guest={GuestName}",
             evt.PropertyName, evt.Name);
 
-        var model = new BookingConfirmationForCustomer(
-            evt.PropertyName, evt.CheckIn, evt.CheckOut,
-            evt.NoAdult, evt.NoChildren, evt.NoInfant,
-            evt.Name, evt.Email ?? string.Empty, evt.Telephone ?? string.Empty,
-            evt.PostalCode ?? string.Empty, evt.Country ?? string.Empty, evt.AmountTotal);
+        var model = await customerBookingConfirmationBuilder.BuildAsync(evt);
 
         await emailGeneratorService.EmailBookingConfirmationToCustomer(model);
 

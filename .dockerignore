@@ -1,0 +1,25 @@
+﻿**/.classpath
+**/.dockerignore
+**/.env
+**/.git
+**/.gitignore
+**/.project
+**/.settings
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+**/bin
+**/obj
+**/node_modules
+**/npm-debug.log
+
+# Local development config — must never be baked into Docker images.
+# In Docker, configuration is supplied via environment variables in docker-compose.yml.
+**/appsettings.local.json
+
+# Docker-related files don't need to be in the build context
+**/docker-compose*
+**/Dockerfile*
+

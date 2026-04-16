@@ -15,7 +15,7 @@ services:
       # Persist data using a named volume
       - mssql_data:/var/opt/mssql
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Password123' -Q 'SELECT 1' -C >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -50,14 +50,24 @@ services:
     build:
       context: .
       dockerfile: src/LymmHolidayLets.NotificationWorker/Dockerfile
+    container_name: notification_worker
     environment:
       RabbitMQ__Host: "rabbitmq"
       RabbitMQ__Username: "guest"
       RabbitMQ__Password: "guest"
-      SendGrid__ApiKey: ""
+      ConnectionStrings__LymmHolidayLets: "Server=mssql,1433;Database=LymmHolidayLets;User Id=sa;Password=YourStrong!Password123;TrustServerCertificate=True;Encrypt=False;"
       Email__CompanyName: ""
       Email__CompanyEmail: ""
+      SmtpConfig__Server: "mail.smtp2go.com"
+      SmtpConfig__Port: "465"
+      SmtpConfig__EnableSsl: "true"
+      SmtpConfig__User: ""
+      SmtpConfig__Password: ""
+      SmtpConfig__FromName: "Lymm Holiday Lets"
+      SmtpConfig__FromEmailAddress: ""
     depends_on:
+      mssql:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     restart: unless-stopped

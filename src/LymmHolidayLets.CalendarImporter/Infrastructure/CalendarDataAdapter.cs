@@ -4,7 +4,7 @@ using System.Data;
 
 namespace LymmHolidayLets.CalendarImporter.Infrastructure;
 
-public sealed class CalendarDataAdapter(DbSession session) : ICalendarDataAdapter
+public sealed class CalendarDataAdapter(IDatabaseFactory databaseFactory) : ICalendarDataAdapter
 {
     public void BlockCalendarByPropertyForDate(int propertyId, DateOnly startDate, DateOnly endDate)
     {
@@ -12,14 +12,14 @@ public sealed class CalendarDataAdapter(DbSession session) : ICalendarDataAdapte
 
         try
         {
-            using var connection = session.Connection;
-            connection?.Execute(procedure, new
+            using var connection = databaseFactory.GetConnection;
+            connection.Open();
+            connection.Execute(procedure, new
             {
                 propertyId,
                 startDate,
                 endDate
             },
-            session.Transaction,
             commandType: CommandType.StoredProcedure);
         }
         catch (Exception ex)

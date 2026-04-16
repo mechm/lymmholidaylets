@@ -32,6 +32,8 @@
     [Size]                    DECIMAL (8, 2) NULL,
     [SizeUnitTypeId]          TINYINT        NULL,
     [VideoHtml]               VARCHAR (4000) NULL,
+    [DirectionsUrl]           VARCHAR (2000) NULL,
+    [ArrivalInstructions]     VARCHAR (2000) NULL,
     [Disclaimer]              VARCHAR (4000) NULL,
     [ShowOnHomepage]          BIT            NULL,
     [ShowOnSite]              BIT            NULL,

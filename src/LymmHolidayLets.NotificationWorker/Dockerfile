@@ -7,7 +7,7 @@ RUN dotnet restore src/LymmHolidayLets.NotificationWorker/LymmHolidayLets.Notifi
 
 RUN dotnet publish src/LymmHolidayLets.NotificationWorker/LymmHolidayLets.NotificationWorker.csproj -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 

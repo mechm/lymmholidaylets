@@ -22,6 +22,11 @@ try
 
     var builder = Host.CreateApplicationBuilder(args);
 
+    // Load optional local overrides (not committed to source control).
+    // appsettings.local.json overrides appsettings.json for local development.
+    builder.Configuration
+        .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
+
     // Configure Serilog
     builder.Services.AddSerilog();
 
@@ -39,11 +44,10 @@ try
         .AddPolicyHandler(GetRetryPolicy());
 
     // Register services
-    builder.Services.AddTransient<DbSession>();
     builder.Services.AddTransient<IDatabaseFactory, DatabaseFactory>();
     builder.Services.AddTransient<ICalendarDataAdapter, CalendarDataAdapter>();
-    builder.Services.AddSingleton<ICalendarSyncService, CalendarSyncService>();
-    builder.Services.AddSingleton<ICalendarProviderFactory, CalendarProviderFactory>();
+    builder.Services.AddTransient<ICalendarSyncService, CalendarSyncService>();
+    builder.Services.AddTransient<ICalendarProviderFactory, CalendarProviderFactory>();
 
     // Register providers
     builder.Services.AddTransient<AirbnbCalendarProvider>();

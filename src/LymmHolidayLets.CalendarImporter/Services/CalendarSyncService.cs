@@ -1,24 +1,14 @@
 using LymmHolidayLets.CalendarImporter.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace LymmHolidayLets.CalendarImporter.Services;
 
-public sealed class CalendarSyncService : ICalendarSyncService
+public sealed class CalendarSyncService(
+    ILogger<CalendarSyncService> logger,
+    ICalendarProviderFactory providerFactory,
+    ICalendarDataAdapter dataAdapter)
+    : ICalendarSyncService
 {
-    private readonly ILogger<CalendarSyncService> _logger;
-    private readonly ICalendarProviderFactory _providerFactory;
-    private readonly ICalendarDataAdapter _dataAdapter;
-    private readonly HashSet<CalendarBlockKey> _processedBlocks = new();
-
-    public CalendarSyncService(
-        ILogger<CalendarSyncService> logger,
-        ICalendarProviderFactory providerFactory,
-        ICalendarDataAdapter dataAdapter)
-    {
-        _logger = logger;
-        _providerFactory = providerFactory;
-        _dataAdapter = dataAdapter;
-    }
+    private readonly HashSet<CalendarBlockKey> _processedBlocks = [];
 
     public async Task SyncAllCalendarsAsync(List<PropertyCalendarConfig> properties, CancellationToken cancellationToken)
     {
@@ -27,7 +17,7 @@ public sealed class CalendarSyncService : ICalendarSyncService
 
         foreach (var property in properties)
         {
-            _logger.LogInformation("Syncing calendars for property {PropertyId} - {PropertyName}",
+            logger.LogInformation("Syncing calendars for property {PropertyId} - {PropertyName}",
                 property.PropertyId, property.PropertyName);
 
             foreach (var calendar in property.Calendars)
@@ -45,7 +35,7 @@ public sealed class CalendarSyncService : ICalendarSyncService
                 catch (Exception ex)
                 {
                     totalErrors++;
-                    _logger.LogError(ex,
+                    logger.LogError(ex,
                         "Failed to sync {Provider} calendar for property {PropertyId}",
                         calendar.Provider, property.PropertyId);
                     // Continue with next calendar
@@ -53,7 +43,7 @@ public sealed class CalendarSyncService : ICalendarSyncService
             }
         }
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Calendar sync completed: {TotalBlocks} blocks processed, {TotalErrors} errors",
             totalBlocks, totalErrors);
     }
@@ -64,14 +54,14 @@ public sealed class CalendarSyncService : ICalendarSyncService
         CalendarFeedConfig calendarConfig,
         CancellationToken cancellationToken)
     {
-        var provider = _providerFactory.GetProvider(calendarConfig.Provider);
+        var provider = providerFactory.GetProvider(calendarConfig.Provider);
         if (provider == null)
         {
-            _logger.LogWarning("Unknown calendar provider: {Provider}", calendarConfig.Provider);
+            logger.LogWarning("Unknown calendar provider: {Provider}", calendarConfig.Provider);
             return 0;
         }
 
-        _logger.LogDebug("Fetching {Provider} calendar for property {PropertyId}",
+        logger.LogDebug("Fetching {Provider} calendar for property {PropertyId}",
             provider.ProviderName, propertyId);
 
         var blocks = await provider.FetchCalendarBlocksAsync(calendarConfig.Url, cancellationToken);
@@ -89,17 +79,17 @@ public sealed class CalendarSyncService : ICalendarSyncService
 
             try
             {
-                _logger.LogInformation(
+                logger.LogInformation(
                     "Blocking calendar for {PropertyName} (ID: {PropertyId}) from {StartDate} to {EndDate} via {Provider}",
                     propertyName, propertyId, block.StartDate, block.EndDate, provider.ProviderName);
 
-                _dataAdapter.BlockCalendarByPropertyForDate(propertyId, block.StartDate, block.EndDate);
+                dataAdapter.BlockCalendarByPropertyForDate(propertyId, block.StartDate, block.EndDate);
                 _processedBlocks.Add(key);
                 blocksAdded++;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
+                logger.LogError(ex,
                     "Failed to block calendar for property {PropertyId} from {StartDate} to {EndDate}",
                     propertyId, block.StartDate, block.EndDate);
             }

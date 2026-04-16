@@ -29,19 +29,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 
         public Task<string> BuildHtmlBookingEmailToCustomer(BookingConfirmationForCustomer model)
         {
-            var tokens = BuildBookingTokens(
-                model.PropertyName,
-                model.CheckIn,
-                model.CheckOut,
-                model.NoAdult,
-                model.NoChildren,
-                model.NoInfant,
-                model.Name,
-                model.Email,
-                model.Telephone,
-                model.PostalCode,
-                model.Country,
-                model.Total);
+            var tokens = BuildCustomerBookingTokens(model);
 
             return Task.FromResult(ReplaceTokens(LoadTemplate("BookingConfirmationCustomer.html"), tokens));
         }
@@ -96,16 +84,41 @@ namespace LymmHolidayLets.Infrastructure.Emailer
             };
         }
 
+        private static Dictionary<string, string> BuildCustomerBookingTokens(BookingConfirmationForCustomer model)
+        {
+            var tokens = BuildBookingTokens(
+                model.PropertyName,
+                model.CheckIn,
+                model.CheckOut,
+                model.NoAdult,
+                model.NoChildren,
+                model.NoInfant,
+                model.Name,
+                model.Email,
+                model.Telephone,
+                model.PostalCode,
+                model.Country,
+                model.Total);
+
+            tokens["CheckInShortDate"] = HtmlEncoder.Default.Encode(model.CheckIn.ToString("ddd, d MMM yyyy", CultureInfo.InvariantCulture));
+            tokens["CheckOutShortDate"] = HtmlEncoder.Default.Encode(model.CheckOut.ToString("ddd, d MMM yyyy", CultureInfo.InvariantCulture));
+            tokens["CheckInTime"] = HtmlEncoder.Default.Encode(FormatCheckInTime(model.CheckInTimeAfter));
+            tokens["CheckOutTime"] = HtmlEncoder.Default.Encode(FormatCheckOutTime(model.CheckOutTimeBefore));
+            tokens["FullAddress"] = HtmlEncoder.Default.Encode(FallbackText(model.FullAddress));
+            tokens["DirectionsBlock"] = BuildDirectionsBlock(model.DirectionsUrl);
+            tokens["ArrivalInstructionsBlock"] = BuildArrivalInstructionsBlock(model.ArrivalInstructions);
+            tokens["HeroImageBlock"] = BuildHeroImageBlock(model.HeroImageUrl, model.HeroImageAltText, model.PropertyName);
+            tokens["HouseRulesItems"] = BuildTextItemBlock(model.HouseRules);
+            tokens["SafetyItems"] = BuildTextItemBlock(model.SafetyItems);
+            tokens["CancellationPolicy"] = BuildMultilineParagraphBlock(model.CancellationPolicyText);
+            tokens["PaymentRows"] = BuildPaymentRows(model.PaymentLines);
+
+            return tokens;
+        }
+
         private static string ReplaceTokens(string template, IReadOnlyDictionary<string, string> tokens)
         {
-            var html = template;
-
-            foreach (var token in tokens)
-            {
-                html = html.Replace("{{" + token.Key + "}}", token.Value, StringComparison.Ordinal);
-            }
-
-            return html;
+            return tokens.Aggregate(template, (current, token) => current.Replace("{{" + token.Key + "}}", token.Value, StringComparison.Ordinal));
         }
 
         private static string LoadTemplate(string fileName)
@@ -137,7 +150,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 
         private static void AddGuestPart(List<string> parts, short? count, string label)
         {
-            if (!count.HasValue || count.Value <= 0)
+            if (count is not > 0)
             {
                 return;
             }
@@ -154,6 +167,125 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 
             var amount = total.Value / 100m;
             return amount.ToString("C", CultureInfo.GetCultureInfo("en-GB"));
+        }
+
+        private static string FormatCheckInTime(TimeOnly time) => $"From {time:HH:mm}";
+
+        private static string FormatCheckOutTime(TimeOnly time) => $"Before {time:HH:mm}";
+
+        private static string FallbackText(string? value) =>
+            string.IsNullOrWhiteSpace(value) ? "Not provided" : value;
+
+        private static string BuildDirectionsBlock(string? directionsUrl)
+        {
+            if (string.IsNullOrWhiteSpace(directionsUrl))
+            {
+                return string.Empty;
+            }
+
+            var safeUrl = HtmlEncoder.Default.Encode(directionsUrl);
+
+            return $"""
+                <tr>
+                  <td style="padding-top:8px;font-size:18px;line-height:28px;">
+                    <a href="{safeUrl}" style="color:#222222;font-weight:700;text-decoration:underline;">Get directions</a>
+                  </td>
+                </tr>
+                """;
+        }
+
+        private static string BuildArrivalInstructionsBlock(string? arrivalInstructions)
+        {
+            if (string.IsNullOrWhiteSpace(arrivalInstructions))
+            {
+                return string.Empty;
+            }
+
+            return $"""
+                <tr>
+                  <td style="padding-top:8px;font-size:18px;line-height:28px;color:#222222;">
+                    {HtmlEncoder.Default.Encode(arrivalInstructions)}
+                  </td>
+                </tr>
+                """;
+        }
+
+        private static string BuildHeroImageBlock(string? imageUrl, string? altText, string propertyName)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+            {
+                return string.Empty;
+            }
+
+            var safeUrl = HtmlEncoder.Default.Encode(imageUrl);
+            var safeAltText = HtmlEncoder.Default.Encode(string.IsNullOrWhiteSpace(altText) ? propertyName : altText);
+
+            return $"""
+                <tr>
+                  <td style="padding:0 32px 32px;">
+                    <img src="{safeUrl}" alt="{safeAltText}" style="display:block;width:100%;max-width:616px;height:auto;border:0;border-radius:12px;" />
+                  </td>
+                </tr>
+                """;
+        }
+
+        private static string BuildTextItemBlock(IReadOnlyList<string> items)
+        {
+            if (items.Count == 0)
+            {
+                return """
+                    <p style="margin:0;font-size:18px;line-height:28px;color:#222222;">Not provided.</p>
+                    """;
+            }
+
+            return string.Join(
+                string.Empty,
+                items.Select(item =>
+                    $"""
+                    <p style="margin:0 0 8px;font-size:18px;line-height:28px;color:#222222;">{HtmlEncoder.Default.Encode(item)}</p>
+                    """));
+        }
+
+        private static string BuildMultilineParagraphBlock(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return """
+                    <p style="margin:0;font-size:18px;line-height:28px;color:#222222;">Not provided.</p>
+                    """;
+            }
+
+            var lines = value
+                .Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(line =>
+                    $"""
+                    <p style="margin:0 0 8px;font-size:18px;line-height:28px;color:#222222;">{HtmlEncoder.Default.Encode(line)}</p>
+                    """);
+
+            return string.Join(string.Empty, lines);
+        }
+
+        private static string BuildPaymentRows(IReadOnlyList<BookingConfirmationPaymentLine> paymentLines)
+        {
+            if (paymentLines.Count == 0)
+            {
+                return """
+                    <tr>
+                      <td style="padding:0 0 8px;font-size:18px;line-height:28px;color:#222222;">Not provided</td>
+                      <td align="right" style="padding:0 0 8px;font-size:18px;line-height:28px;color:#222222;">-</td>
+                    </tr>
+                    """;
+            }
+
+            return string.Join(
+                string.Empty,
+                paymentLines.Select(line =>
+                    $"""
+                    <tr>
+                      <td style="padding:0 0 8px;font-size:18px;line-height:28px;color:#222222;">{HtmlEncoder.Default.Encode(line.Label)}</td>
+                      <td align="right" style="padding:0 0 8px;font-size:18px;line-height:28px;color:#222222;">{HtmlEncoder.Default.Encode(line.Amount.ToString("C", CultureInfo.GetCultureInfo("en-GB")))}</td>
+                    </tr>
+                    """));
         }
     }
 }

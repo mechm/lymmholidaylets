@@ -1,4 +1,5 @@
 using LymmHolidayLets.CalendarImporter.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -8,17 +9,17 @@ namespace LymmHolidayLets.CalendarImporter;
 public sealed class CalendarSyncWorker : BackgroundService
 {
     private readonly ILogger<CalendarSyncWorker> _logger;
-    private readonly ICalendarSyncService _syncService;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly CalendarSyncOptions _options;
     private readonly PeriodicTimer _timer;
 
     public CalendarSyncWorker(
         ILogger<CalendarSyncWorker> logger,
-        ICalendarSyncService syncService,
+        IServiceScopeFactory scopeFactory,
         IOptions<CalendarSyncOptions> options)
     {
         _logger = logger;
-        _syncService = syncService;
+        _scopeFactory = scopeFactory;
         _options = options.Value;
         _timer = new PeriodicTimer(TimeSpan.FromMinutes(_options.IntervalMinutes));
     }
@@ -45,7 +46,13 @@ public sealed class CalendarSyncWorker : BackgroundService
             _logger.LogInformation("Starting calendar synchronization");
             var startTime = DateTime.UtcNow;
 
-            await _syncService.SyncAllCalendarsAsync(_options.Properties, cancellationToken);
+            // Create a new scope per sync cycle so every transient dependency
+            // (DbSession, IDbConnection) is freshly resolved — avoids captive
+            // dependency issues when the worker itself is a long-lived singleton.
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var syncService = scope.ServiceProvider.GetRequiredService<ICalendarSyncService>();
+
+            await syncService.SyncAllCalendarsAsync(_options.Properties, cancellationToken);
 
             var duration = DateTime.UtcNow - startTime;
             _logger.LogInformation("Calendar synchronization completed in {DurationSeconds}s",

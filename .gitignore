@@ -140,6 +140,12 @@ Version.cpp
 # Personal TODOs
 TODO.local.md
 
+# Local appsettings overrides (contain secrets — never commit)
+appsettings.local.json
+
+# Docker secrets override (contains SMTP credentials — never commit)
+docker-compose.secrets.yml
+
 # JetBrains IDE files
 .idea/
 

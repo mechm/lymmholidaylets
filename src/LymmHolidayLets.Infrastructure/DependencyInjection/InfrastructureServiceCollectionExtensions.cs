@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Dapper;
+using LymmHolidayLets.Infrastructure.Dapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +10,10 @@ namespace LymmHolidayLets.Infrastructure.DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // Register Dapper type handlers
+            SqlMapper.AddTypeHandler(new TimeOnlyTypeHandler());
+            SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+
             // Register DbContext with retry logic for transient failures (useful in containers)
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("LymmHolidayLets"), sqlOptions =>

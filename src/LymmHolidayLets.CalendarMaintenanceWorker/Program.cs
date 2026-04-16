@@ -14,6 +14,11 @@ try
 
     var builder = Host.CreateApplicationBuilder(args);
 
+    // Load optional local overrides (not committed to source control).
+    // appsettings.local.json overrides appsettings.json for local development.
+    builder.Configuration
+        .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
+
     // Add Serilog
     builder.Services.AddSerilog();
 

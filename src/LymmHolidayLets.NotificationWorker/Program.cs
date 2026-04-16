@@ -1,13 +1,19 @@
 using LymmHolidayLets.Application.Interface.Service;
 using LymmHolidayLets.Application.Model.Service;
 using LymmHolidayLets.Application.Service;
+using LymmHolidayLets.Domain.DataAdapter;
 using LymmHolidayLets.Domain.Dto.Email;
+using LymmHolidayLets.Domain.Interface;
 using LymmHolidayLets.NotificationWorker.Consumers;
+using LymmHolidayLets.Infrastructure;
+using LymmHolidayLets.Infrastructure.Dapper;
+using LymmHolidayLets.Infrastructure.DataAdapter;
 using LymmHolidayLets.Infrastructure.Emailer;
+using LymmHolidayLets.Infrastructure.Repository;
 using LymmHolidayLets.Infrastructure.Services;
+using Dapper;
 using MassTransit;
 using Serilog;
-using SendGrid;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -17,7 +23,14 @@ Log.Information("Starting LymmHolidayLets.NotificationWorker");
 
 try
 {
+    // Register Dapper type handlers before any DB access
+    SqlMapper.AddTypeHandler(new TimeOnlyTypeHandler());
+    SqlMapper.AddTypeHandler(new DateOnlyTypeHandler());
+
     var builder = WebApplication.CreateBuilder(args);
+
+    // Load local overrides (credentials, local connection strings). File is git-ignored.
+    builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false);
 
     builder.Host.UseSerilog((context, services, configuration) =>
         configuration
@@ -27,11 +40,17 @@ try
 
     var config = builder.Configuration;
 
-    // Email infrastructure
-    builder.Services.AddSingleton<ISendGridClient>(new SendGridClient(config["SendGrid:ApiKey"]));
-    builder.Services.AddTransient<IEmailService, SendGridEmailService>();
+    // Email infrastructure — uses generic SMTP (smtp2go) via MailKit; no SendGrid dependency.
+    builder.Services.AddTransient<IEmailService, EmailService>();
     builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
     builder.Services.AddTransient<IEmailGeneratorService, EmailGeneratorService>();
+    builder.Services.AddTransient<ICustomerBookingConfirmationBuilder, CustomerBookingConfirmationBuilder>();
+
+    // Data access
+    builder.Services.AddTransient<IDatabaseFactory, DatabaseFactory>();
+    builder.Services.AddTransient<DbSession>();
+    builder.Services.AddTransient<ICustomerBookingEmailDataAdapter, DapperCustomerBookingEmailDataAdapter>();
+    builder.Services.AddTransient<IDapperPriceDataAdapter, DapperPriceDataAdapter>();
 
     // SMS infrastructure
     builder.Services.Configure<TwilioOptions>(

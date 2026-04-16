@@ -135,7 +135,7 @@ namespace LymmHolidayLets.Application.Service
             cache.Remove($"property-detail-{propertyId}");
 
             // Publish notification event - NotificationWorker will handle email + SMS
-            await SendNotifications(session, propertyName, checkIn, checkout, noAdult, noChildren, noInfant);
+            await SendNotifications(session, propertyId, propertyName, checkIn, checkout, noAdult, noChildren, noInfant);
 
             webhookEvent.MarkAsProcessed();
             webhookEventCommand.Save(webhookEvent);
@@ -168,7 +168,7 @@ namespace LymmHolidayLets.Application.Service
                 session.CustomerDetails.Country, session.AmountTotal));
         }
 
-        private async Task SendNotifications(ParsedStripeCheckoutSession session, string propertyName, DateOnly checkIn, DateOnly checkout, byte? noAdult, byte? noChildren, byte? noInfant)
+        private async Task SendNotifications(ParsedStripeCheckoutSession session, byte propertyId, string propertyName, DateOnly checkIn, DateOnly checkout, byte? noAdult, byte? noChildren, byte? noInfant)
         {
             try
             {
@@ -184,6 +184,7 @@ namespace LymmHolidayLets.Application.Service
                     session.CustomerDetails.PostalCode,
                     session.CustomerDetails.Country,
                     session.AmountTotal,
+                    propertyId,
                     smsRecipients));
             }
             catch (Exception ex)
