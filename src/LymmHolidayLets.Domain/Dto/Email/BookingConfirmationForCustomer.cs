@@ -24,6 +24,10 @@ namespace LymmHolidayLets.Domain.Dto.Email
         }
 
         public string PropertyName { get; init; } = string.Empty;
+        public string? BookingReference { get; init; }
+        public string? PropertyUrl { get; init; }
+        public byte? Bedroom { get; init; }
+        public double? Bathroom { get; init; }
         public DateOnly CheckIn { get; init; }
         public DateOnly CheckOut { get; init; }
         public short? NoAdult { get; init; }

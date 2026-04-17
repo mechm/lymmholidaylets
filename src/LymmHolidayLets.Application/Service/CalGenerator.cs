@@ -14,8 +14,8 @@ namespace LymmHolidayLets.Application.Service
     public sealed class CalGenerator(ICalQuery icalQuery, ILogger<CalGenerator> logger) : ICalGenerator
     {
         private const string DefaultProductId  = "-//github.com/rianjs/ical.net//";
-        private const string ProductId         = "-//lymmholidaylets.co.uk//";
-        private const string PropertyDetailUrl = "https://lymmholidaylets.co.uk/property/detail";
+        private const string ProductId         = "-//lymmholidaylets.com//";
+        private const string PropertyDetailUrl = "https://lymmholidaylets.com/property/detail";
 
         /// <summary>
         /// Generates an iCalendar string for the given property, containing one

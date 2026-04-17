@@ -8,7 +8,7 @@
     {
         /// <summary>
         /// The base URL of the site used to construct Stripe success/cancel redirect URLs.
-        /// Example: "https://www.lymmholidaylets.co.uk"
+        /// Example: "https://lymmholidaylets.com"
         /// </summary>
         public required string BaseUrl { get; init; }
     }

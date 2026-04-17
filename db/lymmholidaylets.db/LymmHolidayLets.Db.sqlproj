@@ -57,7 +57,6 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="dbo" />
-    <Folder Include="dbo\Tables" />
     <Folder Include="Snapshots" />
     <Folder Include="dbo\User Defined Types\" />
   </ItemGroup>

@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Reflection;
 using System.Text.Encodings.Web;
 using LymmHolidayLets.Domain.Dto.Email;
 using LymmHolidayLets.Application.Interface.Service;
@@ -104,10 +103,15 @@ namespace LymmHolidayLets.Infrastructure.Emailer
             tokens["CheckOutShortDate"] = HtmlEncoder.Default.Encode(model.CheckOut.ToString("ddd, d MMM yyyy", CultureInfo.InvariantCulture));
             tokens["CheckInTime"] = HtmlEncoder.Default.Encode(FormatCheckInTime(model.CheckInTimeAfter));
             tokens["CheckOutTime"] = HtmlEncoder.Default.Encode(FormatCheckOutTime(model.CheckOutTimeBefore));
+            tokens["BookingReference"] = HtmlEncoder.Default.Encode(model.BookingReference ?? "N/A");
+            tokens["PreHeaderText"] = HtmlEncoder.Default.Encode(
+                $"Hi {model.Name}, your stay at {model.PropertyName} is confirmed. " +
+                $"Check in {model.CheckIn.ToString("d MMM", CultureInfo.InvariantCulture)} from {FormatCheckInTime(model.CheckInTimeAfter)}.");
+            tokens["PropertyUrl"] = string.IsNullOrWhiteSpace(model.PropertyUrl) ? "#" : HtmlEncoder.Default.Encode(model.PropertyUrl);
             tokens["FullAddress"] = HtmlEncoder.Default.Encode(FallbackText(model.FullAddress));
             tokens["DirectionsBlock"] = BuildDirectionsBlock(model.DirectionsUrl);
             tokens["ArrivalInstructionsBlock"] = BuildArrivalInstructionsBlock(model.ArrivalInstructions);
-            tokens["HeroImageBlock"] = BuildHeroImageBlock(model.HeroImageUrl, model.HeroImageAltText, model.PropertyName);
+            tokens["HeroImageBlock"] = BuildHeroImageBlock(model.HeroImageUrl, model.HeroImageAltText, model.PropertyName, model.PropertyUrl, model.Bedroom, model.Bathroom);
             tokens["HouseRulesItems"] = BuildTextItemBlock(model.HouseRules);
             tokens["SafetyItems"] = BuildTextItemBlock(model.SafetyItems);
             tokens["CancellationPolicy"] = BuildMultilineParagraphBlock(model.CancellationPolicyText);
@@ -173,6 +177,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 
         private static string FormatCheckOutTime(TimeOnly time) => $"Before {time:HH:mm}";
 
+
         private static string FallbackText(string? value) =>
             string.IsNullOrWhiteSpace(value) ? "Not provided" : value;
 
@@ -196,37 +201,82 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 
         private static string BuildArrivalInstructionsBlock(string? arrivalInstructions)
         {
-            if (string.IsNullOrWhiteSpace(arrivalInstructions))
-            {
-                return string.Empty;
-            }
-
-            return $"""
-                <tr>
-                  <td style="padding-top:8px;font-size:18px;line-height:28px;color:#222222;">
-                    {HtmlEncoder.Default.Encode(arrivalInstructions)}
-                  </td>
-                </tr>
-                """;
+            return string.IsNullOrWhiteSpace(arrivalInstructions) ? string.Empty : $"""
+                 <tr>
+                   <td style="padding-top:8px;font-size:18px;line-height:28px;color:#222222;">
+                     {HtmlEncoder.Default.Encode(arrivalInstructions)}
+                   </td>
+                 </tr>
+                 """;
         }
 
-        private static string BuildHeroImageBlock(string? imageUrl, string? altText, string propertyName)
+        private static string BuildHeroImageBlock(string? imageUrl, string? altText, string propertyName, string? propertyUrl, byte? bedroom, double? bathroom)
         {
             if (string.IsNullOrWhiteSpace(imageUrl))
             {
                 return string.Empty;
             }
 
-            var safeUrl = HtmlEncoder.Default.Encode(imageUrl);
-            var safeAltText = HtmlEncoder.Default.Encode(string.IsNullOrWhiteSpace(altText) ? propertyName : altText);
+            var safeImageUrl    = HtmlEncoder.Default.Encode(imageUrl);
+            var safeAltText     = HtmlEncoder.Default.Encode(string.IsNullOrWhiteSpace(altText) ? propertyName : altText);
+            var safePropertyUrl = string.IsNullOrWhiteSpace(propertyUrl) ? null : HtmlEncoder.Default.Encode(propertyUrl);
+            var safePropertyName = HtmlEncoder.Default.Encode(propertyName);
 
-            return $"""
+            var imageOpen  = safePropertyUrl is null ? string.Empty
+                : $"""<a href="{safePropertyUrl}" style="display:block;text-decoration:none;" title="{safeAltText}">""";
+            var imageClose = safePropertyUrl is null ? string.Empty : "</a>";
+
+            var imageCell = $"""
                 <tr>
-                  <td style="padding:0 32px 32px;">
-                    <img src="{safeUrl}" alt="{safeAltText}" style="display:block;width:100%;max-width:616px;height:auto;border:0;border-radius:12px;" />
+                  <td style="padding:0 40px 8px;">
+                    {imageOpen}<table role="presentation" style="width:100%;border-collapse:collapse;">
+                      <tr>
+                        <td background="{safeImageUrl}"
+                            aria-label="{safeAltText}"
+                            role="img"
+                            style="padding-bottom:56.2%;background-position:center;background-color:#F1F1F1;background-repeat:no-repeat !important;background-size:cover !important;height:0px !important;max-height:0px !important;overflow:hidden !important;width:100% !important;border-radius:8px !important;"
+                            width="100%" height="0" bgcolor="#F1F1F1">
+                        </td>
+                      </tr>
+                    </table>{imageClose}
                   </td>
                 </tr>
                 """;
+
+            var nameHtml = safePropertyUrl is null
+                ? $"""<p style="margin:0 0 6px;font-size:22px;line-height:28px;font-weight:800;color:#222222;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">{safePropertyName}</p>"""
+                : $"""<p style="margin:0 0 6px;font-size:22px;line-height:28px;font-weight:800;color:#222222;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;"><a href="{safePropertyUrl}" style="color:#222222;text-decoration:underline;">{safePropertyName}</a></p>""";
+
+            var metaText = BuildPropertyMetaInline(bedroom, bathroom);
+            var metaHtml = string.IsNullOrEmpty(metaText)
+                ? string.Empty
+                : $"""<p style="margin:0;font-size:17px;line-height:26px;color:#555555;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">{HtmlEncoder.Default.Encode(metaText)}</p>""";
+
+            var captionRow = $"""
+                <tr>
+                  <td style="padding:14px 40px 30px;">
+                    {nameHtml}{metaHtml}
+                  </td>
+                </tr>
+                """;
+
+            return imageCell + captionRow;
+        }
+
+        private static string BuildPropertyMetaInline(byte? bedrooms, double? bathrooms)
+        {
+            var parts = new List<string>();
+
+            if (bedrooms is > 0)
+                parts.Add(bedrooms.Value == 1 ? "1 bedroom" : $"{bedrooms.Value} bedrooms");
+
+            if (bathrooms is not > 0) return parts.Count == 0 ? string.Empty : string.Join(" · ", parts);
+            var display = bathrooms.Value == Math.Floor(bathrooms.Value)
+                ? $"{(int)bathrooms.Value}"
+                : bathrooms.Value.ToString("0.#", CultureInfo.InvariantCulture);
+            parts.Add(display == "1" ? "1 bathroom" : $"{display} bathrooms");
+
+            return parts.Count == 0 ? string.Empty : string.Join(" · ", parts);
         }
 
         private static string BuildTextItemBlock(IReadOnlyList<string> items)
@@ -282,7 +332,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
                 paymentLines.Select(line =>
                     $"""
                     <tr>
-                      <td style="padding:0 0 8px;font-size:18px;line-height:28px;color:#222222;">{HtmlEncoder.Default.Encode(line.Label)}</td>
+                      <td style="padding:0 0 8px;font-size:18px;line-height:28px;color:#666666;">{HtmlEncoder.Default.Encode(line.Label)}</td>
                       <td align="right" style="padding:0 0 8px;font-size:18px;line-height:28px;color:#222222;">{HtmlEncoder.Default.Encode(line.Amount.ToString("C", CultureInfo.GetCultureInfo("en-GB")))}</td>
                     </tr>
                     """));

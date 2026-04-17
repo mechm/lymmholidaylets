@@ -19,4 +19,5 @@ public sealed record BookingNotificationRequested(
     string? Country,
     long? AmountTotal,
     byte PropertyId,
-    string[] SmsRecipients);
+    string[] SmsRecipients,
+    string? BookingReference);

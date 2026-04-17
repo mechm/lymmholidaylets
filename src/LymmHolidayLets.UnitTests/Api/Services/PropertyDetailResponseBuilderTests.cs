@@ -23,7 +23,7 @@ public class PropertyDetailResponseBuilderTests
             .Setup(s => s.GenerateLinks(It.IsAny<byte>(), It.IsAny<string?>(), It.IsAny<string?>()))
             .Returns(new SocialShareLinks
             {
-                PropertyUrl       = "https://www.lymmholidaylets.co.uk/property/1",
+                PropertyUrl       = "https://lymmholidaylets.com/property/1",
                 FacebookShareLink = "https://facebook.com/share",
                 TwitterShareLink  = "https://twitter.com/share",
                 LinkedInShareLink = "https://linkedin.com/share",
@@ -36,7 +36,7 @@ public class PropertyDetailResponseBuilderTests
             {
                 MetaTitle       = "Test | Lymm Holiday Lets",
                 MetaDescription = "Test description",
-                CanonicalUrl    = "https://www.lymmholidaylets.co.uk/property/1",
+                CanonicalUrl    = "https://lymmholidaylets.com/property/1",
                 OgTitle         = "Test | Lymm Holiday Lets",
                 OgDescription   = "Test description"
             });
@@ -49,7 +49,7 @@ public class PropertyDetailResponseBuilderTests
             .Setup(r => r.Resolve(It.IsAny<string?>()))
             .Returns<string?>(p => string.IsNullOrWhiteSpace(p) ? null
                 : p.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? p
-                : $"https://www.lymmholidaylets.co.uk{p}");
+                : $"https://lymmholidaylets.com{p}");
     }
 
     private static PropertyDetailResult MinimalDetail(byte id = 1) => new()
@@ -142,7 +142,7 @@ public class PropertyDetailResponseBuilderTests
 
         var response = CreateSut().Build(detail);
 
-        response.Host!.ImagePath.Should().Be("https://www.lymmholidaylets.co.uk/images/staff/host.jpg");
+        response.Host!.ImagePath.Should().Be("https://lymmholidaylets.com/images/staff/host.jpg");
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class PropertyDetailResponseBuilderTests
 
         var response = CreateSut().Build(detail);
 
-        response.Images[0].ImagePath.Should().Be("https://www.lymmholidaylets.co.uk/images/prop/exterior.jpg");
+        response.Images[0].ImagePath.Should().Be("https://lymmholidaylets.com/images/prop/exterior.jpg");
         response.Images[1].ImagePath.Should().Be("https://cdn.example.com/img.jpg"); // already absolute — unchanged
     }
 
@@ -213,7 +213,7 @@ public class PropertyDetailResponseBuilderTests
     {
         var response = CreateSut().Build(MinimalDetail());
 
-        response.Seo.CanonicalUrl.Should().Be("https://www.lymmholidaylets.co.uk/property/1");
+        response.Seo.CanonicalUrl.Should().Be("https://lymmholidaylets.com/property/1");
         response.Seo.MetaTitle.Should().Be("Test | Lymm Holiday Lets");
     }
 

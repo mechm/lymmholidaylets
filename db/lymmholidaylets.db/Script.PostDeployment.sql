@@ -587,11 +587,11 @@ SET IDENTITY_INSERT [dbo].[Property] ON
 GO
 MERGE INTO [dbo].[Property] AS [Target]
 USING (VALUES
-  (1, N'Bridgewater Street', 1, 1, 17, 1, 2 ,1,	2, 1, 1, 1, NULL, NULL, NULL,
+  (1, N'Lymm Village Apartment', 1, 1, 17, 1, 2 ,1,	2, 1, 1, 1, NULL, NULL, NULL,
   100.00, 3, NULL, '16:00:00', '10:00:00', 5, 1, 5, 4, 5, 1, 1, 1, NULL, NULL, NULL, NULL, NULL, 1 ,1, '2023-10-05 19:40:50',NULL),
-    (2, N'Chaise Meadow', 2, 2, 7, 1,	3, 1.5,	2, 1, 1, 1,	NULL, NULL,	NULL, 100.00, 3, NULL, '16:00:00', '10:00:00', 5, 1, 5, 4, 5, 
+    (2, N'Lymm House', 2, 2, 7, 1,	3, 1.5,	2, 1, 1, 1,	NULL, NULL,	NULL, 100.00, 3, NULL, '16:00:00', '10:00:00', 5, 1, 5, 4, 5, 
     0, 0, NULL,	2, NULL, NULL, NULL, NULL, 1, 1, '2023-10-05 19:40:50',NULL),
-  (3, N'Church Road', 2, 3,	3, 1, 2, 1,	2, 1, 1, 1,	NULL, NULL,	NULL, 100.00, 3, NULL, '16:00:00', '10:00:00', 5, 1, 5, 4, 5, 
+  (3, N'Lymm Cottage', 2, 3,	3, 1, 2, 1,	2, 1, 1, 1,	NULL, NULL,	NULL, 100.00, 3, NULL, '16:00:00', '10:00:00', 5, 1, 5, 4, 5, 
 	1, 1, 2, NULL, NULL,	NULL, NULL,	NULL, 1, 1, '2023-10-05 19:40:50', NULL)
 ) AS [Source] ([ID],[FriendlyName],[StaffId],[AddressId],[SubHouseTypeId],[FurnishingTypeId]
       ,[Bedroom],[Bathroom],[Floor],[ReceptionRoom],[Kitchen],[LivingRoom]
@@ -851,15 +851,17 @@ GO
 MERGE INTO [dbo].[PropertyImage] AS [Target]
 USING (VALUES
   -- Property 1 images
-  (1, 1, N'/images/properties/property-1-main.jpg', N'Main view of the property exterior', 1, 1, GETDATE(), 1),
-  (2, 1, N'/images/properties/property-1-living.jpg', N'Spacious living room with modern furniture', 2, 1, GETDATE(), 1),
-  (3, 1, N'/images/properties/property-1-kitchen.jpg', N'Fully equipped modern kitchen', 3, 1, GETDATE(), 1),
-  (4, 1, N'/images/properties/property-1-bedroom.jpg', N'Comfortable master bedroom', 4, 1, GETDATE(), 1),
-  (5, 1, N'/images/properties/property-1-bathroom.jpg', N'Clean modern bathroom', 5, 1, GETDATE(), 1),
-  -- Property 2 images (if exists)
-  (6, 2, N'/images/properties/property-2-main.jpg', N'Property 2 main exterior view', 1, 1, GETDATE(), 1),
-  (7, 2, N'/images/properties/property-2-interior.jpg', N'Property 2 interior', 2, 1, GETDATE(), 1)
-) AS [Source] ([ID], [PropertyId], [ImagePath], [AltText], [SequenceOrder], [ShowOnSite], [Created], [Optimised])
+  (1, 1, N'/uploads/images/slides/lymm-village-apartment.jpg', N'Lymm Village Apartment', 1, 0, 1, GETDATE(), 1),
+  (2, 1, N'/images/properties/property-1-living.jpg', N'Spacious living room with modern furniture', 2, 1, 0, GETDATE(), 1),
+  (3, 1, N'/images/properties/property-1-kitchen.jpg', N'Fully equipped modern kitchen', 3, 1, 0, GETDATE(), 1),
+  (4, 1, N'/images/properties/property-1-bedroom.jpg', N'Comfortable master bedroom', 4, 1, 0, GETDATE(), 1),
+  (5, 1, N'/images/properties/property-1-bathroom.jpg', N'Clean modern bathroom', 5, 1, 0, GETDATE(), 1),
+  -- Property 2 images
+  (6, 2, N'/uploads/images/slides/lymm-house.jpg', N'Lymm House', 1, 1, 1, GETDATE(), 1),
+  (7, 2, N'/images/properties/property-2-interior.jpg', N'Property 2 interior', 2, 1, 0, GETDATE(), 1),
+  -- Property 3 images
+  (8, 3, N'/uploads/images/slides/lymm-cottage.jpg', N'Lymm Cottage', 1, 1, 1, GETDATE(), 1)
+) AS [Source] ([ID], [PropertyId], [ImagePath], [AltText], [SequenceOrder], [ShowOnSite], [ForEmail], [Created], [Optimised])
 ON ([Target].[ID] = [Source].[ID])
 WHEN MATCHED AND (
     NULLIF([Source].[PropertyId], [Target].[PropertyId]) IS NOT NULL OR 
@@ -872,6 +874,8 @@ WHEN MATCHED AND (
     NULLIF([Target].[SequenceOrder], [Source].[SequenceOrder]) IS NOT NULL OR
     NULLIF([Source].[ShowOnSite], [Target].[ShowOnSite]) IS NOT NULL OR 
     NULLIF([Target].[ShowOnSite], [Source].[ShowOnSite]) IS NOT NULL OR
+    NULLIF([Source].[ForEmail], [Target].[ForEmail]) IS NOT NULL OR
+    NULLIF([Target].[ForEmail], [Source].[ForEmail]) IS NOT NULL OR
     NULLIF([Source].[Optimised], [Target].[Optimised]) IS NOT NULL OR 
     NULLIF([Target].[Optimised], [Source].[Optimised]) IS NOT NULL
 ) THEN UPDATE SET
@@ -880,10 +884,11 @@ WHEN MATCHED AND (
   [AltText] = [Source].[AltText],
   [SequenceOrder] = [Source].[SequenceOrder],
   [ShowOnSite] = [Source].[ShowOnSite],
+  [ForEmail] = [Source].[ForEmail],
   [Optimised] = [Source].[Optimised]
 WHEN NOT MATCHED BY TARGET THEN
- INSERT([ID], [PropertyId], [ImagePath], [AltText], [SequenceOrder], [ShowOnSite], [Created], [Optimised])
- VALUES([Source].[ID], [Source].[PropertyId], [Source].[ImagePath], [Source].[AltText], [Source].[SequenceOrder], [Source].[ShowOnSite], [Source].[Created], [Source].[Optimised]);
+ INSERT([ID], [PropertyId], [ImagePath], [AltText], [SequenceOrder], [ShowOnSite], [ForEmail], [Created], [Optimised])
+ VALUES([Source].[ID], [Source].[PropertyId], [Source].[ImagePath], [Source].[AltText], [Source].[SequenceOrder], [Source].[ShowOnSite], [Source].[ForEmail], [Source].[Created], [Source].[Optimised]);
 
 SET IDENTITY_INSERT [dbo].[PropertyImage] OFF;
 GO
@@ -967,3 +972,110 @@ WHEN NOT MATCHED BY TARGET THEN
 
 SET IDENTITY_INSERT [dbo].[PropertyBedroom] OFF;
 GO
+
+-- =============================================
+-- Seed CancellationPolicy data
+-- =============================================
+MERGE INTO [dbo].[CancellationPolicy] AS [Target]
+USING (VALUES
+  -- Property 1
+  (1, 30, N'Cancellations made 30 or more days before check-in receive a full refund.', 1),
+  (1, 14, N'Cancellations made 14-29 days before check-in receive a 50% refund.', 2),
+  (1,  0, N'Cancellations made within 14 days of check-in are non-refundable.', 3),
+  -- Property 2
+  (2, 30, N'Cancellations made 30 or more days before check-in receive a full refund.', 1),
+  (2, 14, N'Cancellations made 14-29 days before check-in receive a 50% refund.', 2),
+  (2,  0, N'Cancellations made within 14 days of check-in are non-refundable.', 3),
+  -- Property 3
+  (3, 30, N'Cancellations made 30 or more days before check-in receive a full refund.', 1),
+  (3, 14, N'Cancellations made 14-29 days before check-in receive a 50% refund.', 2),
+  (3,  0, N'Cancellations made within 14 days of check-in are non-refundable.', 3)
+) AS [Source] ([PropertyID], [DaysBeforeCheckIn], [PolicyText], [SequenceOrder])
+ON ([Target].[PropertyID] = [Source].[PropertyID]
+    AND [Target].[DaysBeforeCheckIn] = [Source].[DaysBeforeCheckIn]
+    AND [Target].[SequenceOrder] = [Source].[SequenceOrder])
+WHEN MATCHED AND (
+    NULLIF([Source].[PolicyText], [Target].[PolicyText]) IS NOT NULL OR
+    NULLIF([Target].[PolicyText], [Source].[PolicyText]) IS NOT NULL) THEN
+  UPDATE SET [PolicyText] = [Source].[PolicyText]
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT ([PropertyID], [DaysBeforeCheckIn], [PolicyText], [SequenceOrder])
+  VALUES ([Source].[PropertyID], [Source].[DaysBeforeCheckIn], [Source].[PolicyText], [Source].[SequenceOrder])
+WHEN NOT MATCHED BY SOURCE THEN
+  DELETE;
+
+GO
+
+-- =============================================
+-- Seed PropertyHouseRule data
+-- =============================================
+MERGE INTO [dbo].[PropertyHouseRule] AS [Target]
+USING (VALUES
+  -- Property 1
+  (1, N'No smoking anywhere on the premises.', 1),
+  (1, N'No pets allowed.', 2),
+  (1, N'No parties or events.', 3),
+  (1, N'Please respect the neighbours and keep noise to a minimum after 10pm.', 4),
+  (1, N'Check-in is from 4:00pm and check-out is by 10:00am.', 5),
+  -- Property 2
+  (2, N'No smoking anywhere on the premises.', 1),
+  (2, N'No pets allowed.', 2),
+  (2, N'No parties or events.', 3),
+  (2, N'Please respect the neighbours and keep noise to a minimum after 10pm.', 4),
+  (2, N'Check-in is from 4:00pm and check-out is by 10:00am.', 5),
+  -- Property 3
+  (3, N'No smoking anywhere on the premises.', 1),
+  (3, N'No pets allowed.', 2),
+  (3, N'No parties or events.', 3),
+  (3, N'Please respect the neighbours and keep noise to a minimum after 10pm.', 4),
+  (3, N'Check-in is from 4:00pm and check-out is by 10:00am.', 5)
+) AS [Source] ([PropertyID], [RuleText], [SequenceOrder])
+ON ([Target].[PropertyID] = [Source].[PropertyID]
+    AND [Target].[SequenceOrder] = [Source].[SequenceOrder])
+WHEN MATCHED AND (
+    NULLIF([Source].[RuleText], [Target].[RuleText]) IS NOT NULL OR
+    NULLIF([Target].[RuleText], [Source].[RuleText]) IS NOT NULL) THEN
+  UPDATE SET [RuleText] = [Source].[RuleText]
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT ([PropertyID], [RuleText], [SequenceOrder])
+  VALUES ([Source].[PropertyID], [Source].[RuleText], [Source].[SequenceOrder])
+WHEN NOT MATCHED BY SOURCE THEN
+  DELETE;
+
+GO
+
+-- =============================================
+-- Seed PropertySafetyItem data
+-- =============================================
+MERGE INTO [dbo].[PropertySafetyItem] AS [Target]
+USING (VALUES
+  -- Property 1
+  (1, N'Smoke detector fitted on each floor.', 1),
+  (1, N'Carbon monoxide detector installed.', 2),
+  (1, N'Fire extinguisher located in the kitchen.', 3),
+  (1, N'First aid kit available.', 4),
+  -- Property 2
+  (2, N'Smoke detector fitted on each floor.', 1),
+  (2, N'Carbon monoxide detector installed.', 2),
+  (2, N'Fire extinguisher located in the kitchen.', 3),
+  (2, N'First aid kit available.', 4),
+  -- Property 3
+  (3, N'Smoke detector fitted on each floor.', 1),
+  (3, N'Carbon monoxide detector installed.', 2),
+  (3, N'Fire extinguisher located in the kitchen.', 3),
+  (3, N'First aid kit available.', 4)
+) AS [Source] ([PropertyID], [ItemText], [SequenceOrder])
+ON ([Target].[PropertyID] = [Source].[PropertyID]
+    AND [Target].[SequenceOrder] = [Source].[SequenceOrder])
+WHEN MATCHED AND (
+    NULLIF([Source].[ItemText], [Target].[ItemText]) IS NOT NULL OR
+    NULLIF([Target].[ItemText], [Source].[ItemText]) IS NOT NULL) THEN
+  UPDATE SET [ItemText] = [Source].[ItemText]
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT ([PropertyID], [ItemText], [SequenceOrder])
+  VALUES ([Source].[PropertyID], [Source].[ItemText], [Source].[SequenceOrder])
+WHEN NOT MATCHED BY SOURCE THEN
+  DELETE;
+
+GO
+

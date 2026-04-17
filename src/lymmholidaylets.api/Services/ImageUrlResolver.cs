@@ -14,7 +14,7 @@ public interface IImageUrlResolver
 
 public sealed class ImageUrlResolver(IOptions<AppSettings> appSettings) : IImageUrlResolver
 {
-    private readonly string _baseUrl = appSettings.Value.Keys?.SiteMaps ?? "https://www.lymmholidaylets.co.uk";
+    private readonly string _baseUrl = appSettings.Value.Keys?.SiteMaps ?? "https://lymmholidaylets.com";
 
     public string? Resolve(string? path)
     {

@@ -8,6 +8,8 @@ BEGIN
     SELECT
         p.ID                AS PropertyId,
         p.FriendlyName      AS PropertyName,
+        p.Bedroom,
+        p.Bathroom,
         p.CheckInTimeAfter,
         p.CheckOutTimeBefore,
         a.AddressLineOne,
@@ -25,8 +27,7 @@ BEGIN
         ON a.ID = p.AddressId
     LEFT JOIN [dbo].[PropertyImage] pi
         ON pi.PropertyId = p.ID
-        AND pi.SequenceOrder = 1
-        AND pi.ShowOnSite = 1
+        AND pi.ForEmail = 1
     WHERE p.ID = @PropertyID;
 
     -- Result set 2: House rules (ordered for display)

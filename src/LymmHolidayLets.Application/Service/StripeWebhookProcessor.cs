@@ -185,7 +185,8 @@ namespace LymmHolidayLets.Application.Service
                     session.CustomerDetails.Country,
                     session.AmountTotal,
                     propertyId,
-                    smsRecipients));
+                    smsRecipients,
+                    session.SessionId));
             }
             catch (Exception ex)
             {

@@ -13,7 +13,7 @@ public interface ISocialShareLinkGenerator
 
 public sealed class SocialShareLinkGenerator(IOptions<AppSettings> appSettings) : ISocialShareLinkGenerator
 {
-    private readonly string _frontendBaseUrl = appSettings.Value.Keys?.SiteMaps ?? "https://www.lymmholidaylets.co.uk";
+    private readonly string _frontendBaseUrl = appSettings.Value.Keys?.SiteMaps ?? "https://lymmholidaylets.com";
 
     public SocialShareLinks GenerateLinks(byte propertyId, string? displayAddress, string? slug = null)
     {

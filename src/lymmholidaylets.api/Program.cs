@@ -92,7 +92,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options =>
 {
-    var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',') ?? ["https://www.lymmholidaylets.co.uk"];
+    var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(',') ?? ["https://lymmholidaylets.com"];
     options.AddPolicy("NextJsApp", policy =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()

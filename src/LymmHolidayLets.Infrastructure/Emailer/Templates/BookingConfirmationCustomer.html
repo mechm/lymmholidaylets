@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your booking is confirmed</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f7f7f7;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">
+
+  <!-- Pre-header: hidden preview text shown in email client inbox -->
+  <div style="display:none;font-size:1px;color:#f7f7f7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{PreHeaderText}}</div>
+
+  <table role="presentation" style="width:100%;border-collapse:collapse;background-color:#f7f7f7;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" style="width:100%;max-width:680px;border-collapse:collapse;background-color:#ffffff;border:1px solid #dddddd;border-radius:12px;overflow:hidden;">
+
+          <!-- ── Header ── -->
+          <tr>
+            <td style="padding:48px 40px 32px;background-color:#ffffff;">
+              <a href="https://lymmholidaylets.com" style="display:inline-block;border:0;">
+                <img src="https://lymmholidaylets.com/images/Lymm-Holiday-Lets.svg" alt="Lymm Holiday Lets" width="176" height="64" style="display:block;width:176px;height:64px;border:0;margin-bottom:24px;" />
+              </a>
+              <h1 style="margin:0 0 24px;font-size:32px;line-height:38px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Your booking is confirmed</h1>
+              <p style="margin:0;font-size:19px;line-height:30px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Hi {{GuestName}}, thanks for booking <strong><a href="{{PropertyUrl}}" style="color:#222222;text-decoration:underline;">{{PropertyName}}</a></strong>. Your stay is confirmed and your booking details are below.</p>
+            </td>
+          </tr>
+
+          <!-- ── Booking reference banner ── -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <table role="presentation" style="width:100%;border-collapse:collapse;background-color:#f0f4ff;border-radius:8px;">
+                <tr>
+                  <td style="padding:16px 20px;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;">
+                    <p style="margin:0 0 4px;font-size:13px;line-height:16px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666666;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Booking reference</p>
+                    <p style="margin:0;font-size:22px;line-height:28px;font-weight:800;color:#222222;letter-spacing:1px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">{{BookingReference}}</p>
+                    <p style="margin:4px 0 0;font-size:13px;line-height:16px;color:#666666;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Please quote this reference in any correspondence with us.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Hero image ── -->
+          {{HeroImageBlock}}
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <!-- ── Check-in / Checkout ── -->
+          <tr>
+            <td style="padding:0 40px 24px;">
+              <table role="presentation" style="width:100%;border-collapse:collapse;">
+                <tr>
+                  <td width="50%" style="padding-right:24px;padding-top:24px;vertical-align:top;">
+                    <p style="margin:0 0 8px;font-size:16px;line-height:20px;font-weight:700;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Check-in</p>
+                    <h2 style="margin:0 0 8px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckInShortDate}}</h2>
+                    <p style="margin:0;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckInTime}}</p>
+                  </td>
+                  <td width="50%" style="padding-left:24px;padding-top:24px;border-left:1px solid #dddddd;vertical-align:top;">
+                    <p style="margin:0 0 8px;font-size:16px;line-height:20px;font-weight:700;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Checkout</p>
+                    <h2 style="margin:0 0 8px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckOutShortDate}}</h2>
+                    <p style="margin:0;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckOutTime}}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <!-- ── Address ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Address</h2>
+              <p style="margin:0;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{FullAddress}}</p>
+              <table role="presentation" style="width:100%;border-collapse:collapse;">
+                {{DirectionsBlock}}
+                {{ArrivalInstructionsBlock}}
+              </table>
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <!-- ── Guests ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Guests</h2>
+              <p style="margin:0 0 8px;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{GuestSummary}}</p>
+              <p style="margin:0;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Booked by {{GuestName}}</p>
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <!-- ── Contact details on record ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Your contact details</h2>
+              <p style="margin:0 0 4px;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{GuestEmail}}</p>
+              <p style="margin:0 0 8px;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{GuestTelephone}}</p>
+              <p style="margin:0;font-size:14px;line-height:20px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#888888;">If any of these details are incorrect please <a href="mailto:matthew@lymmholidaylets.com" style="color:#888888;text-decoration:underline;">contact us</a>.</p>
+            </td>
+          </tr>
+
+          <tr><td style="padding:20px 0;"><div style="border-top:8px solid #f7f7f7;"></div></td></tr>
+
+          <!-- ── House rules ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">House rules</h2>
+              <p style="margin:0 0 16px;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">You'll be staying in someone's home, so please treat it with care and respect.</p>
+              {{HouseRulesItems}}
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <!-- ── Safety & property ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Safety &amp; property</h2>
+              {{SafetyItems}}
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <!-- ── Cancellation policy ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Cancellation policy</h2>
+              {{CancellationPolicy}}
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <!-- ── Payments ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 24px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Payments</h2>
+              <table role="presentation" style="width:100%;border-collapse:collapse;">
+                {{PaymentRows}}
+                <tr>
+                  <td colspan="2" style="padding:0;"><div style="border-top:1px solid #dddddd;"></div></td>
+                </tr>
+                <tr>
+                  <td style="padding-top:8px;font-size:18px;line-height:22px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Amount paid (GBP)</td>
+                  <td align="right" style="padding-top:8px;font-size:18px;line-height:22px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{TotalAmount}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr><td style="padding:20px 0;"><div style="border-top:8px solid #f7f7f7;"></div></td></tr>
+
+          <!-- ── Support ── -->
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">We're here to help</h2>
+              <p style="margin:0 0 8px;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Contact Lymm Holiday Lets with questions or to coordinate your arrival.</p>
+              <p style="margin:0 0 8px;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;"><a href="https://lymmholidaylets.com/contact-us" style="color:#222222;font-weight:700;text-decoration:underline;">Contact Lymm Holiday Lets</a></p>
+              <table role="presentation" style="width:100%;border-collapse:collapse;">
+                <tr>
+                  <td style="font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <a href="mailto:matthew@lymmholidaylets.com" style="color:#222222;font-weight:700;text-decoration:underline;">matthew@lymmholidaylets.com</a>
+                  </td>
+                  <td align="right" style="font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                    <a href="tel:+441925757575" style="color:#222222;font-weight:700;text-decoration:underline;">+44 1925 757575</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Footer ── -->
+          <tr>
+            <td style="padding:24px 40px;background-color:#f7f7f7;border-top:1px solid #dddddd;border-radius:0 0 12px 12px;">
+              <p style="margin:0 0 8px;font-size:13px;line-height:20px;color:#888888;text-align:center;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Lymm Holiday Lets &nbsp;·&nbsp; 30A, The Cross, Lymm, Cheshire, WA13 0HU &nbsp;·&nbsp; <a href="https://lymmholidaylets.com" style="color:#888888;text-decoration:underline;">lymmholidaylets.com</a></p>
+              <p style="margin:0;font-size:12px;line-height:18px;color:#aaaaaa;text-align:center;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">This is an automated confirmation email. Please do not reply directly to this message. If you need help, use the contact details above.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

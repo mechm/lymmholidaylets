@@ -5,6 +5,7 @@
     [AltText]       VARCHAR (255) NULL,
     [SequenceOrder] TINYINT       CONSTRAINT [DF_PropertyImages_SequenceID] DEFAULT ((1)) NOT NULL,
     [ShowOnSite]    BIT           CONSTRAINT [DF_PropertyImage_Visible] DEFAULT ((1)) NOT NULL,
+    [ForEmail]      BIT           CONSTRAINT [DF_PropertyImage_ForEmail] DEFAULT ((0)) NOT NULL,
     [Created]       DATETIME2 (0) NOT NULL,
     [Optimised]     BIT           CONSTRAINT [DF__PropertyI__Optim__113584D1] DEFAULT ((0)) NULL,
     CONSTRAINT [PK_PropertyImage] PRIMARY KEY CLUSTERED ([ID] ASC),
