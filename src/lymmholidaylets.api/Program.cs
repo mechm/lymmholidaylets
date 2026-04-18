@@ -229,8 +229,6 @@ builder.Services.AddMassTransit(x =>
 
 builder.Services.Configure<LymmHolidayLets.Application.Model.Service.CheckoutOptions>(
     builder.Configuration.GetSection("Checkout"));
-builder.Services.Configure<LymmHolidayLets.Application.Model.Service.EmailOptions>(
-    builder.Configuration.GetSection("Email"));
 
 // register EF Core with SQL logging (development)
 builder.Services.AddDbContext<AppDbContext>(options =>

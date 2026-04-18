@@ -6,7 +6,7 @@ A .NET 10 background worker service that handles all outbound notifications for 
 
 The NotificationWorker is a headless ASP.NET Core web application (no HTTP endpoints) that runs as a long-lived background process. It subscribes to events published by the main API and delivers notifications through two channels:
 
-- **Email** — via [SendGrid](https://sendgrid.com/)
+- **Email** — via SMTP2GO using [MailKit](https://github.com/jstedfast/MailKit)
 - **SMS** — via [Twilio](https://www.twilio.com/)
 
 Each consumer is registered independently so that a failure in one notification type does not trigger retries in another, preventing duplicate sends.
@@ -44,7 +44,7 @@ LymmHolidayLets.NotificationWorker/
 | Package | Version | Purpose |
 |---|---|---|
 | `MassTransit.RabbitMQ` | 8.4.0 | Message bus / consumer host |
-| `SendGrid` | 9.29.3 | Transactional email delivery |
+| `MailKit` | 4.14.1 | SMTP email delivery |
 | `Twilio` | 7.13.6 | SMS delivery |
 | `Serilog.Extensions.Hosting` | 9.0.0 | Structured logging |
 
@@ -61,8 +61,14 @@ All secrets must be provided via environment variables, user secrets, or a secre
     "Username": "guest",
     "Password": "guest"
   },
-  "SendGrid": {
-    "ApiKey": "<your-sendgrid-api-key>"
+  "SmtpConfig": {
+    "Server": "mail.smtp2go.com",
+    "Port": 465,
+    "EnableSsl": true,
+    "User": "<your-smtp-username>",
+    "Password": "<your-smtp-password>",
+    "FromName": "Lymm Holiday Lets",
+    "FromEmailAddress": "bookings@example.com"
   },
   "Twilio": {
     "AccountSid": "<your-account-sid>",
@@ -79,10 +85,11 @@ All secrets must be provided via environment variables, user secrets, or a secre
 }
 ```
 
-For local development, use [.NET User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets):
+For local development, use `.env`, Docker secrets, `appsettings.local.json`, or [.NET User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets):
 
 ```bash
-dotnet user-secrets set "SendGrid:ApiKey" "your-key" --project src/LymmHolidayLets.NotificationWorker
+dotnet user-secrets set "SmtpConfig:User" "your-smtp-username" --project src/LymmHolidayLets.NotificationWorker
+dotnet user-secrets set "SmtpConfig:Password" "your-smtp-password" --project src/LymmHolidayLets.NotificationWorker
 dotnet user-secrets set "Twilio:AccountSid" "your-sid" --project src/LymmHolidayLets.NotificationWorker
 dotnet user-secrets set "Twilio:AuthToken" "your-token" --project src/LymmHolidayLets.NotificationWorker
 ```

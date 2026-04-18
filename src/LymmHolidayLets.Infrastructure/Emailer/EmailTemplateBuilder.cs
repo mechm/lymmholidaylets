@@ -53,6 +53,22 @@ namespace LymmHolidayLets.Infrastructure.Emailer
                 """);
         }
 
+        public Task<string> BuildHtmlGuestPreArrivalEmail(GuestPreArrivalEmail model)
+        {
+            var shellTokens = BuildGuestPreArrivalShellTokens(model);
+            return Task.FromResult(ReplaceTokens(LoadTemplate("GuestPreArrivalShell.html"), shellTokens));
+        }
+
+        public Task<string> BuildSubjectGuestPreArrivalEmail(GuestPreArrivalEmail model)
+        {
+            var plainTokens = BuildGuestPreArrivalPlainTokens(model);
+            var fallback = $"Your stay at {model.PropertyName} starts soon";
+
+            return Task.FromResult(ReplaceSupportedTemplateTokens(
+                string.IsNullOrWhiteSpace(model.SubjectTemplate) ? fallback : model.SubjectTemplate,
+                plainTokens));
+        }
+
         private static Dictionary<string, string> BuildBookingTokens(
             string propertyName,
             DateOnly checkIn,
@@ -110,7 +126,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
             tokens["PropertyUrl"] = string.IsNullOrWhiteSpace(model.PropertyUrl) ? "#" : HtmlEncoder.Default.Encode(model.PropertyUrl);
             tokens["FullAddress"] = HtmlEncoder.Default.Encode(FallbackText(model.FullAddress));
             tokens["DirectionsBlock"] = BuildDirectionsBlock(model.DirectionsUrl);
-            tokens["ArrivalInstructionsBlock"] = BuildArrivalInstructionsBlock(model.ArrivalInstructions);
+            tokens["ArrivalDetailsSection"] = BuildArrivalDetailsSection(model.ArrivalInstructions);
             tokens["HeroImageBlock"] = BuildHeroImageBlock(model.HeroImageUrl, model.HeroImageAltText, model.PropertyName, model.PropertyUrl, model.Bedroom, model.Bathroom);
             tokens["HouseRulesItems"] = BuildTextItemBlock(model.HouseRules);
             tokens["SafetyItems"] = BuildTextItemBlock(model.SafetyItems);
@@ -123,6 +139,20 @@ namespace LymmHolidayLets.Infrastructure.Emailer
         private static string ReplaceTokens(string template, IReadOnlyDictionary<string, string> tokens)
         {
             return tokens.Aggregate(template, (current, token) => current.Replace("{{" + token.Key + "}}", token.Value, StringComparison.Ordinal));
+        }
+
+        private static string ReplaceSupportedTemplateTokens(string template, IReadOnlyDictionary<string, string> tokens)
+        {
+            var resolved = template;
+
+            foreach (var token in tokens)
+            {
+                resolved = resolved.Replace("{{" + token.Key + "}}", token.Value, StringComparison.OrdinalIgnoreCase);
+                resolved = resolved.Replace("{" + token.Key + "}", token.Value, StringComparison.OrdinalIgnoreCase);
+                resolved = resolved.Replace("{" + token.Key.ToLowerInvariant() + "}", token.Value, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return resolved;
         }
 
         private static string LoadTemplate(string fileName)
@@ -177,6 +207,61 @@ namespace LymmHolidayLets.Infrastructure.Emailer
 
         private static string FormatCheckOutTime(TimeOnly time) => $"Before {time:HH:mm}";
 
+        private static Dictionary<string, string> BuildGuestPreArrivalShellTokens(GuestPreArrivalEmail model)
+        {
+            var plainTokens = BuildGuestPreArrivalPlainTokens(model);
+            var htmlTokens = BuildGuestPreArrivalHtmlTokens(model);
+            var previewFallback =
+                $"Hi {model.Name}, you can arrive at {model.PropertyName} from {model.CheckInTimeAfter:HH:mm} on {model.CheckIn:dddd dd MMMM yyyy}.";
+
+            var previewText = ReplaceSupportedTemplateTokens(
+                string.IsNullOrWhiteSpace(model.PreviewTextTemplate) ? previewFallback : model.PreviewTextTemplate,
+                plainTokens);
+
+            return new Dictionary<string, string>
+            {
+                ["PreHeaderText"] = HtmlEncoder.Default.Encode(previewText),
+                ["PropertyName"] = HtmlEncoder.Default.Encode(model.PropertyName),
+                ["GuestName"] = HtmlEncoder.Default.Encode(model.Name),
+                ["CheckInShortDate"] = HtmlEncoder.Default.Encode(model.CheckIn.ToString("ddd, d MMM yyyy", CultureInfo.InvariantCulture)),
+                ["CheckOutShortDate"] = HtmlEncoder.Default.Encode(model.CheckOut.ToString("ddd, d MMM yyyy", CultureInfo.InvariantCulture)),
+                ["CheckInTime"] = HtmlEncoder.Default.Encode(FormatCheckInTime(model.CheckInTimeAfter)),
+                ["CheckOutTime"] = HtmlEncoder.Default.Encode(FormatCheckOutTime(model.CheckOutTimeBefore)),
+                ["FullAddress"] = HtmlEncoder.Default.Encode(FallbackText(model.FullAddress)),
+                ["DirectionsBlock"] = BuildDirectionsBlock(model.DirectionsUrl),
+                ["ArrivalDetailsSection"] = BuildArrivalDetailsSection(model.ArrivalInstructions),
+                ["EmailBodyHtml"] = ReplaceSupportedTemplateTokens(model.HtmlBodyTemplate, htmlTokens)
+            };
+        }
+
+        private static Dictionary<string, string> BuildGuestPreArrivalPlainTokens(GuestPreArrivalEmail model)
+        {
+            return new Dictionary<string, string>
+            {
+                ["GuestName"] = model.Name,
+                ["GuestEmail"] = FallbackText(model.Email),
+                ["GuestTelephone"] = FallbackText(model.Telephone),
+                ["GuestPostalCode"] = FallbackText(model.PostalCode),
+                ["GuestCountry"] = FallbackText(model.Country),
+                ["PropertyName"] = model.PropertyName,
+                ["BookingReference"] = FallbackText(model.BookingReference),
+                ["ArrivalDate"] = model.CheckIn.ToString("dddd dd MMMM yyyy", CultureInfo.InvariantCulture),
+                ["ArrivalTime"] = model.CheckInTimeAfter.ToString("HH:mm", CultureInfo.InvariantCulture),
+                ["CheckoutDate"] = model.CheckOut.ToString("dddd dd MMMM yyyy", CultureInfo.InvariantCulture),
+                ["CheckoutTime"] = model.CheckOutTimeBefore.ToString("HH:mm", CultureInfo.InvariantCulture),
+                ["FullAddress"] = FallbackText(model.FullAddress),
+                ["DirectionsUrl"] = FallbackText(model.DirectionsUrl),
+                ["ArrivalInstructions"] = FallbackText(model.ArrivalInstructions),
+                ["TotalAmount"] = FormatTotal(model.Total)
+            };
+        }
+
+        private static Dictionary<string, string> BuildGuestPreArrivalHtmlTokens(GuestPreArrivalEmail model) =>
+            BuildGuestPreArrivalPlainTokens(model)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => HtmlEncoder.Default.Encode(kvp.Value));
+
 
         private static string FallbackText(string? value) =>
             string.IsNullOrWhiteSpace(value) ? "Not provided" : value;
@@ -199,15 +284,25 @@ namespace LymmHolidayLets.Infrastructure.Emailer
                 """;
         }
 
-        private static string BuildArrivalInstructionsBlock(string? arrivalInstructions)
+        private static string BuildArrivalDetailsSection(string? arrivalInstructions)
         {
-            return string.IsNullOrWhiteSpace(arrivalInstructions) ? string.Empty : $"""
-                 <tr>
-                   <td style="padding-top:8px;font-size:18px;line-height:28px;color:#222222;">
-                     {HtmlEncoder.Default.Encode(arrivalInstructions)}
-                   </td>
-                 </tr>
-                 """;
+            if (string.IsNullOrWhiteSpace(arrivalInstructions))
+            {
+                return """
+                    <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+                    """;
+            }
+
+            return $"""
+                <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+                <tr>
+                  <td style="padding:24px 40px;">
+                    <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Arrival details</h2>
+                    <p style="margin:0;font-size:18px;line-height:28px;color:#222222;">{HtmlEncoder.Default.Encode(arrivalInstructions)}</p>
+                  </td>
+                </tr>
+                <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+                """;
         }
 
         private static string BuildHeroImageBlock(string? imageUrl, string? altText, string propertyName, string? propertyUrl, byte? bedroom, double? bathroom)

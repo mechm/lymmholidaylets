@@ -5,7 +5,7 @@
 - **Frontend:** Next.js (TypeScript, Vanilla CSS preferred)
 - **Database:** SQL Server (DACPAC, migrations in `db/`)
 - **Infrastructure:** AWS CDK (TypeScript)
-- **Integrations:** Stripe (Payments), SendGrid (Email), Logz.io (Logging)
+- **Integrations:** Stripe (Payments), SMTP2GO/MailKit (Email), Logz.io (Logging)
 
 ## Engineering Standards
 - **Frameworks:** Adhere to .NET 10 patterns. Use FluentValidation for all input models.

@@ -99,7 +99,7 @@ When adding a new feature, add unit tests for the service and integration tests 
 ## External Integrations
 
 - **Stripe** — payments and webhooks. `IStripeService` abstracts the SDK. Webhook validation happens in `StripeWebHookController`.
-- **SendGrid / SMTP** — email via `Emailer/` in Infrastructure.
+- **SMTP2GO / MailKit** — email via `Emailer/` in Infrastructure.
 - **Logz.io** — structured log shipping.
 - **reCAPTCHA** — validated via `IRecaptchaValidationService` before processing user-submitted forms.
 

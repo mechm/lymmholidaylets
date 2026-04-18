@@ -9,6 +9,7 @@
   <Folder Name="/Applications/">
     <Project Path="src/LymmHolidayLets.CalendarImporter/LymmHolidayLets.CalendarImporter.csproj" />
     <Project Path="src/LymmHolidayLets.CalendarMaintenanceWorker/LymmHolidayLets.CalendarMaintenanceWorker.csproj" />
+    <Project Path="src/LymmHolidayLets.EmailScheduler/LymmHolidayLets.EmailScheduler.csproj" />
     <Project Path="src/LymmHolidayLets.NotificationWorker/LymmHolidayLets.NotificationWorker.csproj" />
   </Folder>
   <Folder Name="/Contracts/">
@@ -41,5 +42,8 @@
   <Folder Name="/Tests/">
     <Project Path="src\LymmHolidayLets.UnitTests\LymmHolidayLets.UnitTests.csproj" />
     <Project Path="src\LymmHolidayLets.IntegrationTests\LymmHolidayLets.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="tools/send-test-email/SendTestEmail.csproj" />
   </Folder>
 </Solution>

@@ -22,7 +22,7 @@ LymmHolidayLets is a modern .NET 10.0 solution for managing holiday property boo
 - Property and calendar management
 - Stripe payment integration
 - Review and FAQ system
-- Email notifications via RabbitMQ message queue (SendGrid, SMTP)
+- Email notifications via RabbitMQ message queue (MailKit + SMTP2GO)
 - Background workers for email processing and calendar imports (iCal)
 - REST and GraphQL API endpoints (HotChocolate)
 - FluentValidation for input validation
@@ -126,7 +126,7 @@ Api → Application → Domain ← Infrastructure
 - **UI settings**: `src/lymmholidaylets.ui/`
 - **Environment variables** (for secrets):
   - `ConnectionStrings__LymmHolidayLets`: SQL Server connection string
-  - `SendGrid__ApiKey`: SendGrid API key for email
+  - `SmtpConfig__Server`, `SmtpConfig__User`, `SmtpConfig__Password`, `SmtpConfig__FromEmailAddress`: SMTP2GO/MailKit email settings for the notification worker
   - `RabbitMQ__Host`, `RabbitMQ__Username`, `RabbitMQ__Password`: Message queue configuration
   - Stripe keys (for payment processing)
   - Logz.io tokens (for logging)

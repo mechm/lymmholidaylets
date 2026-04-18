@@ -172,8 +172,6 @@ namespace LymmHolidayLets.Application.Service
         {
             try
             {
-                string[] smsRecipients = config["Keys:Telephone"]?.Split("|") ?? [];
-
                 // Publish single event for all notifications - NotificationWorker handles the rest
                 await publishEndpoint.Publish(new BookingNotificationRequested(
                     propertyName, checkIn, checkout,
@@ -185,7 +183,6 @@ namespace LymmHolidayLets.Application.Service
                     session.CustomerDetails.Country,
                     session.AmountTotal,
                     propertyId,
-                    smsRecipients,
                     session.SessionId));
             }
             catch (Exception ex)

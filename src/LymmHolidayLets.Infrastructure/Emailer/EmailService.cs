@@ -3,11 +3,13 @@ using LymmHolidayLets.Application.Interface.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using MailKit.Net.Smtp;
 
 namespace LymmHolidayLets.Infrastructure.Emailer
 {
-    public sealed class EmailService(IOptions<SmtpConfig> smtpConfig, ILogger<EmailService> logger) : IEmailService
+    public sealed class EmailService(
+        IOptions<SmtpConfig> smtpConfig,
+        ISmtpClientAdapterFactory smtpClientFactory,
+        ILogger<EmailService> logger) : IEmailService
     {
         private readonly SmtpConfig _smtpConfig = smtpConfig.Value;
 
@@ -42,7 +44,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
             {
                 message.Body = new TextPart("html") { Text = html };
 
-                using var client = new SmtpClient();
+                using var client = smtpClientFactory.Create();
 
                 // Docker containers cannot validate CRLs (Certificate Revocation Lists) for
                 // external SMTP servers. Accept the server certificate if the only issues are
@@ -80,6 +82,7 @@ namespace LymmHolidayLets.Infrastructure.Emailer
             catch (System.Exception ex)
             {
                 logger.LogError(ex, "EmailService|SendAsync failed");
+                throw;
             }
         }
     }

@@ -6,5 +6,6 @@ namespace LymmHolidayLets.Application.Interface.Service
     {
         Task EmailBookingConfirmationToCompany(BookingConfirmationForCompany bookingConfirmationForCompany);
         Task EmailBookingConfirmationToCustomer(BookingConfirmationForCustomer bookingConfirmationForCustomer);
+        Task EmailGuestPreArrivalToCustomer(GuestPreArrivalEmail guestPreArrivalEmail);
     }
 }

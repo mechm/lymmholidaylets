@@ -7,5 +7,7 @@ namespace LymmHolidayLets.Application.Interface.Service
         Task<string> BuildHtmlBookingEmailToCompany(BookingConfirmationForCompany model);
         Task<string> BuildHtmlBookingEmailToCustomer(BookingConfirmationForCustomer model);
         Task<string> BuildHtmlContactToCompanyEmail(EmailEnquiryToCompany model);
+        Task<string> BuildHtmlGuestPreArrivalEmail(GuestPreArrivalEmail model);
+        Task<string> BuildSubjectGuestPreArrivalEmail(GuestPreArrivalEmail model);
     }
 }

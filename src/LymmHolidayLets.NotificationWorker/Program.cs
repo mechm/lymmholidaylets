@@ -40,7 +40,8 @@ try
 
     var config = builder.Configuration;
 
-    // Email infrastructure — uses generic SMTP (smtp2go) via MailKit; no SendGrid dependency.
+    // Email infrastructure — uses generic SMTP (smtp2go) via MailKit.
+    builder.Services.AddTransient<ISmtpClientAdapterFactory, MailKitSmtpClientAdapterFactory>();
     builder.Services.AddTransient<IEmailService, EmailService>();
     builder.Services.AddTransient<IEmailTemplateBuilder, EmailTemplateBuilder>();
     builder.Services.AddTransient<IEmailGeneratorService, EmailGeneratorService>();
@@ -50,11 +51,14 @@ try
     builder.Services.AddTransient<IDatabaseFactory, DatabaseFactory>();
     builder.Services.AddTransient<DbSession>();
     builder.Services.AddTransient<ICustomerBookingEmailDataAdapter, DapperCustomerBookingEmailDataAdapter>();
+    builder.Services.AddTransient<IGuestPreArrivalEmailDataAdapter, DapperGuestPreArrivalEmailDataAdapter>();
     builder.Services.AddTransient<IDapperPriceDataAdapter, DapperPriceDataAdapter>();
 
     // SMS infrastructure
     builder.Services.Configure<TwilioOptions>(
         options => config.GetSection("Twilio").Bind(options));
+    builder.Services.Configure<SmsNotificationOptions>(
+        options => config.GetSection("Sms").Bind(options));
     builder.Services.AddTransient<ITextMessageService, TextMessageService>();
 
     // Configuration bindings
@@ -65,7 +69,7 @@ try
     builder.Services.AddMassTransit(x =>
     {
         // Retry with exponential back-off before the message is dead-lettered.
-        // Email sending is susceptible to transient failures (SendGrid rate limits,
+        // Email sending is susceptible to transient failures (SMTP provider throttling,
         // brief network issues) that typically resolve within a few seconds.
         // After 3 retries the message is moved to the *_error queue for inspection.
         x.AddConsumer<EmailEnquiryConsumer>(c =>
@@ -80,6 +84,10 @@ try
                 r.Exponential(3, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5))));
 
         x.AddConsumer<BookingConfirmedToCustomerConsumer>(c =>
+            c.UseMessageRetry(r =>
+                r.Exponential(3, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5))));
+
+        x.AddConsumer<GuestPreArrivalEmailConsumer>(c =>
             c.UseMessageRetry(r =>
                 r.Exponential(3, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(5))));
 

@@ -694,6 +694,57 @@ SET IDENTITY_INSERT [dbo].[Property] OFF
 
 GO
 
+MERGE INTO [dbo].[PropertyGuestEmailSchedule] AS [Target]
+USING (VALUES
+  (1, 1, 5, '2026-04-18 00:00:00', NULL)
+) AS [Source] ([PropertyID],[IsEnabled],[SendDaysBeforeCheckIn],[Created],[Updated])
+ON ([Target].[PropertyID] = [Source].[PropertyID])
+WHEN MATCHED AND (
+    NULLIF([Source].[IsEnabled], [Target].[IsEnabled]) IS NOT NULL OR NULLIF([Target].[IsEnabled], [Source].[IsEnabled]) IS NOT NULL OR
+    NULLIF([Source].[SendDaysBeforeCheckIn], [Target].[SendDaysBeforeCheckIn]) IS NOT NULL OR NULLIF([Target].[SendDaysBeforeCheckIn], [Source].[SendDaysBeforeCheckIn]) IS NOT NULL OR
+    NULLIF([Source].[Created], [Target].[Created]) IS NOT NULL OR NULLIF([Target].[Created], [Source].[Created]) IS NOT NULL OR
+    NULLIF([Source].[Updated], [Target].[Updated]) IS NOT NULL OR NULLIF([Target].[Updated], [Source].[Updated]) IS NOT NULL)
+THEN
+  UPDATE
+    SET [IsEnabled] = [Source].[IsEnabled],
+        [SendDaysBeforeCheckIn] = [Source].[SendDaysBeforeCheckIn],
+        [Created] = [Source].[Created],
+        [Updated] = [Source].[Updated]
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT([PropertyID],[IsEnabled],[SendDaysBeforeCheckIn],[Created],[Updated])
+  VALUES([Source].[PropertyID],[Source].[IsEnabled],[Source].[SendDaysBeforeCheckIn],[Source].[Created],[Source].[Updated]);
+
+GO
+
+MERGE INTO [dbo].[PropertyGuestEmailTemplate] AS [Target]
+USING (VALUES
+  (1,
+   'Your stay at {propertyname} starts soon',
+   'You can arrive from {arrivaltime} on {arrivaldate}.',
+   '<p style="margin:0 0 14px;">We are looking forward to welcoming you to {propertyname}.</p><p style="margin:0 0 18px;">Below is a clearer summary of the key details you may need before you arrive.</p><table role="presentation" style="width:100%;border-collapse:collapse;background-color:#f8fafc;border:1px solid #dbe3ea;border-radius:10px;margin:0 0 24px;"><tr><td style="padding:18px 20px;"><p style="margin:0 0 12px;font-size:12px;line-height:16px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#6b7280;">Arrival summary</p><ul style="margin:0;padding-left:18px;"><li style="margin:0 0 6px;">Check-in is from <strong>{arrivaltime}</strong> on <strong>{arrivaldate}</strong>.</li><li style="margin:0 0 6px;">Please send us your chosen 4-6 digit door code before arrival if you have not already done so.</li><li style="margin:0 0 6px;"><strong>WiFi:</strong> PLUSNET-8XHQ / <strong>Password:</strong> 9e8a9c6464</li><li style="margin:0;"><strong>Parking:</strong> details and map are available here: <a href="https://bit.ly/3Maq0GJ" style="color:#2563eb;">Parking options</a></li></ul></td></tr></table><h3 style="margin:0 0 10px;font-size:18px;line-height:24px;font-weight:800;color:#111827;">Arrival and access</h3><ul style="margin:0 0 18px;padding-left:18px;"><li style="margin:0 0 6px;">The property will be ready on <strong>{arrivaldate}</strong> at <strong>{arrivaltime}</strong>.</li><li style="margin:0 0 6px;">Press the Yale button on the keypad, enter your code, then press the tick to unlock the front door.</li><li style="margin:0 0 6px;">The door locks automatically after 30 seconds. You can also press the Yale key when leaving.</li><li style="margin:0;">If you still need to choose an entry code, please send us a 4-6 digit code before you travel.</li></ul><h3 style="margin:0 0 10px;font-size:18px;line-height:24px;font-weight:800;color:#111827;">Parking</h3><ul style="margin:0 0 18px;padding-left:18px;"><li style="margin:0 0 6px;">Parking options are available here: <a href="https://bit.ly/3Maq0GJ" style="color:#2563eb;">Parking map and directions</a>.</li><li style="margin:0;">You can usually park on Grove Rise or Rosebank, and there are also two pay and display car parks nearby.</li></ul><h3 style="margin:0 0 10px;font-size:18px;line-height:24px;font-weight:800;color:#111827;">House essentials</h3><ul style="margin:0 0 18px;padding-left:18px;"><li style="margin:0 0 6px;"><strong>Heating and hot water:</strong> use the boiler in the kitchen. You can choose hot water only or heating plus hot water, then adjust the two temperature dials.</li><li style="margin:0 0 6px;"><strong>Alarm:</strong> the panel is in the hallway. Enter code <strong>1307</strong> to activate or deactivate it.</li><li style="margin:0 0 6px;"><strong>Bins:</strong> the bin marked 2b is at the back of the building. Use the alleyway beside the coffee shop, walk to the bottom, then turn right. The mortice gate key is by the hallway alarm on the leaf keyring.</li><li style="margin:0 0 6px;"><strong>Ironing board:</strong> behind the kitchen door.</li><li style="margin:0 0 6px;"><strong>Iron and hair dryer:</strong> stored in the hallway storage unit.</li><li style="margin:0;">The shower has two heads. Use the pull and push control beside the smaller head to switch between them.</li></ul><h3 style="margin:0 0 10px;font-size:18px;line-height:24px;font-weight:800;color:#111827;">Local area</h3><ul style="margin:0 0 18px;padding-left:18px;"><li style="margin:0 0 6px;">There is a Sainsburys Local in the village, plus a larger Sainsburys around 5 minutes away on Rushgreen Road.</li><li style="margin:0;">Popular spots include Lymm Dam, the Bridgewater Canal, and village pubs such as The Golden Fleece, The Church Green, The Jolly Thresher, and The Green Dragon.</li></ul><p style="margin:0 0 12px;">Thank you again for your booking. We hope you have a comfortable and enjoyable stay.</p><p style="margin:0;">Regards<br/>Matt and Kath</p>',
+   '2026-04-18 00:00:00',
+   NULL)
+) AS [Source] ([PropertyID],[SubjectTemplate],[PreviewTextTemplate],[HtmlBody],[Created],[Updated])
+ON ([Target].[PropertyID] = [Source].[PropertyID])
+WHEN MATCHED AND (
+    NULLIF([Source].[SubjectTemplate], [Target].[SubjectTemplate]) IS NOT NULL OR NULLIF([Target].[SubjectTemplate], [Source].[SubjectTemplate]) IS NOT NULL OR
+    NULLIF([Source].[PreviewTextTemplate], [Target].[PreviewTextTemplate]) IS NOT NULL OR NULLIF([Target].[PreviewTextTemplate], [Source].[PreviewTextTemplate]) IS NOT NULL OR
+    NULLIF([Source].[HtmlBody], [Target].[HtmlBody]) IS NOT NULL OR NULLIF([Target].[HtmlBody], [Source].[HtmlBody]) IS NOT NULL OR
+    NULLIF([Source].[Created], [Target].[Created]) IS NOT NULL OR NULLIF([Target].[Created], [Source].[Created]) IS NOT NULL OR
+    NULLIF([Source].[Updated], [Target].[Updated]) IS NOT NULL OR NULLIF([Target].[Updated], [Source].[Updated]) IS NOT NULL)
+THEN
+  UPDATE
+    SET [SubjectTemplate] = [Source].[SubjectTemplate],
+        [PreviewTextTemplate] = [Source].[PreviewTextTemplate],
+        [HtmlBody] = [Source].[HtmlBody],
+        [Created] = [Source].[Created],
+        [Updated] = [Source].[Updated]
+WHEN NOT MATCHED BY TARGET THEN
+  INSERT([PropertyID],[SubjectTemplate],[PreviewTextTemplate],[HtmlBody],[Created],[Updated])
+  VALUES([Source].[PropertyID],[Source].[SubjectTemplate],[Source].[PreviewTextTemplate],[Source].[HtmlBody],[Source].[Created],[Source].[Updated]);
+
+GO
+
 SET IDENTITY_INSERT [dbo].[ICal] ON
 GO
 MERGE INTO [dbo].[ICal] AS [Target]

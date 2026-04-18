@@ -184,6 +184,13 @@
     <Build Include="dbo\Stored Procedures\Property_GetCalendarLastModified.sql" />
     <Build Include="dbo\Tables\PropertyHouseRule.sql" />
     <Build Include="dbo\Tables\PropertySafetyItem.sql" />
+    <Build Include="dbo\Tables\PropertyGuestEmailSchedule.sql" />
+    <Build Include="dbo\Tables\PropertyGuestEmailTemplate.sql" />
+    <Build Include="dbo\Tables\GuestEmailDispatchLog.sql" />
+    <Build Include="dbo\Stored Procedures\Booking_GuestPreArrivalEmail_GetDue.sql" />
+    <Build Include="dbo\Stored Procedures\Property_GuestPreArrivalEmail_GetByID.sql" />
+    <Build Include="dbo\Stored Procedures\GuestEmailDispatch_Reserve.sql" />
+    <Build Include="dbo\Stored Procedures\GuestEmailDispatch_UpdateStatus.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LymmHolidayLets.Db.publish.xml" />

@@ -86,5 +86,35 @@ namespace LymmHolidayLets.Application.Service
                 "Booking confirmation sent to customer Email={CustomerEmail}, PropertyName={PropertyName}",
                 model.Email, model.PropertyName);
         }
+
+        public async Task EmailGuestPreArrivalToCustomer(GuestPreArrivalEmail model)
+        {
+            var subject = await emailTemplateBuilder.BuildSubjectGuestPreArrivalEmail(model);
+            var html = await emailTemplateBuilder.BuildHtmlGuestPreArrivalEmail(model);
+
+            if (string.IsNullOrWhiteSpace(subject))
+            {
+                throw new InvalidOperationException(
+                    $"Guest pre-arrival email subject was empty for PropertyName={model.PropertyName}, Guest={model.Name}.");
+            }
+
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                throw new InvalidOperationException(
+                    $"Guest pre-arrival email HTML was empty for PropertyName={model.PropertyName}, Guest={model.Name}.");
+            }
+
+            await emailService.SendAsync(
+                new EmailMessage
+                {
+                    ToName = model.Name,
+                    ToEmailAddress = model.Email,
+                    Subject = subject
+                }, html);
+
+            logger.LogInformation(
+                "Guest pre-arrival email sent to customer Email={CustomerEmail}, PropertyName={PropertyName}",
+                model.Email, model.PropertyName);
+        }
     }
 }
