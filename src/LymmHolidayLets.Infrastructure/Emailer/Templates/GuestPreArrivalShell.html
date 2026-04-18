@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your stay starts soon</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f7f7f7;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">
+
+  <div style="display:none;font-size:1px;color:#f7f7f7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{PreHeaderText}}</div>
+
+  <table role="presentation" style="width:100%;border-collapse:collapse;background-color:#f7f7f7;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" style="width:100%;max-width:680px;border-collapse:collapse;background-color:#ffffff;border:1px solid #dddddd;border-radius:12px;overflow:hidden;">
+          <tr>
+            <td style="padding:48px 40px 32px;background-color:#ffffff;">
+              <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+                <tr>
+                  <td style="vertical-align:middle;">
+                    <a href="https://lymmholidaylets.com" style="display:inline-block;border:0;">
+                      <img src="https://lymmholidaylets.com/images/Lymm-Holiday-Lets.svg" alt="Lymm Holiday Lets" width="176" height="64" style="display:block;width:176px;height:64px;border:0;" />
+                    </a>
+                  </td>
+                  <td align="right" style="vertical-align:middle;">
+                    <div style="display:inline-block;padding:6px 14px;background-color:#fef3c7;border-radius:20px;font-size:13px;line-height:16px;font-weight:700;color:#92400e;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:0.3px;">Upcoming stay</div>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin:0 0 20px;font-size:30px;line-height:36px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Your stay at {{PropertyName}} starts soon</h1>
+              <p style="margin:0 0 10px;font-size:16px;line-height:26px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Hi {{GuestName}}, here are the details you need before arriving.</p>
+              <p style="margin:0;font-size:16px;line-height:26px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#4b5563;">Please keep this email handy for arrival day.</p>
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <tr>
+            <td style="padding:0 40px 24px;">
+              <table role="presentation" style="width:100%;border-collapse:collapse;">
+                <tr>
+                  <td width="50%" style="padding-right:24px;padding-top:24px;vertical-align:top;">
+                    <p style="margin:0 0 8px;font-size:11px;line-height:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888888;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Check-in</p>
+                    <h2 style="margin:0 0 8px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckInShortDate}}</h2>
+                    <p style="margin:0;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckInTime}}</p>
+                  </td>
+                  <td width="50%" style="padding-left:24px;padding-top:24px;border-left:1px solid #dddddd;vertical-align:top;">
+                    <p style="margin:0 0 8px;font-size:11px;line-height:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888888;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Checkout</p>
+                    <h2 style="margin:0 0 8px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckOutShortDate}}</h2>
+                    <p style="margin:0;font-size:18px;line-height:28px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{CheckOutTime}}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 20px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Before you arrive</h2>
+              <div style="font-size:15px;line-height:24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">
+                {{EmailBodyHtml}}
+              </div>
+            </td>
+          </tr>
+
+          {{ArrivalDetailsSection}}
+
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Where you're staying</h2>
+              <p style="margin:0;font-size:17px;line-height:26px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">{{FullAddress}}</p>
+              <table role="presentation" style="width:100%;border-collapse:collapse;">
+                {{DirectionsBlock}}
+              </table>
+            </td>
+          </tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <tr><td style="padding:0 40px;"><div style="border-top:1px solid #dddddd;"></div></td></tr>
+
+          <tr>
+            <td style="padding:24px 40px;">
+              <h2 style="margin:0 0 12px;font-size:22px;line-height:26px;font-weight:800;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">Need help on arrival?</h2>
+              <p style="margin:0 0 16px;font-size:16px;line-height:24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#222222;">If anything is unclear before you travel or when you arrive, please get in touch.</p>
+              <table role="presentation" style="width:100%;border-collapse:collapse;background-color:#f7f7f7;border:1px solid #dddddd;border-radius:8px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0 0 4px;font-size:11px;line-height:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888888;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Lymm Holiday Lets</p>
+                    <table role="presentation" style="width:100%;border-collapse:collapse;">
+                      <tr>
+                        <td style="padding-top:8px;font-size:13px;line-height:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888888;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Contact</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top:4px;font-size:16px;line-height:24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                          <a href="https://lymmholidaylets.com/contact-us" style="color:#2563eb;font-weight:700;text-decoration:none;">Contact us</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top:12px;font-size:13px;line-height:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888888;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Email</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top:4px;font-size:16px;line-height:24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;word-break:break-word;">
+                          <a href="mailto:matthew@lymmholidaylets.com" style="color:#2563eb;font-weight:700;text-decoration:none;">matthew@lymmholidaylets.com</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top:12px;font-size:13px;line-height:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888888;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Phone</td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top:4px;font-size:16px;line-height:24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+                          <a href="tel:+441925757575" style="color:#2563eb;font-weight:700;text-decoration:none;white-space:nowrap;">+44 1925 757575</a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 40px;background-color:#f7f7f7;border-top:1px solid #dddddd;border-radius:0 0 12px 12px;">
+              <p style="margin:0 0 4px;font-size:14px;line-height:20px;color:#888888;text-align:center;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">Lymm Holiday Lets &nbsp;·&nbsp; 30A, The Cross, Lymm, Cheshire, WA13 0HU</p>
+              <p style="margin:0 0 8px;font-size:14px;line-height:20px;color:#888888;text-align:center;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;"><a href="https://lymmholidaylets.com" style="color:#888888;text-decoration:underline;">lymmholidaylets.com</a></p>
+              <p style="margin:8px 0 0;font-size:12px;line-height:18px;color:#bbbbbb;text-align:center;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">This is an automated pre-arrival email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

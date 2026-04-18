@@ -23,4 +23,8 @@
     <ProjectReference Include="..\LymmHolidayLets.Infrastructure\LymmHolidayLets.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="LymmHolidayLets\CustomerBookingConfirmation.cshtml" />
+  </ItemGroup>
+
 </Project>
